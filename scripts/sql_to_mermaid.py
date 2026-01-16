@@ -113,7 +113,7 @@ if __name__ == "__main__":
         # 결과 출력 (GitHub Actions에서는 파일로 저장)
         print(mermaid_output)
 
-        with open('ERD.md', 'w', encoding='utf-8') as f:
+        with open(output_path, 'w', encoding='utf-8') as f:
             f.write(f"```mermaid\n{mermaid_output}\n```")
 
     except FileNotFoundError:
