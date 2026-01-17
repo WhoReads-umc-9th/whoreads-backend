@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: whoreads
+
+  # [핵심] 'local' 프로필을 포함시켜서, application-local.yml을 읽어오게 함
+  profiles:
+    include: local
+
+  # JPA (공통 설정)
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 100
+    show-sql: true
+    open-in-view: false
+
+  # Jackson (공통 포맷)
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+    time-zone: Asia/Seoul
+
+# Server
+server:
+  port: 8080
+
+# Logging
+logging:
+  level:
+    root: INFO
+    whoreads.backend: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# JWT (기본 구조만 공유)
+jwt:
+  # 실제 배포 시에는 환경변수로 주입하거나 application-prod.yml에서 JWT 관련 설정을 따로 관리함
+  secret: ${JWT_SECRET:your-secret-key-here-change-in-production}
+
+  # 기본값(3600000 = 1시간)을 넣어두되, 환경 변수가 있으면 그걸 우선시함
+  access-token-validity: ${JWT_ACCESS_EXP:3600000}
+
+  # 기본값(604800000 = 7일)
+  refresh-token-validity: ${JWT_REFRESH_EXP:604800000}
