@@ -13,6 +13,10 @@ bin/
 ## Security ##
 *.pem
 *.ppk
+application-local.yml
+
+# Local DB Data
+db/data/
 
 ### STS ###
 .apt_generated
