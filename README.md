@@ -66,6 +66,7 @@ src/main/java/com/whoreads/
 | :--- | :--- | :---: |
 | **🤝 Collaboration Rules** | 브랜치 전략, 커밋 컨벤션, PR 규칙 | [바로가기](./COLLABORATION.md) |
 | **📝 API Specification** | 도메인별 API 엔드포인트 및 응답 구조 | [바로가기](./API_SPEC.md) |
+| **🗄️ Local DB Setup** | 로컬 DB 설정 (MySQL 직접 설치 / Docker) | [바로가기](./docs/LOCAL_DB_SETUP.md) |
 | **🔍 Troubleshooting** | 개발 중 발생한 이슈 및 해결 방법 기록 | [바로가기](./TROUBLESHOOTING.md) |
 
 ---
