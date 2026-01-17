@@ -1,5 +1,3 @@
-ERD를 mermaid 문법 기반 다이어그램으로 확인할 수 있습니다.
-
 ```mermaid
 erDiagram
     quote ||--o{ quote_source : "has"
