@@ -1,27 +1,6 @@
 version: '3.8'
 
 services:
-  db:
-    image: mysql:8.0
-    container_name: whoreads-local-db
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      TZ: Asia/Seoul
-    command:
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
-    volumes:
-      - ./db/data:/var/lib/mysql
-      - ./db/initdb:/docker-entrypoint-initdb.d
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: always
-
   app:
     build:
       context: .
@@ -29,14 +8,8 @@ services:
     container_name: whoreads-app
     ports:
       - "8080:8080"
+    env_file:
+      - .env
     environment:
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_NAME: whoreads
-      USER_NAME: tiger
-      USER_PASSWORD: tiger1234!
       TZ: Asia/Seoul
-    depends_on:
-      db:
-        condition: service_healthy
     restart: always
