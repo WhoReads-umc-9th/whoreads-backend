@@ -5,23 +5,62 @@
 ## 📋 기록 양식
 | 일자 | 제목 | 관련 도메인 | 작성자 |
 | :--- | :--- | :--- | :--- |
-| 26-01-11 | [DB] Connection Timeout 문제 해결 | Infra | 김서연 |
+| 26-01-20 | [Docker] Spring Boot 컨테이너화 시 설정 충돌 | Infra | 김서연 |
 
 ---
 
 ## 📑 주요 이슈 내역
 
-### [Issue #01] 독서 DNA 테스트 가중치 연산 오류
-- **현상**: 특정 응답 조합에서 결과값이 100%를 초과하는 현상 발생.
-- **원인**: `DnaMatchService`에서 소수점 처리 시 반올림 오차가 누적됨.
-- **해결**: 모든 연산을 정수 단위(Integer)로 변경 후 최종 단계에서 퍼센트로 환산하도록 로직 수정.
+### [Issue #01] Health Check API 401 Unauthorized 에러
+- **현상**: `GET /api/health` 요청 시 401 Unauthorized 에러 발생
+- **원인**: `spring-boot-starter-security` 의존성이 포함되어 있으나 `SecurityConfig`가 없어서 모든 엔드포인트에 인증 필요
+- **해결**: `SecurityConfig.java` 추가하여 `/api/health` 엔드포인트를 `permitAll()`로 설정
+```java
+.authorizeHttpRequests(auth -> auth
+    .requestMatchers("/api/health").permitAll()
+    .anyRequest().authenticated()
+)
+```
 
-### [Issue #02] S3 이미지 업로드 권한 오류 (403 Forbidden)
-- **현상**: 유명인 가상 서재 커버 이미지 업로드 시 권한 에러 발생.
-- **원인**: AWS IAM 사용자의 S3 `PutObject` 권한 누락.
-- **해결**: IAM 정책에 해당 버킷의 쓰기 권한 추가 및 환경 변수(`yml`) 최신화.
+### [Issue #02] Docker Alpine 이미지 호환성 에러
+- **현상**: `eclipse-temurin:17-jre-alpine` 이미지 사용 시 런타임 에러 발생
+- **원인**: Alpine Linux는 `musl libc`를 사용하는데, 일부 Java 라이브러리가 `glibc`에 의존
+- **해결**: Alpine 대신 일반 이미지 사용
+```dockerfile
+# 변경 전
+FROM eclipse-temurin:17-jre-alpine
 
-### [Issue #03] 스낵 알림 FCM 토큰 만료 이슈
-- **현상**: 일부 유저에게 스낵 알람이 전송되지 않음.
-- **원인**: 앱 재설치 시 갱신된 FCM 토큰이 DB에 반영되지 않음.
-- **해결**: 로그인 API 호출 시 FCM 토큰을 항상 동기화하도록 수정.
+# 변경 후
+FROM eclipse-temurin:21-jre
+```
+
+### [Issue #03] Gradle 버전 호환성 에러
+- **현상**: Docker 빌드 시 `Could not find method toolchain()` 또는 Spring Boot 플러그인 버전 에러
+- **원인**: Docker 이미지의 Gradle 8.5와 프로젝트가 요구하는 Gradle 8.14+ 버전 불일치
+- **해결**: 시스템 Gradle 대신 프로젝트의 Gradle Wrapper 사용
+```dockerfile
+# 변경 전
+FROM gradle:8.5-jdk17 AS builder
+RUN gradle bootJar --no-daemon -x test
+
+# 변경 후
+FROM eclipse-temurin:21-jdk AS builder
+COPY gradlew ./
+COPY gradle ./gradle
+RUN chmod +x ./gradlew
+RUN ./gradlew bootJar --no-daemon -x test
+```
+
+### [Issue #04] Java 버전 불일치 에러
+- **현상**: Docker 빌드 시 `languageVersion=21`을 찾을 수 없다는 에러 발생
+- **원인**: 프로젝트는 Java 21을 사용하는데 Dockerfile의 베이스 이미지가 Java 17
+- **해결**: Dockerfile의 베이스 이미지를 Java 21로 변경
+```dockerfile
+# 변경 전
+FROM eclipse-temurin:17-jdk AS builder
+FROM eclipse-temurin:17-jre
+
+# 변경 후
+FROM eclipse-temurin:21-jdk AS builder
+FROM eclipse-temurin:21-jre
+```
