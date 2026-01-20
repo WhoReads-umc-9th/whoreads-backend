@@ -13,8 +13,9 @@ Spring Boot 애플리케이션을 Docker 컨테이너로 실행하는 방법을 
 | 파일 | 용도 |
 | :--- | :--- |
 | `docker-compose.yml` | DB만 실행 (로컬 개발용) |
-| `docker-compose.app.yml` | DB + 앱 실행 (통합 테스트/배포용) |
+| `docker-compose.app.yml` | 앱만 실행 (통합 테스트/배포용, 외부 DB 연결) |
 | `Dockerfile` | Spring Boot 앱 이미지 빌드 |
+| `.env` | 환경변수 설정 (DB 연결 정보, 프로필 등) |
 
 ---
 
@@ -36,10 +37,24 @@ docker-compose down
 
 ### 2. 전체 Docker 실행
 
-DB와 Spring Boot 앱 모두 Docker로 실행합니다.
+Spring Boot 앱을 Docker로 실행합니다.
+
+> **중요**: 실행 전 `.env` 파일에 `APP_PROFILE` 환경변수를 설정해야 합니다.
+> - 로컬 개발: `APP_PROFILE=local`
+> - 운영 환경: `APP_PROFILE=prod`
 
 ```bash
-# 전체 실행 (DB + 앱)
+# .env 파일 설정 (로컬 환경 예시)
+APP_PROFILE=local
+DB_HOST=host.docker.internal
+DB_PORT=3306
+DB_NAME=whoreads
+USER_NAME=tiger
+USER_PASSWORD=tiger1234!
+```
+
+```bash
+# 앱 실행
 docker-compose -f docker-compose.app.yml up -d
 
 # 로그 확인
