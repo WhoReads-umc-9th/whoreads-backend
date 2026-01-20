@@ -19,10 +19,8 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/health").permitAll()
-                        // Swagger UI
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .anyRequest().authenticated()
+                        // 개발 환경: 모든 요청 허용
+                        .anyRequest().permitAll()
                 );
 
         return http.build();
