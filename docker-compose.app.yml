@@ -11,5 +11,14 @@ services:
     env_file:
       - .env
     environment:
+      SPRING_PROFILES_ACTIVE: ${APP_PROFILE}
+
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      USER_NAME: ${USER_NAME}
+      USER_PASSWORD: ${USER_PASSWORD}
+
       TZ: Asia/Seoul
+
     restart: always

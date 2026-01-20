@@ -2,10 +2,6 @@ spring:
   application:
     name: whoreads
 
-  # [핵심] 'local' 프로필을 포함시켜서, application-local.yml을 읽어오게 함
-  profiles:
-    include: local
-
   # JPA (공통 설정)
   jpa:
     hibernate:
