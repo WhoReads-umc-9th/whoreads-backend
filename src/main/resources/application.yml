@@ -22,6 +22,11 @@ spring:
     property-naming-strategy: SNAKE_CASE
     time-zone: Asia/Seoul
 
+aladin:
+  api:
+    key: ${ALADIN_KEY}
+    url: "http://www.aladin.co.kr/ttb/api/ItemSearch.aspx"
+
 # Server
 server:
   port: 8080
