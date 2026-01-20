@@ -81,14 +81,14 @@ FROM eclipse-temurin:21-jre
   2. `docker-compose.app.yml`에 환경변수 명시적 추가
   ```yaml
   environment:
-    SPRING_PROFILES_ACTIVE: ${APP_PROFILE}
+    SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
     DB_HOST: ${DB_HOST}
     DB_PORT: ${DB_PORT}
     DB_NAME: ${DB_NAME}
     USER_NAME: ${USER_NAME}
     USER_PASSWORD: ${USER_PASSWORD}
   ```
-  3. `.env` 파일에 `APP_PROFILE=local` (로컬) 또는 `APP_PROFILE=prod` (운영) 설정
+  3. `.env` 파일에 `SPRING_PROFILES_ACTIVE=local` (로컬) 또는 `SPRING_PROFILES_ACTIVE=prod` (운영) 설정
 
 ### [Issue #06] docker-compose 환경변수 위치 오류
 - **현상**: `SPRING_PROFILES_ACTIVE` 환경변수가 무시되고 default 프로필로 실행됨
@@ -115,7 +115,7 @@ FROM eclipse-temurin:21-jre
       env_file:
         - .env
       environment:
-        SPRING_PROFILES_ACTIVE: ${APP_PROFILE}
+        SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
         DB_HOST: ${DB_HOST}
         ...
     nginx:

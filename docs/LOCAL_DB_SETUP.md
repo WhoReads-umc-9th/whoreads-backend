@@ -81,7 +81,7 @@ FLUSH PRIVILEGES;
 
 | 환경변수 | 설명 | 예시 값 |
 | :--- | :--- | :--- |
-| `APP_PROFILE` | Spring 프로필 | `local` |
+| `SPRING_PROFILES_ACTIVE` | Spring 프로필 | `local` |
 | `DB_HOST` | 데이터베이스 호스트 | `localhost` |
 | `DB_PORT` | 데이터베이스 포트 | `3306` |
 | `DB_NAME` | 데이터베이스 이름 | `whoreads` |
@@ -92,7 +92,7 @@ FLUSH PRIVILEGES;
 1. Run → Edit Configurations
 2. Environment variables 항목에 추가:
    ```
-   APP_PROFILE=local;DB_HOST=localhost;DB_PORT=3306;DB_NAME=whoreads;USER_NAME=your_username;USER_PASSWORD=your_password
+   SPRING_PROFILES_ACTIVE=local;DB_HOST=localhost;DB_PORT=3306;DB_NAME=whoreads;USER_NAME=your_username;USER_PASSWORD=your_password
    ```
 
 ---
@@ -182,7 +182,7 @@ Docker 사용 시 아래 값을 환경변수에 설정합니다.
 
 | 환경변수 | 설명 | 값 |
 | :--- | :--- | :--- |
-| `APP_PROFILE` | Spring 프로필 | `local` |
+| `SPRING_PROFILES_ACTIVE` | Spring 프로필 | `local` |
 | `DB_HOST` | 데이터베이스 호스트 | `localhost` |
 | `DB_PORT` | 데이터베이스 포트 | `3306` |
 | `DB_NAME` | 데이터베이스 이름 | `whoreads` |
@@ -193,7 +193,7 @@ Docker 사용 시 아래 값을 환경변수에 설정합니다.
 1. Run → Edit Configurations
 2. Environment variables 항목에 추가:
    ```
-   APP_PROFILE=local;DB_HOST=localhost;DB_PORT=3306;DB_NAME=whoreads;USER_NAME=tiger;USER_PASSWORD=tiger1234!
+   SPRING_PROFILES_ACTIVE=local;DB_HOST=localhost;DB_PORT=3306;DB_NAME=whoreads;USER_NAME=tiger;USER_PASSWORD=tiger1234!
    ```
 
 ---

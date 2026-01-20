@@ -39,13 +39,13 @@ docker-compose down
 
 Spring Boot 앱을 Docker로 실행합니다.
 
-> **중요**: 실행 전 `.env` 파일에 `APP_PROFILE` 환경변수를 설정해야 합니다.
-> - 로컬 개발: `APP_PROFILE=local`
-> - 운영 환경: `APP_PROFILE=prod`
+> **중요**: 실행 전 `.env` 파일에 `SPRING_PROFILES_ACTIVE` 환경변수를 설정해야 합니다.
+> - 로컬 개발: `SPRING_PROFILES_ACTIVE=local`
+> - 운영 환경: `SPRING_PROFILES_ACTIVE=prod`
 
 ```bash
 # .env 파일 설정 (로컬 환경 예시)
-APP_PROFILE=local
+SPRING_PROFILES_ACTIVE=local
 DB_HOST=host.docker.internal
 DB_PORT=3306
 DB_NAME=whoreads
