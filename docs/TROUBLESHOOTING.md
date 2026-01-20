@@ -7,6 +7,7 @@
 | :--- | :--- | :--- | :--- |
 | 26-01-20 | [Docker] Spring Boot 컨테이너화 시 설정 충돌 | Infra | 김서연 |
 | 26-01-20 | [Docker] 환경변수 주입 및 Spring Profile 동적 할당 | Infra | 김서연 |
+| 26-01-20 | [Docker] docker-compose 환경변수 위치 오류 | Infra | 김서연 |
 
 ---
 
@@ -88,3 +89,35 @@ FROM eclipse-temurin:21-jre
     USER_PASSWORD: ${USER_PASSWORD}
   ```
   3. `.env` 파일에 `APP_PROFILE=local` (로컬) 또는 `APP_PROFILE=prod` (운영) 설정
+
+### [Issue #06] docker-compose 환경변수 위치 오류
+- **현상**: `SPRING_PROFILES_ACTIVE` 환경변수가 무시되고 default 프로필로 실행됨
+  ```text
+  No active profile set, falling back to 1 default profile: "default"
+  Failed to configure a DataSource: 'url' attribute is not specified...
+  ```
+- **원인**: `docker-compose.app.yml`에서 `env_file`과 `environment` 블록이 `app` 서비스가 아닌 `nginx` 서비스에 잘못 위치
+  ```yaml
+  # 잘못된 구조
+  services:
+    app:
+      ...
+    nginx:
+      ...
+      env_file:      # ← nginx에 붙어있음!
+      environment:   # ← nginx에 붙어있음!
+  ```
+- **해결**: 환경변수 블록을 `app` 서비스로 이동
+  ```yaml
+  services:
+    app:
+      ...
+      env_file:
+        - .env
+      environment:
+        SPRING_PROFILES_ACTIVE: ${APP_PROFILE}
+        DB_HOST: ${DB_HOST}
+        ...
+    nginx:
+      ...
+  ```
