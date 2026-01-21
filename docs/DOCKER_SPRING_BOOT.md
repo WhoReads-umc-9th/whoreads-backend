@@ -51,6 +51,7 @@ DB_PORT=3306
 DB_NAME=whoreads
 USER_NAME=tiger
 USER_PASSWORD=tiger1234!
+ALADIN_KEY=your_aladin_key
 ```
 
 ```bash

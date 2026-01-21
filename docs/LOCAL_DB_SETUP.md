@@ -87,12 +87,13 @@ FLUSH PRIVILEGES;
 | `DB_NAME` | 데이터베이스 이름 | `whoreads` |
 | `USER_NAME` | 데이터베이스 계정명 | *직접 생성한 계정명 입력* |
 | `USER_PASSWORD` | 데이터베이스 비밀번호 | *직접 생성한 비밀번호 입력* |
+| `ALADIN_KEY` | 알라딘 API 키 | *발급받은 API 키 입력* |
 
 **IntelliJ IDEA 환경변수 설정:**
 1. Run → Edit Configurations
 2. Environment variables 항목에 추가:
    ```
-   SPRING_PROFILES_ACTIVE=local;DB_HOST=localhost;DB_PORT=3306;DB_NAME=whoreads;USER_NAME=your_username;USER_PASSWORD=your_password
+   SPRING_PROFILES_ACTIVE=local;DB_HOST=localhost;DB_PORT=3306;DB_NAME=whoreads;USER_NAME=your_username;USER_PASSWORD=your_password;ALADIN_KEY=your_aladin_key
    ```
 
 ---
@@ -188,12 +189,13 @@ Docker 사용 시 아래 값을 환경변수에 설정합니다.
 | `DB_NAME` | 데이터베이스 이름 | `whoreads` |
 | `USER_NAME` | 데이터베이스 계정명 | `tiger` |
 | `USER_PASSWORD` | 데이터베이스 비밀번호 | `tiger1234!` |
+| `ALADIN_KEY` | 알라딘 API 키 | *발급받은 API 키 입력* |
 
 **IntelliJ IDEA 환경변수 설정:**
 1. Run → Edit Configurations
 2. Environment variables 항목에 추가:
    ```
-   SPRING_PROFILES_ACTIVE=local;DB_HOST=localhost;DB_PORT=3306;DB_NAME=whoreads;USER_NAME=tiger;USER_PASSWORD=tiger1234!
+   SPRING_PROFILES_ACTIVE=local;DB_HOST=localhost;DB_PORT=3306;DB_NAME=whoreads;USER_NAME=tiger;USER_PASSWORD=tiger1234!;ALADIN_KEY=your_aladin_key
    ```
 
 ---
