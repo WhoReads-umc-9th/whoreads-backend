@@ -1,58 +1,60 @@
 package whoreads.backend.global.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
+@JsonPropertyOrder({"isSuccess", "code", "message", "result"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
 
-    private final boolean success;
-    private final int status;
+    private final boolean isSuccess;
+    private final int code;
     private final String message;
-    private final T data;
+    private final T result;
 
-    public static <T> ApiResponse<T> success(T data) {
+    public static <T> ApiResponse<T> success(T result) {
         return ApiResponse.<T>builder()
-                .success(true)
-                .status(200)
+                .isSuccess(true)
+                .code(200)
                 .message("요청이 성공했습니다.")
-                .data(data)
+                .result(result)
                 .build();
     }
 
-    public static <T> ApiResponse<T> success(String message, T data) {
+    public static <T> ApiResponse<T> success(String message, T result) {
         return ApiResponse.<T>builder()
-                .success(true)
-                .status(200)
+                .isSuccess(true)
+                .code(200)
                 .message(message)
-                .data(data)
+                .result(result)
                 .build();
     }
 
     public static ApiResponse<Void> success(String message) {
         return ApiResponse.<Void>builder()
-                .success(true)
-                .status(200)
+                .isSuccess(true)
+                .code(200)
                 .message(message)
                 .build();
     }
 
-    public static <T> ApiResponse<T> created(T data) {
+    public static <T> ApiResponse<T> created(T result) {
         return ApiResponse.<T>builder()
-                .success(true)
-                .status(201)
+                .isSuccess(true)
+                .code(201)
                 .message("리소스가 생성되었습니다.")
-                .data(data)
+                .result(result)
                 .build();
     }
 
-    public static ApiResponse<Void> error(int status, String message) {
+    public static ApiResponse<Void> error(int code, String message) {
         return ApiResponse.<Void>builder()
-                .success(false)
-                .status(status)
+                .isSuccess(false)
+                .code(code)
                 .message(message)
                 .build();
     }
