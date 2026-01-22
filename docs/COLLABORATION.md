@@ -5,23 +5,35 @@
 ## 🌿 Branch Strategy: Git Flow (Simplified)
 CI/CD 분리와 안정적인 배포를 위해 **Git Flow 변형**을 채택합니다.
 
-| 브랜치 | 용도 | 트리거 |
-|--------|------|--------|
-| `main` | 프로덕션 배포용 | CD (prod) |
-| `develop` | 개발 통합 브랜치 | CD (staging) |
-| `feat/#이슈번호-기능명` | 기능 개발 | CI (테스트, 빌드) |
-| `chore/작업명` | 설정/유지보수 | CI |
-| `docs/작업명` | 문서 작업 | - |
+### 브랜치 종류
+| 브랜치 | 용도 | 분기 출발점 | 병합 대상 |
+|--------|------|-------------|-----------|
+| `main` | 프로덕션 배포 | - | - |
+| `develop` | 개발 통합 (staging) | main | main |
+| `feat/#이슈번호-기능명` | 새 기능 개발 | develop | develop |
+| `fix/#이슈번호-버그명` | 버그 수정 | develop | develop |
+| `hotfix/#이슈번호-버그명` | 프로덕션 긴급 수정 | main | main + develop |
+| `chore/작업명` | 설정/유지보수 | develop | develop |
+| `docs/작업명` | 문서 작업 | develop | develop |
 
-### 워크플로우
+### 일반 워크플로우
 ```
-feat/* ──PR──▶ develop ──merge──▶ main
-              (CI + staging)    (prod 배포)
+feat/*, fix/* ──PR──▶ develop ──merge──▶ main
+                     (CI + staging)    (prod 배포)
 ```
 
-1. `feat/*`, `chore/*` 브랜치에서 작업 후 `develop`으로 PR
+1. `feat/*`, `fix/*`, `chore/*` 브랜치에서 작업 후 `develop`으로 PR
 2. CodeRabbit 리뷰 + CI 통과 후 `develop`에 merge → staging 배포
 3. 검증 완료 후 `develop` → `main` merge → production 배포
+
+### Hotfix 워크플로우 (긴급 수정)
+```
+main ◀── hotfix/* ──▶ main + develop
+```
+
+1. `main`에서 `hotfix/*` 브랜치 생성
+2. 수정 후 `main`으로 PR → production 배포
+3. 동일 변경사항을 `develop`에도 merge
 
 ## 💬 Commit Convention
 나중에 히스토리를 쉽게 추적할 수 있도록 아래 형식을 따릅니다.
