@@ -3,30 +3,19 @@ version: '3.8'
 services:
   app:
     build:
-      context: .
+      context: ..
       dockerfile: Dockerfile
     container_name: whoreads-app
     ports:
       - "8080:8080"
     env_file:
-      - .env
+      - ../.env
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
-      USER_NAME: ${USER_NAME}
-      USER_PASSWORD: ${USER_PASSWORD}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
       TZ: Asia/Seoul
-    restart: always
-
-  nginx:
-    image: nginx:latest
-    container_name: whoreads-nginx
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
-    depends_on:
-      - app
     restart: always

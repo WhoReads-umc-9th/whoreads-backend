@@ -106,7 +106,7 @@ Docker를 활용하여 MySQL 컨테이너를 실행하는 방법입니다.
 
 1. **환경 통일**: 모든 팀원이 동일한 MySQL 버전(8.0)과 설정으로 개발
 2. **간편한 초기화**: 컨테이너 삭제 후 재생성으로 깨끗한 DB 환경 복구
-3. **자동 설정**: `docker-compose.yml` 실행만으로 DB, 계정, 권한이 자동 생성
+3. **자동 설정**: `docker/docker-compose.yml` 실행만으로 DB, 계정, 권한이 자동 생성
 4. **충돌 방지**: 로컬에 설치된 다른 MySQL과 독립적으로 운영
 
 ### 2-1. Docker 설치
@@ -144,38 +144,38 @@ sudo usermod -aG docker $USER
 
 ### 2-2. Docker Compose로 MySQL 실행
 
-프로젝트 루트에 있는 `docker-compose.yml` 파일을 사용합니다.
+`docker/docker-compose.yml` 파일을 사용합니다.
 
 ```bash
 # 프로젝트 루트 디렉토리에서 실행
 
 # 컨테이너 시작 (백그라운드)
-docker-compose up -d
+docker-compose -f docker/docker-compose.yml up -d
 
 # 컨테이너 상태 확인
-docker-compose ps
+docker-compose -f docker/docker-compose.yml ps
 
 # 로그 확인
-docker-compose logs -f db
+docker-compose -f docker/docker-compose.yml logs -f db
 
 # 컨테이너 중지
-docker-compose down
+docker-compose -f docker/docker-compose.yml down
 
 # 컨테이너 및 데이터 삭제 (초기화)
-docker-compose down -v
-rm -rf ./db/data
+docker-compose -f docker/docker-compose.yml down -v
+rm -rf ./docker/db/data
 ```
 
 ### 2-3. 자동 생성되는 리소스
 
-`docker-compose.yml` 실행 시 `db/initdb/01_init.sql` 스크립트가 자동 실행되어 다음이 생성됩니다:
+`docker/docker-compose.yml` 실행 시 `docker/db/initdb/01_init.sql` 스크립트가 자동 실행되어 다음이 생성됩니다:
 
 - **데이터베이스**: `whoreads`
 - **계정**: `tiger` / `tiger1234!`
 - **권한**: `whoreads` 데이터베이스에 대한 모든 권한
 
 > **참고**: 기본 계정은 `tiger` / `tiger1234!`로 생성됩니다.
-> 필요시 `db/initdb/01_init.sql` 파일을 수정하여 계정 정보를 변경할 수 있습니다.
+> 필요시 `docker/db/initdb/01_init.sql` 파일을 수정하여 계정 정보를 변경할 수 있습니다.
 
 ### 2-4. 환경변수 설정
 
@@ -187,15 +187,15 @@ Docker 사용 시 아래 값을 환경변수에 설정합니다.
 | `DB_HOST` | 데이터베이스 호스트 | `localhost` |
 | `DB_PORT` | 데이터베이스 포트 | `3306` |
 | `DB_NAME` | 데이터베이스 이름 | `whoreads` |
-| `USER_NAME` | 데이터베이스 계정명 | `tiger` |
-| `USER_PASSWORD` | 데이터베이스 비밀번호 | `tiger1234!` |
+| `DB_USERNAME` | 데이터베이스 계정명 | `tiger` |
+| `DB_PASSWORD` | 데이터베이스 비밀번호 | `tiger1234!` |
 | `ALADIN_KEY` | 알라딘 API 키 | *발급받은 API 키 입력* |
 
 **IntelliJ IDEA 환경변수 설정:**
 1. Run → Edit Configurations
 2. Environment variables 항목에 추가:
    ```
-   SPRING_PROFILES_ACTIVE=local;DB_HOST=localhost;DB_PORT=3306;DB_NAME=whoreads;USER_NAME=tiger;USER_PASSWORD=tiger1234!;ALADIN_KEY=your_aladin_key
+   SPRING_PROFILES_ACTIVE=local;DB_HOST=localhost;DB_PORT=3306;DB_NAME=whoreads;DB_USERNAME=tiger;DB_PASSWORD=tiger1234!;ALADIN_KEY=your_aladin_key
    ```
 
 ---
@@ -221,9 +221,9 @@ Docker 사용 시 아래 값을 환경변수에 설정합니다.
 1. Docker Desktop이 실행 중인지 확인
 2. 기존 데이터 충돌 시 초기화:
    ```bash
-   docker-compose down -v
-   rm -rf ./db/data
-   docker-compose up -d
+   docker-compose -f docker/docker-compose.yml down -v
+   rm -rf ./docker/db/data
+   docker-compose -f docker/docker-compose.yml up -d
    ```
 
 ### 계정 권한 오류

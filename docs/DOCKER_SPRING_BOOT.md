@@ -12,9 +12,9 @@ Spring Boot 애플리케이션을 Docker 컨테이너로 실행하는 방법을 
 
 | 파일 | 용도 |
 | :--- | :--- |
-| `docker-compose.yml` | DB만 실행 (로컬 개발용) |
-| `docker-compose.app.yml` | 앱만 실행 (통합 테스트/배포용, 외부 DB 연결) |
-| `Dockerfile` | Spring Boot 앱 이미지 빌드 |
+| `Dockerfile` | Spring Boot 앱 이미지 빌드 (루트) |
+| `docker/docker-compose.yml` | DB만 실행 (로컬 개발용) |
+| `docker/docker-compose.app.yml` | 앱만 실행 (통합 테스트/배포용, 외부 DB 연결) |
 | `.env` | 환경변수 설정 (DB 연결 정보, 프로필 등) |
 
 ---
@@ -27,10 +27,10 @@ DB만 Docker로 실행하고, Spring Boot는 IDE에서 실행합니다.
 
 ```bash
 # DB 컨테이너 시작
-docker-compose up -d
+docker-compose -f docker/docker-compose.yml up -d
 
 # DB 컨테이너 중지
-docker-compose down
+docker-compose -f docker/docker-compose.yml down
 ```
 
 이후 IntelliJ 등 IDE에서 Spring Boot 애플리케이션을 실행하세요.
@@ -44,25 +44,25 @@ Spring Boot 앱을 Docker로 실행합니다.
 > - 운영 환경: `SPRING_PROFILES_ACTIVE=prod`
 
 ```bash
-# .env 파일 설정 (로컬 환경 예시)
+# .env 파일 설정 (프로젝트 루트에 생성)
 SPRING_PROFILES_ACTIVE=local
 DB_HOST=host.docker.internal
 DB_PORT=3306
 DB_NAME=whoreads
-USER_NAME=tiger
-USER_PASSWORD=tiger1234!
+DB_USERNAME=tiger
+DB_PASSWORD=tiger1234!
 ALADIN_KEY=your_aladin_key
 ```
 
 ```bash
 # 앱 실행
-docker-compose -f docker-compose.app.yml up -d
+docker-compose -f docker/docker-compose.app.yml up -d
 
 # 로그 확인
-docker-compose -f docker-compose.app.yml logs -f app
+docker-compose -f docker/docker-compose.app.yml logs -f app
 
 # 전체 중지
-docker-compose -f docker-compose.app.yml down
+docker-compose -f docker/docker-compose.app.yml down
 ```
 
 ### 3. 앱 이미지 재빌드
@@ -71,7 +71,7 @@ docker-compose -f docker-compose.app.yml down
 
 ```bash
 # 이미지 재빌드 후 실행
-docker-compose -f docker-compose.app.yml up -d --build
+docker-compose -f docker/docker-compose.app.yml up -d --build
 ```
 
 ---
@@ -119,6 +119,6 @@ docker logs whoreads-local-db
 
 ```bash
 # 캐시 없이 완전히 새로 빌드
-docker-compose -f docker-compose.app.yml build --no-cache
-docker-compose -f docker-compose.app.yml up -d
+docker-compose -f docker/docker-compose.app.yml build --no-cache
+docker-compose -f docker/docker-compose.app.yml up -d
 ```

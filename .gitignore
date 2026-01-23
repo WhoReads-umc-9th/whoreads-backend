@@ -22,7 +22,7 @@ postman/globals/
 *.postman_environment.json
 
 # Local DB Data
-db/data/
+docker/db/data/
 
 ### STS ###
 .apt_generated
