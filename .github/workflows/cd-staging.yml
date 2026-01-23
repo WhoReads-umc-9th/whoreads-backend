@@ -119,6 +119,10 @@ jobs:
                 docker rm whoreads-staging-$CURRENT 2>/dev/null || true
               fi
 
+              # 사용하지 않는 이미지 정리
+              echo "Cleaning up unused images..."
+              docker image prune -af --filter "until=24h"
+
               echo "Deployment successful!"
             else
               echo "Health check failed! Rolling back..."
