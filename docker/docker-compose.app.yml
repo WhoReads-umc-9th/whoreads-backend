@@ -3,13 +3,13 @@ version: '3.8'
 services:
   app:
     build:
-      context: .
+      context: ..
       dockerfile: Dockerfile
     container_name: whoreads-app
     ports:
       - "8080:8080"
     env_file:
-      - .env
+      - ../.env
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
       DB_HOST: ${DB_HOST}
