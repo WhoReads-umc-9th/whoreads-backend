@@ -57,24 +57,30 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          envs: DOCKER_IMAGE
           script: |
-            cd /home/${{ secrets.EC2_USER }}/whoreads
+            cd /home/${{ secrets.EC2_USER }}/WhoReads-BE
+
+            # Docker Compose 네트워크 이름 확인
+            NETWORK_NAME=$(docker network ls --filter "name=whoreads" --format "{{.Name}}" | head -1)
+            if [ -z "$NETWORK_NAME" ]; then
+              NETWORK_NAME="whoreads-be_default"
+            fi
 
             # 현재 활성 컨테이너 확인 (blue or green)
             CURRENT=$(docker ps --filter "name=whoreads-staging" --format "{{.Names}}" | grep -oE "(blue|green)" | head -1)
 
             if [ "$CURRENT" = "blue" ]; then
               NEW="green"
-              NEW_PORT=8082
             else
               NEW="blue"
-              NEW_PORT=8081
             fi
 
-            echo "Current: $CURRENT, Deploying to: $NEW (port $NEW_PORT)"
+            echo "Current: $CURRENT, Deploying to: $NEW"
+            echo "Using network: $NETWORK_NAME"
 
             # 새 이미지 pull
-            docker pull ${{ env.DOCKER_IMAGE }}:staging-latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/whoreads:staging-latest
 
             # 새 컨테이너 실행
             docker stop whoreads-staging-$NEW 2>/dev/null || true
@@ -82,31 +88,40 @@ jobs:
 
             docker run -d \
               --name whoreads-staging-$NEW \
-              --network whoreads-network \
-              -p $NEW_PORT:8080 \
+              --network $NETWORK_NAME \
               -e SPRING_PROFILES_ACTIVE=staging \
               -e DB_HOST=${{ secrets.DB_HOST }} \
               -e DB_PORT=${{ secrets.DB_PORT }} \
               -e DB_NAME=${{ secrets.DB_NAME_STAGING }} \
               -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
               -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              ${{ env.DOCKER_IMAGE }}:staging-latest
+              -e ALADIN_KEY=${{ secrets.ALADIN_KEY }} \
+              -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
+              ${{ secrets.DOCKER_USERNAME }}/whoreads:staging-latest
 
             # 헬스체크 대기
             echo "Waiting for health check..."
             sleep 30
 
-            # 헬스체크 확인
-            if curl -s http://localhost:$NEW_PORT/api/health | grep -q "ok"; then
+            # 헬스체크 확인 (Docker 네트워크 내에서 확인)
+            HEALTH=$(docker exec whoreads-staging-$NEW curl -s http://localhost:8080/api/health || echo "failed")
+
+            if echo "$HEALTH" | grep -q "ok"; then
               echo "Health check passed!"
 
-              # Nginx 설정 변경 (staging)
-              sudo sed -i "s/localhost:808[12]/localhost:$NEW_PORT/g" /etc/nginx/sites-available/staging
-              sudo nginx -s reload
+              # Nginx 설정 변경 (컨테이너 이름으로 프록시)
+              sed -i "s/whoreads-staging-\(blue\|green\)\|whoreads-app/whoreads-staging-$NEW/g" ./nginx/conf.d/default.conf
+              docker exec whoreads-nginx nginx -s reload
 
               # 이전 컨테이너 중지
-              docker stop whoreads-staging-$CURRENT 2>/dev/null || true
-              docker rm whoreads-staging-$CURRENT 2>/dev/null || true
+              if [ -n "$CURRENT" ]; then
+                docker stop whoreads-staging-$CURRENT 2>/dev/null || true
+                docker rm whoreads-staging-$CURRENT 2>/dev/null || true
+              fi
+
+              # 사용하지 않는 이미지 정리
+              echo "Cleaning up unused images..."
+              docker image prune -af --filter "until=24h"
 
               echo "Deployment successful!"
             else

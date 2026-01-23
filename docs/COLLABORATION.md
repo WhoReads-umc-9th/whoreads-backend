@@ -13,8 +13,10 @@ CI/CD 분리와 안정적인 배포를 위해 **Git Flow 변형**을 채택합�
 | `feat/#이슈번호-기능명` | 새 기능 개발 | develop | develop |
 | `fix/#이슈번호-버그명` | 버그 수정 | develop | develop |
 | `hotfix/#이슈번호-버그명` | 프로덕션 긴급 수정 | main | main + develop |
-| `chore/작업명` | 설정/유지보수 | develop | develop |
-| `docs/작업명` | 문서 작업 | develop | develop |
+| `chore/#이슈번호-작업명` | 설정/유지보수 | develop | develop |
+| `docs/#이슈번호-작업명` | 문서 작업 | develop | develop |
+
+> **Note**: 연결할 이슈가 없는 경우 `#0`을 사용합니다. (예: `chore/#0-cleanup`)
 
 ### 일반 워크플로우
 ```
