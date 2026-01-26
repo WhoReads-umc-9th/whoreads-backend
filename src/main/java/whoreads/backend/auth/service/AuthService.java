@@ -1,8 +1,7 @@
 package whoreads.backend.auth.service;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import whoreads.backend.auth.dto.AuthReqDto;
+import whoreads.backend.auth.dto.AuthResDto;
 
 /**
  * 인증 관련 비즈니스 로직 Service
@@ -19,13 +18,18 @@ import org.springframework.transaction.annotation.Transactional;
  * - Access Token(1시간) 만료 시 Refresh Token(7일)으로 갱신하지 않으면
  *   사용자가 1시간마다 재로그인해야 하는 불편함 발생
  */
-@Service
-@RequiredArgsConstructor
-@Transactional(readOnly = true)
-public class AuthService {
+public interface AuthService {
 
     // TODO: 로그인 - login(LoginRequest request)
     // TODO: 회원가입 - signup(SignupRequest request)
     // TODO: 로그아웃 - logout(String accessToken)
     // TODO: 토큰 갱신 - refresh(String refreshToken) -> 새 Access Token 반환
+    AuthResDto.JoinData signup(AuthReqDto.JoinRequest dto);
+
+    AuthResDto.LoginData login(AuthReqDto.JoinRequest dto);
+
+    void logout(Long memberId);
+
+    AuthResDto.TokenData refresh(AuthReqDto.RefreshRequest dto);
+    void delete(Long memberId);
 }
