@@ -31,5 +31,6 @@ public interface AuthService {
     void logout(Long memberId);
 
     AuthResDto.TokenData refresh(AuthReqDto.RefreshRequest dto);
+
     void delete(Long memberId);
 }
