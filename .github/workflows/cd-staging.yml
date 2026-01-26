@@ -57,17 +57,45 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: DOCKER_IMAGE
           script: |
-            cd /home/${{ secrets.EC2_USER }}/WhoReads-BE
+            set -e
 
-            # Docker Compose 네트워크 이름 확인
-            NETWORK_NAME=$(docker network ls --filter "name=whoreads" --format "{{.Name}}" | head -1)
-            if [ -z "$NETWORK_NAME" ]; then
-              NETWORK_NAME="whoreads-be_default"
+            # ========================================
+            # 변수 설정
+            # ========================================
+            DEPLOY_DIR="$HOME/whoreads"
+            NETWORK_NAME="whoreads-network"
+            NGINX_CONTAINER="whoreads-nginx"
+            NGINX_CONF="$DEPLOY_DIR/nginx/conf.d/default.conf"
+            DOCKER_IMAGE="${{ secrets.DOCKER_USERNAME }}/whoreads:staging-latest"
+
+            # ========================================
+            # 1. 기초 공사: 디렉토리 및 네트워크 확인/생성
+            # ========================================
+            echo "=== Step 1: Infrastructure Setup ==="
+
+            # 배포 디렉토리 생성 (없으면)
+            if [ ! -d "$DEPLOY_DIR" ]; then
+              echo "Creating deploy directory: $DEPLOY_DIR"
+              mkdir -p "$DEPLOY_DIR"
+              mkdir -p "$DEPLOY_DIR/nginx/conf.d"
             fi
 
-            # 현재 활성 컨테이너 확인 (blue or green)
+            # Docker 네트워크 생성 (없으면)
+            if ! docker network inspect "$NETWORK_NAME" >/dev/null 2>&1; then
+              echo "Creating docker network: $NETWORK_NAME"
+              docker network create "$NETWORK_NAME"
+            else
+              echo "Docker network already exists: $NETWORK_NAME"
+            fi
+
+            cd "$DEPLOY_DIR"
+
+            # ========================================
+            # 2. 현재 상태 확인 및 Blue/Green 결정
+            # ========================================
+            echo "=== Step 2: Determine Blue/Green ==="
+
             CURRENT=$(docker ps --filter "name=whoreads-staging" --format "{{.Names}}" | grep -oE "(blue|green)" | head -1)
 
             if [ "$CURRENT" = "blue" ]; then
@@ -76,19 +104,27 @@ jobs:
               NEW="blue"
             fi
 
-            echo "Current: $CURRENT, Deploying to: $NEW"
-            echo "Using network: $NETWORK_NAME"
+            echo "Current active: ${CURRENT:-none}"
+            echo "Deploying to: $NEW"
 
-            # 새 이미지 pull
-            docker pull ${{ secrets.DOCKER_USERNAME }}/whoreads:staging-latest
+            # ========================================
+            # 3. 새 이미지 Pull
+            # ========================================
+            echo "=== Step 3: Pull Docker Image ==="
+            docker pull "$DOCKER_IMAGE"
 
-            # 새 컨테이너 실행
-            docker stop whoreads-staging-$NEW 2>/dev/null || true
-            docker rm whoreads-staging-$NEW 2>/dev/null || true
+            # ========================================
+            # 4. 새 컨테이너 실행
+            # ========================================
+            echo "=== Step 4: Start New Container ==="
+
+            # 기존 동일 이름 컨테이너 정리
+            docker stop "whoreads-staging-$NEW" 2>/dev/null || true
+            docker rm "whoreads-staging-$NEW" 2>/dev/null || true
 
             docker run -d \
-              --name whoreads-staging-$NEW \
-              --network $NETWORK_NAME \
+              --name "whoreads-staging-$NEW" \
+              --network "$NETWORK_NAME" \
               -e SPRING_PROFILES_ACTIVE=staging \
               -e DB_HOST=${{ secrets.DB_HOST }} \
               -e DB_PORT=${{ secrets.DB_PORT }} \
@@ -97,36 +133,62 @@ jobs:
               -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
               -e ALADIN_KEY=${{ secrets.ALADIN_KEY }} \
               -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
-              ${{ secrets.DOCKER_USERNAME }}/whoreads:staging-latest
+              "$DOCKER_IMAGE"
 
-            # 헬스체크 대기
-            echo "Waiting for health check..."
+            # ========================================
+            # 5. 헬스체크
+            # ========================================
+            echo "=== Step 5: Health Check ==="
+            echo "Waiting for application to start..."
             sleep 30
 
-            # 헬스체크 확인 (Docker 네트워크 내에서 확인)
-            HEALTH=$(docker exec whoreads-staging-$NEW curl -s http://localhost:8080/api/health || echo "failed")
+            # 컨테이너 내부에서 헬스체크 (curl이 없을 경우 wget 시도)
+            HEALTH=$(docker exec "whoreads-staging-$NEW" sh -c 'curl -sf http://localhost:8080/api/health 2>/dev/null || wget -qO- http://localhost:8080/api/health 2>/dev/null' || echo "failed")
 
             if echo "$HEALTH" | grep -q "ok"; then
               echo "Health check passed!"
 
-              # Nginx 설정 변경 (컨테이너 이름으로 프록시)
-              sed -i "s/whoreads-staging-\(blue\|green\)\|whoreads-app/whoreads-staging-$NEW/g" ./nginx/conf.d/default.conf
-              docker exec whoreads-nginx nginx -s reload
+              # ========================================
+              # 6. Nginx 설정 변경 및 리로드 (Docker 방식)
+              # ========================================
+              echo "=== Step 6: Update Nginx Configuration ==="
 
-              # 이전 컨테이너 중지
+              # Host의 Nginx 설정 파일 수정
+              if [ -f "$NGINX_CONF" ]; then
+                sed -i "s/whoreads-staging-\(blue\|green\)/whoreads-staging-$NEW/g" "$NGINX_CONF"
+                echo "Updated nginx config to point to: whoreads-staging-$NEW"
+              else
+                echo "Warning: Nginx config not found at $NGINX_CONF"
+              fi
+
+              # Nginx 컨테이너 리로드
+              if docker ps --filter "name=$NGINX_CONTAINER" --format "{{.Names}}" | grep -q "$NGINX_CONTAINER"; then
+                docker exec "$NGINX_CONTAINER" nginx -s reload
+                echo "Nginx reloaded successfully"
+              else
+                echo "Warning: Nginx container '$NGINX_CONTAINER' not found or not running"
+              fi
+
+              # ========================================
+              # 7. 이전 컨테이너 정리
+              # ========================================
+              echo "=== Step 7: Cleanup Old Container ==="
+
               if [ -n "$CURRENT" ]; then
-                docker stop whoreads-staging-$CURRENT 2>/dev/null || true
-                docker rm whoreads-staging-$CURRENT 2>/dev/null || true
+                docker stop "whoreads-staging-$CURRENT" 2>/dev/null || true
+                docker rm "whoreads-staging-$CURRENT" 2>/dev/null || true
+                echo "Removed old container: whoreads-staging-$CURRENT"
               fi
 
               # 사용하지 않는 이미지 정리
               echo "Cleaning up unused images..."
-              docker image prune -af --filter "until=24h"
+              docker image prune -af --filter "until=24h" || true
 
-              echo "Deployment successful!"
+              echo "=== Deployment Successful! ==="
             else
-              echo "Health check failed! Rolling back..."
-              docker stop whoreads-staging-$NEW 2>/dev/null || true
-              docker rm whoreads-staging-$NEW 2>/dev/null || true
+              echo "=== Health check FAILED! Rolling back... ==="
+              docker logs "whoreads-staging-$NEW" --tail 50
+              docker stop "whoreads-staging-$NEW" 2>/dev/null || true
+              docker rm "whoreads-staging-$NEW" 2>/dev/null || true
               exit 1
             fi
