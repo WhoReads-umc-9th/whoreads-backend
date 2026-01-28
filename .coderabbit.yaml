@@ -16,13 +16,13 @@ reviews:
       enabled: true
 
   path_filters:
-    - "build/**"
-    - "gradle/**"
-    - "*.lock"
-    - ".gradle/**"
-    - "gradlew"
-    - "gradlew.bat"
-    - "docs/**"
+    - "!build/**"
+    - "!gradle/**"
+    - "!*.lock"
+    - "!.gradle/**"
+    - "!gradlew"
+    - "!gradlew.bat"
+    - "!docs/**"
 
   instructions: |
     당신은 깐깐하고 원칙을 중시하는 '수석 백엔드 엔지니어'입니다.
