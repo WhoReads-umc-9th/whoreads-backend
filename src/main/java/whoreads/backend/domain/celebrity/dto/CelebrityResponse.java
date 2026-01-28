@@ -15,7 +15,7 @@ public class CelebrityResponse {
     private String name;
     private String imageUrl;
     private String shortBio;
-    private List<String> tags; // "SINGER", "ACTOR" 처럼 배열로 받음
+    private List<String> jobTags; // 가수, 배우 처럼 한글로 변환해서 전달
 
     public static CelebrityResponse from(Celebrity celebrity) {
         return CelebrityResponse.builder()
@@ -23,10 +23,9 @@ public class CelebrityResponse {
                 .name(celebrity.getName())
                 .imageUrl(celebrity.getImageUrl())
                 .shortBio(celebrity.getShortBio())
-                .tags(
-                        celebrity.getTags().stream()        // 1. 리스트를 펼쳐서
-                                .map(CelebrityTag::getDescription)       // 2. 각각의 한글 설명만 뽑고
-                                .collect(Collectors.toList())   // 3. 다시 리스트로 묶기
+                .jobTags(celebrity.getJobTags().stream()
+                        .map(CelebrityTag::getDescription)
+                        .collect(Collectors.toList())
                 )
                 .build();
     }

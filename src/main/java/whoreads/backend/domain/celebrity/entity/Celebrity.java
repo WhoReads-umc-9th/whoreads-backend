@@ -20,7 +20,7 @@ public class Celebrity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 50) // 이름 좀 길 수도 있으니 50
+    @Column(nullable = false, length = 50)
     private String name;
 
     @Column(name = "image_url", columnDefinition = "TEXT")
@@ -34,19 +34,19 @@ public class Celebrity extends BaseEntity {
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
-            name = "celebrity_tags",          // 1. 자동으로 생길 테이블 이름
-            joinColumns = @JoinColumn(name = "celebrity_id") // 2. 연결 고리(FK)
+            name = "celebrity_job_tags",
+            joinColumns = @JoinColumn(name = "celebrity_id")
     )
-    @Enumerated(EnumType.STRING)          // 3. DB에 "ACTOR", "SINGER" 글자로 저장
-    @Column(name = "tag")                 // 4. 저장될 컬럼명
-    private List<CelebrityTag> tags = new ArrayList<>(); // List로 관리!
+    @Enumerated(EnumType.STRING)
+    @Column(name = "job_tag")
+    private List<CelebrityTag> jobTags = new ArrayList<>();
 
     @Builder
-    public Celebrity(String name, String imageUrl, String shortBio, List<CelebrityTag> tags) {
+    public Celebrity(String name, String imageUrl, String shortBio, String oneLineIntroduction, List<CelebrityTag> jobTags) {
         this.name = name;
         this.imageUrl = imageUrl;
         this.shortBio = shortBio;
         this.oneLineIntroduction = oneLineIntroduction;
-        this.tags = (tags != null) ? tags : new ArrayList<>();
+        this.jobTags = (jobTags != null) ? jobTags : new ArrayList<>();
     }
 }
