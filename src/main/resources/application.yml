@@ -1,7 +1,11 @@
 spring:
   application:
     name: whoreads
-
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+    username: ${USER_NAME}
+    password: ${USER_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
   # JPA (공통 설정)
   jpa:
     hibernate:
@@ -25,7 +29,7 @@ aladin:
 
 # Server
 server:
-  port: 8080
+  port: 9090
 
 # Logging
 logging:
@@ -58,4 +62,4 @@ jwt:
 
 firebase:
   secret:
-    path: "firebase/secret-key.json"
+    path: ${FIREBASE_SECRET_PATH:firebase/secret-key.json}
