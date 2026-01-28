@@ -143,10 +143,10 @@ jobs:
             sleep 30
 
             # 컨테이너 내부에서 헬스체크
-            HEALTH=$(docker exec "whoreads-prod-$NEW" sh -c 'curl -sf http://localhost:8080/api/health 2>/dev/null || wget -qO- http://localhost:8080/api/health 2>/dev/null' || echo "failed")
+            HEALTH=$(docker exec "whoreads-prod-$NEW" curl -s http://localhost:8080/api/health)
 
-            if echo "$HEALTH" | grep -q "ok"; then
-              echo "Health check passed!"
+            if echo "$HEALTH" | grep -q '"status"\s*:\s*"UP"'; then
+              echo "Health check passed! (Status is UP)"
 
               # ========================================
               # 6. Nginx 설정 변경 및 리로드 (Docker 방식)
@@ -186,7 +186,7 @@ jobs:
 
               echo "=== Deployment Successful! ==="
             else
-              echo "=== Health check FAILED! Rolling back... ==="
+              echo "=== Health check FAILED! (Response: $HEALTH) Rolling back... ==="
               docker logs "whoreads-prod-$NEW" --tail 50
               docker stop "whoreads-prod-$NEW" 2>/dev/null || true
               docker rm "whoreads-prod-$NEW" 2>/dev/null || true

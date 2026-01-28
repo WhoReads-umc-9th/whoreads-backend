@@ -6,7 +6,7 @@
 - [ ] 작업 2 (예: 유닛 테스트 작성)
 
 ## 📌 관련 도메인
-- [ ] Member / Celebrity / Book / Library / DNA / Notification
+- [ ] Member / Celebrity / Book / Library / Category / DNA / Notification / Reading Session / Focus
 
 ## 🔗 참고 자료
 - 디자인 시안이나 관련 기획서 링크를 첨부해주세요.

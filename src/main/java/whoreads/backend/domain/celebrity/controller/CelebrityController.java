@@ -1,30 +1,34 @@
 package whoreads.backend.domain.celebrity.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import whoreads.backend.domain.celebrity.controller.docs.CelebrityControllerDocs;
 import whoreads.backend.domain.celebrity.dto.CelebrityResponse;
+import whoreads.backend.domain.celebrity.entity.CelebrityTag;
+import whoreads.backend.domain.celebrity.service.CelebrityService;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/celebrities")
 @RequiredArgsConstructor
-public class CelebrityController {
+public class CelebrityController implements CelebrityControllerDocs {
 
+    private final CelebrityService celebrityService;
+
+    // 1. 목록 조회 (전체 or 태그 필터)
+    @Override
     @GetMapping
-    public List<CelebrityResponse> getAllCelebrities() {
-        return List.of(); // 나중에 Service 연결 > 지금은 빈 리스트
+    public ResponseEntity<List<CelebrityResponse>> getCelebrities(
+            @RequestParam(required = false) CelebrityTag tag) {
+        return ResponseEntity.ok(celebrityService.getCelebrities(tag));
     }
 
+    // 2. 상세 조회
+    @Override
     @GetMapping("/{id}")
-    public CelebrityResponse getCelebrityById(@PathVariable Long id) {
-        // 가짜 데이터 예시 (나중에 지울 것)
-        return CelebrityResponse.builder()
-                .id(id)
-                .name("페이커")
-                .shortBio("LoL 프로게이머")
-                .tags("운동선수")
-                .imageUrl("https://example.com/faker.jpg")
-                .build();
+    public ResponseEntity<CelebrityResponse> getCelebrityById(@PathVariable Long id) {
+        return ResponseEntity.ok(celebrityService.getCelebrity(id));
     }
 }
