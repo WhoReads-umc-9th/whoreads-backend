@@ -2,10 +2,7 @@ package whoreads.backend.domain.notification.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import whoreads.backend.domain.notification.controller.docs.NotificationControllerDocs;
 import whoreads.backend.domain.notification.service.NotificationPushService;
 import whoreads.backend.global.response.ApiResponse;
@@ -18,7 +15,7 @@ public class NotificationController implements NotificationControllerDocs {
     private final NotificationPushService notificationPushService;
 
     @Profile("!prod")
-    @GetMapping("/test")
+    @PostMapping("/test")
     public ApiResponse<Void> sendTestMessage(
             @RequestParam String title,
             @RequestParam(required = false) String body,
