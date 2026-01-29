@@ -34,5 +34,12 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build -x test
 
+      - name: Setup Firebase secret key
+        run: |
+          mkdir -p ./src/main/resources/firebase
+          echo "${{ secrets.FIREBASE_SECRET_JSON_BASE64 }}" | base64 -d > ./src/main/resources/firebase/secret-key.json
+
       - name: Run tests
         run: ./gradlew test
+        env:
+          FIREBASE_SECRET_PATH: ./src/main/resources/firebase/secret-key.json
