@@ -41,4 +41,4 @@ jobs:
       - name: Run tests
         run: ./gradlew test
         env:
-          FIREBASE_SECRET_PATH: src/main/resources/firebase/secret-key.json
+          FIREBASE_SECRET_PATH: firebase/secret-key.json
