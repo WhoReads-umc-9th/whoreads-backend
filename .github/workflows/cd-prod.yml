@@ -51,6 +51,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy Nginx template to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "nginx/default.conf.template"
+          target: "~/whoreads/"
+          strip_components: 0
+
       - name: Deploy to EC2 (Production)
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -79,6 +92,13 @@ jobs:
               echo "Creating deploy directory: $DEPLOY_DIR"
               mkdir -p "$DEPLOY_DIR"
               mkdir -p "$DEPLOY_DIR/nginx/conf.d"
+            fi
+
+            # Nginx 설정 파일이 없으면 템플릿에서 생성
+            NGINX_TEMPLATE="$DEPLOY_DIR/nginx/default.conf.template"
+            if [ ! -f "$NGINX_CONF" ] && [ -f "$NGINX_TEMPLATE" ]; then
+              echo "Creating nginx config from template..."
+              cp "$NGINX_TEMPLATE" "$NGINX_CONF"
             fi
 
             # Docker 네트워크 생성 (없으면)
