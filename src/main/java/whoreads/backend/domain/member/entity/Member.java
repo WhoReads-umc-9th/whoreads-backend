@@ -41,10 +41,10 @@ public class Member extends BaseEntity {
     @Column
     private String dnaTypeName;
 
-    @Column(nullable = false)
+    @Column()
     private String fcmToken;
 
-    @Column(nullable = false)
+    @Column()
     private LocalDateTime fcmTokenUpdatedAt;
 
     @Builder
