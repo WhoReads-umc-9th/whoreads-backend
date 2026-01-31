@@ -8,6 +8,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # [중요] 여기에 DB와 Redis 서비스를 추가해야 합니다!
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: testdb
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -53,7 +69,7 @@ jobs:
           MAIL_PASSWORD: dummy_password
 
           # [4] DB 설정 (테스트에서 H2를 쓰거나 Mocking을 했다면 이 값들은 무시되지만, 에러 방지용으로 채워둠)
-          DB_HOST: localhost
+          DB_HOST: 127.0.0.1
           DB_PORT: 3306
           DB_NAME: testdb
           DB_USERNAME: root
