@@ -2,45 +2,78 @@ package whoreads.backend.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import whoreads.backend.auth.dto.AuthReqDto;
 import whoreads.backend.auth.dto.AuthResDto;
-
-import java.time.LocalDateTime;
+import whoreads.backend.auth.jwt.JwtTokenProvider;
+import whoreads.backend.domain.member.converter.MemberConverter;
+import whoreads.backend.domain.member.entity.Member;
+import whoreads.backend.domain.member.enums.Status;
+import whoreads.backend.domain.member.repository.MemberRepository;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class AuthServiceImpl implements AuthService {
 
+    private final MemberRepository memberRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    private final AuthenticationManagerBuilder authenticationManagerBuilder;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final EmailService emailService;
+    private final StringRedisTemplate redisTemplate;
+
     @Override
-    public AuthResDto.JoinData signup(AuthReqDto.JoinRequest request) {
-        // 더미 데이터 생성
-        AuthResDto.MemberInfo dummyMember = new AuthResDto.MemberInfo(
-                1L,
-                "test",
-                "naver.com",
-                LocalDateTime.now()
-        );
+    public AuthResDto.JoinData signup(AuthReqDto.SignUpRequest dto) {
 
-        AuthResDto.JoinData dummyData = new AuthResDto.JoinData(
-                "dummy_access_token",
-                dummyMember
-        );
+        String email = dto.request().email();
+        if (!emailService.isVerified(email))
+            throw new RuntimeException("이메일 인증이 필요합니다.");
 
-        return dummyData;
+        // 아이디 중복 체크
+        validateDuplicateMember(dto.request().loginId());
+
+        String encodedPassword = passwordEncoder.encode(dto.request().password());
+
+        // 데이터베이스에 사용자 저장
+        Member member = MemberConverter.toMember(dto, encodedPassword);
+        memberRepository.save(member);
+
+        redisTemplate.delete("VERIFIED_" + email);
+
+        String token = jwtTokenProvider.createAccessToken(member.getId());
+
+        return MemberConverter.toJoinData(member, token);
+    }
+
+    private void validateDuplicateMember(String loginId) {
+        if (memberRepository.existsByLoginId(loginId))
+            throw new RuntimeException("이미 사용중인 아이디 입니다. 다른 아이디를 사용하세요.");
     }
 
     @Override
-    public AuthResDto.LoginData login(AuthReqDto.JoinRequest request) {
+    public AuthResDto.TokenData login(AuthReqDto.LoginRequest request) {
 
-        return new AuthResDto.LoginData(
-                1L,
-                "accessToken",
-                "refreshToken"
-        );
+        // 1. 인증 시도
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(request.loginId(), request.password());
+
+        // 2. DB의 사용자와 대조 (여기서 CustomUserDetailsService가 실행됨)
+        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+
+        // 3. 인증 결과에서 ID 추출 (Long 타입으로 변환)
+        Long memberId = Long.parseLong(authentication.getName());
+
+        // 4. 요구사항에 맞춰 토큰 생성 후 반환
+        return jwtTokenProvider.generateTokenResponse(memberId);
     }
 
     @Override
@@ -55,20 +88,25 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResDto.TokenData refresh(AuthReqDto.RefreshRequest request) {
 
+        String refreshToken = request.refreshToken();
+
         // 전달받은 리프레시 토큰이 유효한지 확인
-        // DB에서 해당 토큰을 가진 사용자가 있는지 확인
+        if (!jwtTokenProvider.validateToken(refreshToken))
+            throw new RuntimeException("유효하지 않은 리프레시 토큰입니다.");
 
-        String newAccessToken = "new_access_token";
-        String newRefreshToken = "new_refresh_token";
+        Long memberId = jwtTokenProvider.getMemberIdFromToken(refreshToken);
 
-        return new AuthResDto.TokenData(newAccessToken, newRefreshToken);
+        // 토큰 재발급
+        return jwtTokenProvider.generateTokenResponse(memberId);
     }
 
     @Override
     @Transactional
     public void delete(Long memberId) {
-        // 사용자 조회 후 상태를 'INACTIVE'로 변경 (소프트 딜리트)
-        // member.setStatus(MemberStatus.INACTIVE);
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        member.setStatus(Status.INACTIVE);
         // member.setDeletedAt(LocalDateTime.now());
 
         // 리프레시 토큰은 즉시 삭제하여 접근 차단
