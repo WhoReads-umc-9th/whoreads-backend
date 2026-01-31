@@ -1,17 +1,20 @@
 package whoreads.backend.domain.member.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import whoreads.backend.domain.member.enums.AgeGroup;
+import whoreads.backend.domain.member.enums.Gender;
+import whoreads.backend.domain.member.enums.Status;
 import whoreads.backend.global.entity.BaseEntity;
 
 import java.time.LocalDateTime;
 
+@Builder
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Table
 public class Member extends BaseEntity {
 
     @Id
@@ -32,8 +35,15 @@ public class Member extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(nullable = false, unique = true)
+    private String loginId;
+
     @Column(nullable = false)
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column
+    private Status status;
 
     @Column
     private String dnaType;
@@ -41,21 +51,28 @@ public class Member extends BaseEntity {
     @Column
     private String dnaTypeName;
 
-    @Column()
+    @Column
     private String fcmToken;
 
-    @Column()
+    @Column
     private LocalDateTime fcmTokenUpdatedAt;
 
-    @Builder
-    public Member(String nickname, Gender gender, AgeGroup ageGroup,
-                  String email, String password, String dnaType, String dnaTypeName) {
-        this.nickname = nickname;
-        this.gender = gender;
-        this.ageGroup = ageGroup;
-        this.email = email;
-        this.password = password;
-        this.dnaType = dnaType;
-        this.dnaTypeName = dnaTypeName;
+    private LocalDateTime deletedAt;
+
+    public Status setStatus(Status status) {
+        this.status = status;
+        return status;
     }
+
+//    @Builder
+//    public Member(String nickname, Gender gender, AgeGroup ageGroup,
+//                  String email, String password, String dnaType, String dnaTypeName) {
+//        this.nickname = nickname;
+//        this.gender = gender;
+//        this.ageGroup = ageGroup;
+//        this.email = email;
+//        this.password = password;
+//        this.dnaType = dnaType;
+//        this.dnaTypeName = dnaTypeName;
+//    }
 }
