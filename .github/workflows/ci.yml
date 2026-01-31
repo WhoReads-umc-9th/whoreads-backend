@@ -23,6 +23,12 @@ jobs:
         image: redis:alpine
         ports:
           - 6379:6379
+        # [여기 추가!] Redis가 핑을 받아줄 때까지 기다리는 헬스체크 옵션
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - name: Checkout code
