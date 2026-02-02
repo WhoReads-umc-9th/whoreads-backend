@@ -142,21 +142,18 @@ jobs:
             docker stop "whoreads-staging-$NEW" 2>/dev/null || true
             docker rm "whoreads-staging-$NEW" 2>/dev/null || true
 
-            # Firebase 시크릿 디코딩
-            FIREBASE_JSON=$(echo "${{ secrets.FIREBASE_SECRET_JSON_BASE64 }}" | base64 -d)
-
             docker run -d \
               --name "whoreads-staging-$NEW" \
               --network "$NETWORK_NAME" \
               -e SPRING_PROFILES_ACTIVE=staging \
-              -e DB_HOST=${{ secrets.DB_HOST }} \
-              -e DB_PORT=${{ secrets.DB_PORT }} \
-              -e DB_NAME=${{ secrets.DB_NAME_STAGING }} \
-              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
-              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              -e ALADIN_KEY=${{ secrets.ALADIN_KEY }} \
-              -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
-              -e FIREBASE_SECRET_JSON="$FIREBASE_JSON" \
+              -e DB_HOST="${{ secrets.DB_HOST }}" \
+              -e DB_PORT="${{ secrets.DB_PORT }}" \
+              -e DB_NAME="${{ secrets.DB_NAME_STAGING }}" \
+              -e DB_USERNAME="${{ secrets.DB_USERNAME }}" \
+              -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+              -e ALADIN_KEY="${{ secrets.ALADIN_KEY }}" \
+              -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+              -e FIREBASE_SECRET_BASE64="${{ secrets.FIREBASE_SECRET_JSON_BASE64 }}" \
               "$DOCKER_IMAGE"
 
             # ========================================

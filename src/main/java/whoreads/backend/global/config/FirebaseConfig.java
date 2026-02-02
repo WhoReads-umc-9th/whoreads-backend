@@ -41,11 +41,12 @@ public class FirebaseConfig {
     }
 
     private InputStream getCredentialsStream() throws IOException {
-        // 환경변수 우선 (배포 환경)
-        String firebaseJson = System.getenv("FIREBASE_SECRET_JSON");
-        if (firebaseJson != null && !firebaseJson.isEmpty()) {
-            log.info("Loading Firebase credentials from environment variable");
-            return new ByteArrayInputStream(firebaseJson.getBytes(StandardCharsets.UTF_8));
+        // 환경변수 우선 (배포 환경) - Base64 인코딩된 값
+        String firebaseBase64 = System.getenv("FIREBASE_SECRET_BASE64");
+        if (firebaseBase64 != null && !firebaseBase64.isEmpty()) {
+            log.info("Loading Firebase credentials from environment variable (Base64)");
+            byte[] decoded = java.util.Base64.getDecoder().decode(firebaseBase64);
+            return new ByteArrayInputStream(decoded);
         }
 
         // 환경변수 없으면 파일에서 읽기 (로컬 환경)
