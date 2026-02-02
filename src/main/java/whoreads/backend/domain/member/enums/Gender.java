@@ -1,4 +1,4 @@
-package whoreads.backend.domain.member.entity;
+package whoreads.backend.domain.member.enums;
 
 public enum Gender {
     MALE,

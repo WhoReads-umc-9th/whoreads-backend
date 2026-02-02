@@ -9,11 +9,11 @@ import lombok.Getter;
 
 @Getter
 @Builder
-@JsonPropertyOrder({"isSuccess", "code", "message", "result"})
+@JsonPropertyOrder({"is_success", "code", "message", "result"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
 
-    @JsonProperty("isSuccess")
+    @JsonProperty("is_success")
     private final Boolean isSuccess;
 
     @JsonProperty("code")

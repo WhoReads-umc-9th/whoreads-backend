@@ -54,6 +54,11 @@ cloud:
 server:
   port: 8080
 
+# Firebase (테스트용 더미 - 실제로는 Mock Bean 사용)
+firebase:
+  secret:
+    path: "firebase/dummy-key.json"
+
 # Logging (테스트 시 최소화)
 logging:
   level:

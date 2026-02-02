@@ -18,6 +18,28 @@ spring:
     property-naming-strategy: SNAKE_CASE
     time-zone: Asia/Seoul
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  mail:
+    host: smtp.naver.com
+    port: 465
+    username: ${MAIL_ID}
+    password: ${MAIL_PASSWORD} # 구글 앱 비밀번호
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+            trust: smtp.naver.com
+          socketFactory:
+            class: javax.net.ssl.SSLSocketFactory
+            fallback: false
+            port: 465
+
 aladin:
   api:
     key: ${ALADIN_KEY}
@@ -48,10 +70,14 @@ management:
 # JWT (기본 구조만 공유)
 jwt:
   # 실제 배포 시에는 환경변수로 주입하거나 application-prod.yml에서 JWT 관련 설정을 따로 관리함
-  secret: ${JWT_SECRET:your-secret-key-here-change-in-production}
+  secret: ${JWT_SECRET:v9yB6EPHMbQeThWmZq4t7wzCFJaNdRfUjXn2r5u8xADGkbPeShVkYp3s6v9yB6E}
 
   # 기본값(3600000 = 1시간)을 넣어두되, 환경 변수가 있으면 그걸 우선시함
   access-token-validity: ${JWT_ACCESS_EXP:3600000}
 
   # 기본값(604800000 = 7일)
   refresh-token-validity: ${JWT_REFRESH_EXP:604800000}
+
+firebase:
+  secret:
+    path: ${FIREBASE_SECRET_PATH:firebase/secret-key.json}

@@ -43,7 +43,13 @@ public enum ErrorCode {
     SESSION_ALREADY_ACTIVE(HttpStatus.CONFLICT, "이미 진행 중인 독서 세션이 있습니다."),
 
     // Focus Mode
-    FOCUS_MODE_NOT_FOUND(HttpStatus.NOT_FOUND, "집중 모드 설정을 찾을 수 없습니다.");
+    FOCUS_MODE_NOT_FOUND(HttpStatus.NOT_FOUND, "집중 모드 설정을 찾을 수 없습니다."),
+
+    // Notification
+    FCM_TOKEN_UNREGISTERED(HttpStatus.NOT_FOUND, "유효하지 않거나 만료된 FCM 토큰입니다."),
+    FCM_QUOTA_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "FCM 발송 할당량을 초과했습니다."),
+    FCM_SERVER_UNAVAILABLE(HttpStatus.INTERNAL_SERVER_ERROR, "Firebase 연결 중 오류가 발생하였습니다."),
+    FCM_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "알림 발송 중 오류가 발생하였습니다.");
 
     private final HttpStatus status;
     private final String message;

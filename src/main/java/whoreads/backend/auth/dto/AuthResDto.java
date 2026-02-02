@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 public class AuthResDto {
 
+    @Builder
     public record JoinData(
 //            @Schema(description = "액세스 토큰", example = "eyJhbGciOiJIUzI1...")
             String accessToken,
@@ -14,25 +15,18 @@ public class AuthResDto {
 
     @Builder
     public record MemberInfo(
-//            @Schema(description = "사용자 고유ID", example = "1")
             Long id,
-//            @Schema(description = "사용자 이메일ID", example = "test")
-            String emailId,
-            String emailDomain,
-//            @Schema(description = "생성 일시", example = "2026-01-22T22:00:00")
+            String loginId,
+            String email,
             LocalDateTime createdAt
     ){}
 
     @Builder
-    public record LoginData(
-            Long memberId,
-            String accessToken,
-            String refreshToken
-    ){}
-
-    @Builder
     public record TokenData(
+            Long memberId,
+            String grantType,
             String accessToken,
-            String refreshToken
+            String refreshToken,
+            Long accessTokenExpiresIn
     ){}
 }
