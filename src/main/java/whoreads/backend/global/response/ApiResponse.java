@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Builder;
 import lombok.Getter;
 
+
 @Getter
 @Builder
 @JsonPropertyOrder({"is_success", "code", "message", "result"})
