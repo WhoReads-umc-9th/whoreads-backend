@@ -26,7 +26,14 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     public NotificationResDTO.TotalSettingDTO getNotifications(Long userId, String typeStr) {
-        NotificationType type = (typeStr == null) ? null : NotificationType.valueOf(typeStr.toUpperCase());
+        NotificationType type = null;
+        if (typeStr != null) {
+            try {
+                type = NotificationType.valueOf(typeStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new CustomException(ErrorCode.METHOD_NOT_ALLOWED, "알림 타입이 올바르지 않습니다");
+            }
+        }
         List<Notification> notifications = notificationRepository.findAllByUserIdAndOptionalType(userId, type);
 
         // 팔로우 설정이 없는 경우 추가 (사용자가 처음 진입한 경우)
