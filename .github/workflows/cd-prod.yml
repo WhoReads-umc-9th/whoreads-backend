@@ -142,6 +142,9 @@ jobs:
             docker stop "whoreads-prod-$NEW" 2>/dev/null || true
             docker rm "whoreads-prod-$NEW" 2>/dev/null || true
 
+            # Firebase Base64 키에서 줄바꿈 제거
+            FIREBASE_BASE64=$(echo "${{ secrets.FIREBASE_SECRET_JSON_BASE64 }}" | tr -d '\n')
+
             docker run -d \
               --name "whoreads-prod-$NEW" \
               --network "$NETWORK_NAME" \
@@ -153,7 +156,7 @@ jobs:
               -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
               -e ALADIN_KEY="${{ secrets.ALADIN_KEY }}" \
               -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
-              -e FIREBASE_SECRET_BASE64="${{ secrets.FIREBASE_SECRET_JSON_BASE64 }}" \
+              -e FIREBASE_SECRET_BASE64="$FIREBASE_BASE64" \
               "$DOCKER_IMAGE"
 
             # ========================================
