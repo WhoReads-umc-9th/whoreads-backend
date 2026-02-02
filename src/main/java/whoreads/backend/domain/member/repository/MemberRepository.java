@@ -16,7 +16,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     boolean existsByLoginId(String loginId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("""
         UPDATE Member m
         SET m.fcmToken = null,
@@ -25,7 +25,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     """)
     void clearToken(String token);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("""
           UPDATE Member m
           SET m.fcmToken = null, m.fcmTokenUpdatedAt = null
