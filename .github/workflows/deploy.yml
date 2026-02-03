@@ -177,6 +177,9 @@ jobs:
               -e DB_NAME="${{ secrets.DB_NAME }}" \
               -e DB_USERNAME="${{ secrets.DB_USER }}" \
               -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+              -e REDIS_HOST="whoreads-redis" \
+              -e MAIL_ID="${{ secrets.MAIL_ID }}" \
+              -e MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}" \
               -e ALADIN_KEY="${{ secrets.ALADIN_KEY }}" \
               -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
               -e FIREBASE_SECRET_BASE64="$FIREBASE_BASE64" \
