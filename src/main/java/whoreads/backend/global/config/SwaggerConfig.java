@@ -9,6 +9,7 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -36,6 +37,8 @@ public class SwaggerConfig {
                         .title("WhoReads API Document")
                         .description("WhoReads 서비스의 API 명세서입니다.")
                         .version("1.0.0"))
+                .addServersItem(new Server().url("/").description("Staging(개발)"))
+                .addServersItem(new Server().url("https://api.whoreads.kro.kr").description("Production"))
                 .addSecurityItem(securityRequirement)
                 .components(components);
     }

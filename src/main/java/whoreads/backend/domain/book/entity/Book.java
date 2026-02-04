@@ -35,6 +35,9 @@ public class Book extends BaseEntity {
     @Column(name = "cover_url", columnDefinition = "TEXT")
     private String coverUrl;
 
+    @Column(name = "total_page")
+    private Integer totalPage;
+
     // 책을 조회하면, 이 책에 달린 인용들도 같이 가져올 수 있도록 연결
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)
     private List<BookQuote> quotes = new ArrayList<>();
