@@ -39,23 +39,30 @@ public class NotificationServiceImpl implements NotificationService {
         // 팔로우 설정이 없는 경우 추가 (사용자가 처음 진입한 경우)
         boolean hasFollow = notifications.stream()
                 .anyMatch(n -> n.getType() == NotificationType.FOLLOW);
+        boolean needsFollow = !hasFollow && (type == null || type == NotificationType.FOLLOW);
 
-        if (!hasFollow && (type == null || type == NotificationType.FOLLOW)) {
-            // 유저 조회
-            Member member = memberRepository.findById(userId)
-                    .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        if (needsFollow) {
+            try {
+                // 유저 조회
+                Member member = memberRepository.findById(userId)
+                        .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-            // 팔로우 알림 기본값 등록
-            Notification defaultFollow = Notification.builder()
-                    .member(member)
-                    .type(NotificationType.FOLLOW)
-                    .isEnabled(false)
-                    .build();
-
-            Notification savedFollow = notificationRepository.save(defaultFollow);
-
-            // 기존 리스트에 추가
-            notifications.add(savedFollow);
+                // 팔로우 알림 기본값 등록
+                Notification defaultFollow = Notification.builder()
+                        .member(member)
+                        .type(NotificationType.FOLLOW)
+                        .isEnabled(false)
+                        .build();
+                // saveAndFlush를 사용하여 즉시 DB에 반영해 충돌을 유발시킴
+                Notification savedFollow = notificationRepository.saveAndFlush(defaultFollow);
+                notifications.add(savedFollow);
+            } catch (Exception e) {
+                Notification existingFollow = notificationRepository.findAllByUserIdAndOptionalType(userId, NotificationType.FOLLOW)
+                        .stream().findFirst().orElseThrow(() -> new CustomException(ErrorCode.INTERNAL_SERVER_ERROR, "알림 생성 중 오류가 발생하였습니다."));
+                if (!notifications.contains(existingFollow)) {
+                    notifications.add(existingFollow);
+                }
+            }
         }
         return NotificationConverter.toTotalSettingDTO(notifications);
     }
@@ -75,7 +82,6 @@ public class NotificationServiceImpl implements NotificationService {
         // 3. 타입에 따른 분기 처리
         if (createSettingDTO.type() == NotificationType.FOLLOW) {
             // [FOLLOW] 유저당 하나만 존재
-            // 기존 것이 있으면 가져오고, 없으면 새로 생성
             notification = notificationRepository.findAllByUserIdAndOptionalType(memberId, NotificationType.FOLLOW)
                     .stream()
                     .findFirst()
@@ -93,6 +99,21 @@ public class NotificationServiceImpl implements NotificationService {
                     .days(createSettingDTO.days())
                     .isEnabled(true)
                     .build();
+        }
+        try {
+            // saveAndFlush를 사용하여 중복 체크 강제
+            notification = notificationRepository.saveAndFlush(notification);
+        } catch (Exception e) {
+            // 만약 다른 요청이 FOLLOW를 만들었다면, 다시 조회해서 업데이트
+            if (createSettingDTO.type() == NotificationType.FOLLOW) {
+                notification = notificationRepository.findAllByUserIdAndOptionalType(memberId, NotificationType.FOLLOW)
+                        .stream().findFirst()
+                        .orElseThrow(() -> new CustomException(ErrorCode.INTERNAL_SERVER_ERROR));
+                notification.updateEnabled(createSettingDTO.isEnabled());
+                notification = notificationRepository.save(notification);
+            } else {
+                throw e;
+            }
         }
 
         // 4. 저장 및 DTO 변환 반환
