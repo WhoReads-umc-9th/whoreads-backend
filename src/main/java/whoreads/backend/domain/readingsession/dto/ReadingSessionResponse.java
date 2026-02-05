@@ -5,6 +5,7 @@ import lombok.Getter;
 import whoreads.backend.domain.readingsession.enums.SessionStatus;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 public class ReadingSessionResponse {
@@ -46,5 +47,20 @@ public class ReadingSessionResponse {
     @Builder
     public static class TotalFocus {
         private Long totalMinutes;
+    }
+
+    @Getter
+    @Builder
+    public static class MonthlyRecords {
+        private List<DailyRecord> records;
+    }
+
+    @Getter
+    @Builder
+    public static class DailyRecord {
+        private Integer day;
+        private LocalTime startTime;
+        private LocalTime endTime;
+        private Integer totalMinutes;
     }
 }
