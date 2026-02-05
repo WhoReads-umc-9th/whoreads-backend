@@ -88,7 +88,28 @@ public class NotificationPushServiceImpl implements NotificationPushService {
                     .putData("link", Optional.ofNullable(dto.getLink()).orElse(""))
                     .build();
             try {
-                firebaseMessaging.sendEachForMulticast(message);
+                BatchResponse response = firebaseMessaging.sendEachForMulticast(message);
+
+                if (response.getFailureCount() > 0) {
+                    List<SendResponse> responses = response.getResponses();
+
+                    for (int j = 0; j < responses.size(); j++) {
+                        SendResponse res = responses.get(j);
+
+                        // 1. 성공했거나 예외 정보가 없으면 스킵 (Guard Clause)
+                        if (res.isSuccessful() || res.getException() == null) {
+                            continue;
+                        }
+
+                        // 2. 에러 코드 확인 및 토큰 삭제 처리
+                        MessagingErrorCode errorCode = res.getException().getMessagingErrorCode();
+                        if (errorCode == MessagingErrorCode.UNREGISTERED ||
+                                errorCode == MessagingErrorCode.INVALID_ARGUMENT) {
+
+                            memberRepository.clearToken(subList.get(j));
+                        }
+                    }
+                }
             } catch (FirebaseMessagingException e) {
                 throw new CustomException(ErrorCode.FCM_SEND_FAILED);
             }
