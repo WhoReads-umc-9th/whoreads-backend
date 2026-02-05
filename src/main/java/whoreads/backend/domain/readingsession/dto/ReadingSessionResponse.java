@@ -75,4 +75,18 @@ public class ReadingSessionResponse {
     public static class WhiteNoiseSetting {
         private Boolean whiteNoiseEnabled;
     }
+
+    @Getter
+    @Builder
+    public static class WhiteNoiseList {
+        private List<WhiteNoiseItem> items;
+    }
+
+    @Getter
+    @Builder
+    public static class WhiteNoiseItem {
+        private Long id;
+        private String name;
+        private String audioUrl;
+    }
 }

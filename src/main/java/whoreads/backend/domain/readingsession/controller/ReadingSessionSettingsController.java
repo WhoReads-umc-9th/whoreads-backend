@@ -47,4 +47,11 @@ public class ReadingSessionSettingsController implements ReadingSessionSettingsC
         ReadingSessionResponse.WhiteNoiseSetting result = readingSessionSettingsService.updateWhiteNoiseSetting(request.getWhiteNoiseEnabled());
         return ResponseEntity.ok(ApiResponse.success("백색소음 설정이 변경되었습니다.", result));
     }
+
+    @Override
+    @GetMapping("/white-noise/list")
+    public ResponseEntity<ApiResponse<ReadingSessionResponse.WhiteNoiseList>> getWhiteNoiseList() {
+        ReadingSessionResponse.WhiteNoiseList result = readingSessionSettingsService.getWhiteNoiseList();
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
 }

@@ -11,4 +11,6 @@ public interface ReadingSessionSettingsService {
     ReadingSessionResponse.WhiteNoiseSetting getWhiteNoiseSetting();
 
     ReadingSessionResponse.WhiteNoiseSetting updateWhiteNoiseSetting(Boolean whiteNoiseEnabled);
+
+    ReadingSessionResponse.WhiteNoiseList getWhiteNoiseList();
 }

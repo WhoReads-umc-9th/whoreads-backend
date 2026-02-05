@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import whoreads.backend.domain.readingsession.dto.ReadingSessionResponse;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettingsService {
@@ -55,6 +57,40 @@ public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettings
         // Mock: 요청값 그대로 반환
         return ReadingSessionResponse.WhiteNoiseSetting.builder()
                 .whiteNoiseEnabled(whiteNoiseEnabled)
+                .build();
+    }
+
+    @Override
+    public ReadingSessionResponse.WhiteNoiseList getWhiteNoiseList() {
+        // TODO: 실제 구현 시
+        // DB 또는 S3에서 백색소음 목록 조회
+
+        // Mock 데이터
+        List<ReadingSessionResponse.WhiteNoiseItem> items = List.of(
+                ReadingSessionResponse.WhiteNoiseItem.builder()
+                        .id(1L)
+                        .name("빗소리")
+                        .audioUrl("https://example.com/audio/rain.mp3")
+                        .build(),
+                ReadingSessionResponse.WhiteNoiseItem.builder()
+                        .id(2L)
+                        .name("파도소리")
+                        .audioUrl("https://example.com/audio/wave.mp3")
+                        .build(),
+                ReadingSessionResponse.WhiteNoiseItem.builder()
+                        .id(3L)
+                        .name("카페 소음")
+                        .audioUrl("https://example.com/audio/cafe.mp3")
+                        .build(),
+                ReadingSessionResponse.WhiteNoiseItem.builder()
+                        .id(4L)
+                        .name("모닥불")
+                        .audioUrl("https://example.com/audio/fire.mp3")
+                        .build()
+        );
+
+        return ReadingSessionResponse.WhiteNoiseList.builder()
+                .items(items)
                 .build();
     }
 }

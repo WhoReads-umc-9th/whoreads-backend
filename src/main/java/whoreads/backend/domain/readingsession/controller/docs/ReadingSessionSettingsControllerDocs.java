@@ -141,4 +141,50 @@ public interface ReadingSessionSettingsControllerDocs {
             )
             ReadingSessionRequest.UpdateWhiteNoise request
     );
+
+    @Operation(
+            summary = "백색소음 목록 조회",
+            description = "사용 가능한 백색소음 목록을 조회합니다."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": true,
+                                      "code": 200,
+                                      "message": "요청이 성공했습니다.",
+                                      "result": {
+                                        "items": [
+                                          {
+                                            "id": 1,
+                                            "name": "빗소리",
+                                            "audio_url": "https://example.com/audio/rain.mp3"
+                                          },
+                                          {
+                                            "id": 2,
+                                            "name": "파도소리",
+                                            "audio_url": "https://example.com/audio/wave.mp3"
+                                          },
+                                          {
+                                            "id": 3,
+                                            "name": "카페 소음",
+                                            "audio_url": "https://example.com/audio/cafe.mp3"
+                                          },
+                                          {
+                                            "id": 4,
+                                            "name": "모닥불",
+                                            "audio_url": "https://example.com/audio/fire.mp3"
+                                          }
+                                        ]
+                                      }
+                                    }
+                                    """)
+                    )
+            )
+    })
+    ResponseEntity<ApiResponse<ReadingSessionResponse.WhiteNoiseList>> getWhiteNoiseList();
 }
