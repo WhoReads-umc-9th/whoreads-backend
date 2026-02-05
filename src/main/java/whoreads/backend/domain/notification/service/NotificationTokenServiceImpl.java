@@ -22,10 +22,10 @@ public class NotificationTokenServiceImpl implements NotificationTokenService {
     @Override
     @Transactional
     public void updateToken(Long userId, String token){
+        memberRepository.clearToken(token);
         Member member = memberRepository.findById(userId)
                 .orElseThrow(()->new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         // 이 토큰을 이미 가지고 있는 다른 유저들의 토큰을 먼저 삭제
-        memberRepository.clearToken(token);
         // 내 토큰 업데이트
         member.updateFcmToken(token);
     }
@@ -46,7 +46,7 @@ public class NotificationTokenServiceImpl implements NotificationTokenService {
     /*
     * 매일 2시 30일 지난 토큰 정리
     * */
-    @Scheduled(cron = "0 0 2 * * *")
+    @Scheduled(cron = "0 0 2 * * *",zone = "Asia/Seoul")
     @Transactional
     public void deleteInactiveUsers() {
         LocalDateTime threshold = LocalDateTime.now().minusDays(30);
