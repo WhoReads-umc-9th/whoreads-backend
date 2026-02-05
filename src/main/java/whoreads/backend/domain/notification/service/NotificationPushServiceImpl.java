@@ -32,7 +32,6 @@ public class NotificationPushServiceImpl implements NotificationPushService {
         try {
             firebaseMessaging.send(message);
         } catch (FirebaseMessagingException e) {
-            System.out.println("error in sending message : " + "\n" + e + "\n" + e.getMessagingErrorCode() + e.getMessage());
             MessagingErrorCode errorCode =  e.getMessagingErrorCode();
 
             //유효하지 않은 토큰인 경우 즉시 삭제
@@ -50,22 +49,22 @@ public class NotificationPushServiceImpl implements NotificationPushService {
         return Message.builder()
                 .setToken(fcmToken)
                 // 알림 설정 ( 포그라운드 노출용 )
-//                .setNotification(Notification.builder()
-//                        .setTitle(dto.getTitle())
-//                        .setBody(dto.getBody())
-//                        .build())
+                .setNotification(Notification.builder()
+                        .setTitle(dto.getTitle())
+                        .setBody(dto.getBody())
+                        .build())
                 // ios 전용 설정 ( 알림 클릭 시 동작 및 소리 )
-//                .setApnsConfig(ApnsConfig.builder()
-//                        .setAps(Aps.builder()
-//                                .setCategory("CLICK_ACTION")
-//                                .setSound("default")
-//                                .build())
-//                        .build())
+                .setApnsConfig(ApnsConfig.builder()
+                        .setAps(Aps.builder()
+                                .setCategory("CLICK_ACTION")
+                                .setSound("default")
+                                .build())
+                        .build())
                 // 커스텀 데이터 ( 프론트 확인용 )
-//                .putData("title", dto.getTitle())
-//                .putData("body", dto.getBody())
-//                .putData("type",dto.getType())
-//                .putData("link", Optional.ofNullable(dto.getLink()).orElse(""))
+                .putData("title", dto.getTitle())
+                .putData("body", dto.getBody())
+                .putData("type",dto.getType())
+                .putData("link", Optional.ofNullable(dto.getLink()).orElse(""))
                 .build();
     }
     
