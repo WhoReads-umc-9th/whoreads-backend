@@ -3,6 +3,8 @@ package whoreads.backend.domain.notification.dto;
 import lombok.Builder;
 import lombok.Getter;
 import whoreads.backend.domain.notification.enums.NotificationType;
+import whoreads.backend.global.exception.CustomException;
+import whoreads.backend.global.exception.ErrorCode;
 
 import java.util.Map;
 
@@ -17,8 +19,10 @@ public class FcmMessageDTO {
 
     // NotificationTypes(상위 타입)를 받아서 메시지를 생성하도록 변경
     public static FcmMessageDTO of(NotificationType type, String link, Object... args) {
-        // 아까 연결한 메서드 호출
         String[] generated = type.generateMessage(args);
+        if (generated == null || generated.length < 2){
+            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR,"제목과 본문이 존재하지 않습니다.");
+        }
 
         return FcmMessageDTO.builder()
                 .title(generated[0])
