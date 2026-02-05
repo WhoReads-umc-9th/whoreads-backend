@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class NotificationResDTO {
             @JsonFormat(pattern = "HH:mm")
             String type,
             LocalTime time,
-            List<String> days,
+            List<DayOfWeek> days,
             boolean isEnabled
     ){}
 }

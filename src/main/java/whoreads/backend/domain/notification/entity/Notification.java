@@ -8,6 +8,7 @@ import whoreads.backend.domain.member.entity.Member;
 import whoreads.backend.domain.notification.enums.NotificationType;
 import whoreads.backend.global.entity.BaseEntity;
 
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -32,7 +33,7 @@ public class Notification extends BaseEntity {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "json")
-    private List<String> days;
+    private List<DayOfWeek> days;
 
     private LocalTime time;
 
@@ -44,7 +45,7 @@ public class Notification extends BaseEntity {
     {
         this.isEnabled = isEnabled;
     }
-    public void updateRoutine(LocalTime time, List<String> days, boolean isEnabled) {
+    public void updateRoutine(LocalTime time, List<DayOfWeek> days, boolean isEnabled) {
         this.time = time;
         this.days = days;
         this.isEnabled = isEnabled;

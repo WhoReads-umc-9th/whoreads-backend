@@ -4,17 +4,14 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import whoreads.backend.domain.notification.enums.NotificationType;
 import whoreads.backend.global.exception.CustomException;
 import whoreads.backend.global.exception.ErrorCode;
 
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
 
-@Getter
-@NoArgsConstructor
 public class NotificationReqDTO {
     @Builder
     public record SettingDTO(
@@ -27,7 +24,7 @@ public class NotificationReqDTO {
 
             boolean isEnabled,
 
-            List<String> days
+            List<DayOfWeek> days
     ) {
         //type에 따라 검사
         public void validate() {

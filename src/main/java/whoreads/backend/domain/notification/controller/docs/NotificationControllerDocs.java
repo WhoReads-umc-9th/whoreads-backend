@@ -31,7 +31,8 @@ public interface NotificationControllerDocs {
 
     @Operation(summary = "알림 생성 api", description = "알림 설정을 생성합니다. <br>" +
             "1. **FOLLOW**: `type` 필수. 데이터가 이미 있으면 기존 설정을 업데이트합니다.<br>" +
-            "2. **ROUTINE**: `type`, `days`, `time` 필수.")
+            "2. **ROUTINE**: `type`, `days`, `time` 필수." +
+            "day : MONDAY, TUESDAY,WEDNESDAY,THURSDAY,FRIDAY,SATURDAY,SUNDAY 또는 1~7")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "생성/업데이트 성공"),
             @ApiResponse(responseCode = "400", description = "필수 값 누락 (ROUTINE 시 시간/요일 미입력)"),
