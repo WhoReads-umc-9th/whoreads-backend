@@ -34,4 +34,17 @@ public class ReadingSessionResponse {
         private LocalDateTime endTime;
         private Integer durationMinutes;
     }
+
+    @Getter
+    @Builder
+    public static class TodayFocus {
+        private Integer todayMinutes;
+        private Integer differenceFromYesterday;
+    }
+
+    @Getter
+    @Builder
+    public static class TotalFocus {
+        private Long totalMinutes;
+    }
 }
