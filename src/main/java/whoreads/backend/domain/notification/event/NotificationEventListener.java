@@ -40,7 +40,7 @@ public class NotificationEventListener {
     @Async("WhoReadsAsyncExecutor")
     @EventListener
     public void handleRoutineEvent(NotificationEvent.RoutineEvent event) {
-        FcmMessageDTO message = FcmMessageDTO.of(NotificationType.ROUTINE,null);
+        FcmMessageDTO message = FcmMessageDTO.of(NotificationType.ROUTINE,event);
         pushService.sendMulticast(event.tokens(),message);
     }
 }

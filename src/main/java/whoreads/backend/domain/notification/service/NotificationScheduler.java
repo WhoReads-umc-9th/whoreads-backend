@@ -22,7 +22,7 @@ public class NotificationScheduler {
     private final NotificationRepository notificationRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 * * * * *",zone = "Asia/Seoul")
     public void checkRoutineNotifications() {
         String currentDay = LocalDate.now().getDayOfWeek().name();
         String currentTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
