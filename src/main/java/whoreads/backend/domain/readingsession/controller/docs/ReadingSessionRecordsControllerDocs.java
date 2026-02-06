@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
@@ -56,6 +57,20 @@ public interface ReadingSessionRecordsControllerDocs {
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "잘못된 파라미터 (year: 2000~2100, month: 1~12)",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": false,
+                                      "code": 400,
+                                      "message": "month: 1에서 12 사이여야 합니다."
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
                     description = "인증 실패",
                     content = @Content(
@@ -71,9 +86,19 @@ public interface ReadingSessionRecordsControllerDocs {
             )
     })
     ResponseEntity<ApiResponse<ReadingSessionResponse.MonthlyRecords>> getMonthlyRecords(
-            @Parameter(description = "년도", required = true, example = "2026")
+            @Parameter(
+                    description = "년도 (2000~2100)",
+                    required = true,
+                    example = "2026",
+                    schema = @Schema(minimum = "2000", maximum = "2100")
+            )
             Integer year,
-            @Parameter(description = "월", required = true, example = "2")
+            @Parameter(
+                    description = "월 (1~12)",
+                    required = true,
+                    example = "2",
+                    schema = @Schema(minimum = "1", maximum = "12")
+            )
             Integer month
     );
 }

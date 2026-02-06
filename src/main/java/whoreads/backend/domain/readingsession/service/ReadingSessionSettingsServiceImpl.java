@@ -12,9 +12,9 @@ import java.util.List;
 public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettingsService {
 
     @Override
-    public ReadingSessionResponse.FocusBlockSetting getFocusBlockSetting() {
+    public ReadingSessionResponse.FocusBlockSetting getFocusBlockSetting(Long memberId) {
         // TODO: 실제 구현 시
-        // 1. 로그인한 사용자 조회
+        // 1. memberId로 사용자 조회
         // 2. Member.focusBlockEnabled 값 반환
 
         // Mock: 기본값 false
@@ -24,9 +24,9 @@ public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettings
     }
 
     @Override
-    public ReadingSessionResponse.FocusBlockSetting updateFocusBlockSetting(Boolean focusBlockEnabled) {
+    public ReadingSessionResponse.FocusBlockSetting updateFocusBlockSetting(Long memberId, Boolean focusBlockEnabled) {
         // TODO: 실제 구현 시
-        // 1. 로그인한 사용자 조회
+        // 1. memberId로 사용자 조회
         // 2. Member.focusBlockEnabled 업데이트
         // 3. 변경된 값 반환
 
@@ -37,9 +37,9 @@ public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettings
     }
 
     @Override
-    public ReadingSessionResponse.WhiteNoiseSetting getWhiteNoiseSetting() {
+    public ReadingSessionResponse.WhiteNoiseSetting getWhiteNoiseSetting(Long memberId) {
         // TODO: 실제 구현 시
-        // 1. 로그인한 사용자 조회
+        // 1. memberId로 사용자 조회
         // 2. Member.whiteNoiseEnabled 값 반환
 
         // Mock: 기본값 false
@@ -49,9 +49,9 @@ public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettings
     }
 
     @Override
-    public ReadingSessionResponse.WhiteNoiseSetting updateWhiteNoiseSetting(Boolean whiteNoiseEnabled) {
+    public ReadingSessionResponse.WhiteNoiseSetting updateWhiteNoiseSetting(Long memberId, Boolean whiteNoiseEnabled) {
         // TODO: 실제 구현 시
-        // 1. 로그인한 사용자 조회
+        // 1. memberId로 사용자 조회
         // 2. Member.whiteNoiseEnabled 업데이트
         // 3. 변경된 값 반환
 
@@ -96,9 +96,9 @@ public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettings
     }
 
     @Override
-    public ReadingSessionResponse.BlockedApps getBlockedApps() {
+    public ReadingSessionResponse.BlockedApps getBlockedApps(Long memberId) {
         // TODO: 실제 구현 시
-        // 1. 로그인한 사용자 조회
+        // 1. memberId로 사용자 조회
         // 2. 사용자의 차단 앱 목록 조회
 
         // Mock 데이터
@@ -118,13 +118,13 @@ public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettings
                 .build();
     }
 
-    `@Override`
-    public ReadingSessionResponse.BlockedApps updateBlockedApps(List<ReadingSessionRequest.BlockedAppItem> blockedApps) {
+    @Override
+    public ReadingSessionResponse.BlockedApps updateBlockedApps(Long memberId, List<ReadingSessionRequest.BlockedAppItem> blockedApps) {
         if (blockedApps == null) {
             blockedApps = List.of();
         }
         // TODO: 실제 구현 시
-        // 1. 로그인한 사용자 조회
+        // 1. memberId로 사용자 조회
         // 2. 기존 차단 앱 목록 삭제
         // 3. 새 차단 앱 목록 저장
 

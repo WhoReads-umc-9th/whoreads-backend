@@ -2,6 +2,7 @@ package whoreads.backend.domain.readingsession.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import whoreads.backend.domain.readingsession.controller.docs.ReadingSessionSettingsControllerDocs;
 import whoreads.backend.domain.readingsession.dto.ReadingSessionRequest;
@@ -18,33 +19,39 @@ public class ReadingSessionSettingsController implements ReadingSessionSettingsC
 
     @Override
     @GetMapping("/focus-block")
-    public ResponseEntity<ApiResponse<ReadingSessionResponse.FocusBlockSetting>> getFocusBlockSetting() {
-        ReadingSessionResponse.FocusBlockSetting result = readingSessionSettingsService.getFocusBlockSetting();
+    public ResponseEntity<ApiResponse<ReadingSessionResponse.FocusBlockSetting>> getFocusBlockSetting(
+            @AuthenticationPrincipal Long memberId
+    ) {
+        ReadingSessionResponse.FocusBlockSetting result = readingSessionSettingsService.getFocusBlockSetting(memberId);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     @Override
     @PatchMapping("/focus-block")
     public ResponseEntity<ApiResponse<ReadingSessionResponse.FocusBlockSetting>> updateFocusBlockSetting(
+            @AuthenticationPrincipal Long memberId,
             @RequestBody ReadingSessionRequest.UpdateFocusBlock request
     ) {
-        ReadingSessionResponse.FocusBlockSetting result = readingSessionSettingsService.updateFocusBlockSetting(request.getFocusBlockEnabled());
+        ReadingSessionResponse.FocusBlockSetting result = readingSessionSettingsService.updateFocusBlockSetting(memberId, request.getFocusBlockEnabled());
         return ResponseEntity.ok(ApiResponse.success("집중 차단 모드 설정이 변경되었습니다.", result));
     }
 
     @Override
     @GetMapping("/white-noise")
-    public ResponseEntity<ApiResponse<ReadingSessionResponse.WhiteNoiseSetting>> getWhiteNoiseSetting() {
-        ReadingSessionResponse.WhiteNoiseSetting result = readingSessionSettingsService.getWhiteNoiseSetting();
+    public ResponseEntity<ApiResponse<ReadingSessionResponse.WhiteNoiseSetting>> getWhiteNoiseSetting(
+            @AuthenticationPrincipal Long memberId
+    ) {
+        ReadingSessionResponse.WhiteNoiseSetting result = readingSessionSettingsService.getWhiteNoiseSetting(memberId);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     @Override
     @PatchMapping("/white-noise")
     public ResponseEntity<ApiResponse<ReadingSessionResponse.WhiteNoiseSetting>> updateWhiteNoiseSetting(
+            @AuthenticationPrincipal Long memberId,
             @RequestBody ReadingSessionRequest.UpdateWhiteNoise request
     ) {
-        ReadingSessionResponse.WhiteNoiseSetting result = readingSessionSettingsService.updateWhiteNoiseSetting(request.getWhiteNoiseEnabled());
+        ReadingSessionResponse.WhiteNoiseSetting result = readingSessionSettingsService.updateWhiteNoiseSetting(memberId, request.getWhiteNoiseEnabled());
         return ResponseEntity.ok(ApiResponse.success("백색소음 설정이 변경되었습니다.", result));
     }
 
@@ -57,17 +64,20 @@ public class ReadingSessionSettingsController implements ReadingSessionSettingsC
 
     @Override
     @GetMapping("/blocked-apps")
-    public ResponseEntity<ApiResponse<ReadingSessionResponse.BlockedApps>> getBlockedApps() {
-        ReadingSessionResponse.BlockedApps result = readingSessionSettingsService.getBlockedApps();
+    public ResponseEntity<ApiResponse<ReadingSessionResponse.BlockedApps>> getBlockedApps(
+            @AuthenticationPrincipal Long memberId
+    ) {
+        ReadingSessionResponse.BlockedApps result = readingSessionSettingsService.getBlockedApps(memberId);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     @Override
     @PutMapping("/blocked-apps")
     public ResponseEntity<ApiResponse<ReadingSessionResponse.BlockedApps>> updateBlockedApps(
+            @AuthenticationPrincipal Long memberId,
             @RequestBody ReadingSessionRequest.UpdateBlockedApps request
     ) {
-        ReadingSessionResponse.BlockedApps result = readingSessionSettingsService.updateBlockedApps(request.getBlockedApps());
+        ReadingSessionResponse.BlockedApps result = readingSessionSettingsService.updateBlockedApps(memberId, request.getBlockedApps());
         return ResponseEntity.ok(ApiResponse.success("차단 앱 목록이 저장되었습니다.", result));
     }
 }
