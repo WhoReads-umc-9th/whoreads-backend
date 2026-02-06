@@ -21,7 +21,7 @@ public class NotificationPushServiceImpl implements NotificationPushService {
     private final FirebaseMessaging firebaseMessaging;
     private final MemberRepository memberRepository;
 
-//    @Async("WhoReadsAsyncExecutor")
+    @Async("WhoReadsAsyncExecutor")
     @Transactional
     // 테스트용 알림 1개 발송 메서드
     public void sendNotification(String fcmToken, FcmMessageDTO dto) {
@@ -70,6 +70,7 @@ public class NotificationPushServiceImpl implements NotificationPushService {
     
     // 팔로우나 루틴 알림처럼 대량 발송
     @Async("WhoReadsAsyncExecutor")
+    @Transactional
     public void sendMulticast(List<String> tokens, FcmMessageDTO dto) {
         if (tokens == null || tokens.isEmpty()) return;
 
