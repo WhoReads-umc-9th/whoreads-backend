@@ -22,6 +22,7 @@ public class NotificationPushServiceImpl implements NotificationPushService {
 
     private final FirebaseMessaging firebaseMessaging;
     private final MemberRepository memberRepository;
+    private static final int FCM_BATCH_SIZE = 500;
 
     @Async("WhoReadsAsyncExecutor")
     @Transactional
@@ -74,8 +75,9 @@ public class NotificationPushServiceImpl implements NotificationPushService {
     public void sendMulticast(List<String> tokens, FcmMessageDTO dto) {
         if (tokens == null || tokens.isEmpty()) return;
 
-        for (int i = 0; i < tokens.size(); i += 500) {
-            List<String> subList = tokens.subList(i, Math.min(i + 500, tokens.size()));
+        // 한번에 FCM_BATCH_SIZE 만큼만 발송
+        for (int i = 0; i < tokens.size(); i += FCM_BATCH_SIZE) {
+            List<String> subList = tokens.subList(i, Math.min(i + FCM_BATCH_SIZE, tokens.size()));
 
             MulticastMessage message = MulticastMessage.builder()
                     .addAllTokens(subList)
