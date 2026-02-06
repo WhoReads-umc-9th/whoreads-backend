@@ -1,6 +1,7 @@
 package whoreads.backend.domain.quote.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import whoreads.backend.domain.book.entity.Book;
@@ -9,6 +10,7 @@ import whoreads.backend.domain.book.repository.BookQuoteRepository;
 import whoreads.backend.domain.book.repository.BookRepository;
 import whoreads.backend.domain.celebrity.entity.Celebrity;
 import whoreads.backend.domain.celebrity.repository.CelebrityRepository;
+import whoreads.backend.domain.notification.event.NotificationEvent;
 import whoreads.backend.domain.quote.dto.QuoteRequest;
 import whoreads.backend.domain.quote.dto.QuoteResponse;
 import whoreads.backend.domain.quote.entity.Quote;
@@ -32,6 +34,7 @@ public class QuoteService {
     private final BookQuoteRepository bookQuoteRepository;
     private final QuoteContextRepository quoteContextRepository;
     private final QuoteSourceRepository quoteSourceRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
     public void registerQuote(QuoteRequest request) {
@@ -81,6 +84,10 @@ public class QuoteService {
                     .build();
             quoteContextRepository.save(context);
         }
+        applicationEventPublisher.publishEvent(
+                new NotificationEvent.FollowEvent
+                        (celebrity.getId(), celebrity.getName(),
+                                book.getId(), book.getTitle(),book.getAuthorName()));
     }
 
     // 1. 책 ID로 인용 목록 조회 (책 상세 페이지용)
