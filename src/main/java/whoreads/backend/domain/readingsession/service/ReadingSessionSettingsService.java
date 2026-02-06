@@ -17,5 +17,11 @@ public interface ReadingSessionSettingsService {
 
     ReadingSessionResponse.BlockedApps getBlockedApps();
 
-    ReadingSessionResponse.BlockedApps updateBlockedApps(java.util.List<ReadingSessionRequest.BlockedAppItem> blockedApps);
+import whoreads.backend.domain.readingsession.dto.ReadingSessionRequest;
+import whoreads.backend.domain.readingsession.dto.ReadingSessionResponse;
+import java.util.List;
+
+public interface ReadingSessionSettingsService {
+    ReadingSessionResponse.BlockedApps updateBlockedApps(List<ReadingSessionRequest.BlockedAppItem> blockedApps);
+}
 }
