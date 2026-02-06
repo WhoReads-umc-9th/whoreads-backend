@@ -40,20 +40,6 @@ public interface ReadingSessionStatsControllerDocs {
                                     }
                                     """)
                     )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "401",
-                    description = "인증 실패",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "is_success": false,
-                                      "code": 401,
-                                      "message": "인증이 필요합니다."
-                                    }
-                                    """)
-                    )
             )
     })
     ResponseEntity<ApiResponse<ReadingSessionResponse.TodayFocus>> getTodayFocus();
@@ -76,20 +62,6 @@ public interface ReadingSessionStatsControllerDocs {
                                       "result": {
                                         "total_minutes": 1234
                                       }
-                                    }
-                                    """)
-                    )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "401",
-                    description = "인증 실패",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "is_success": false,
-                                      "code": 401,
-                                      "message": "인증이 필요합니다."
                                     }
                                     """)
                     )

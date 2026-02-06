@@ -39,20 +39,6 @@ public interface UserBookControllerDocs {
                                     }
                                     """)
                     )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "401",
-                    description = "인증 실패",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "is_success": false,
-                                      "code": 401,
-                                      "message": "인증이 필요합니다."
-                                    }
-                                    """)
-                    )
             )
     })
     ResponseEntity<ApiResponse<UserBookResponse.Summary>> getLibrarySummary();
@@ -108,20 +94,6 @@ public interface UserBookControllerDocs {
                                     }
                                     """)
                     )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "401",
-                    description = "인증 실패",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "is_success": false,
-                                      "code": 401,
-                                      "message": "인증이 필요합니다."
-                                    }
-                                    """)
-                    )
             )
     })
     ResponseEntity<ApiResponse<UserBookResponse.BookList>> getBookList(
@@ -165,20 +137,6 @@ public interface UserBookControllerDocs {
                                       "is_success": false,
                                       "code": 404,
                                       "message": "책을 찾을 수 없습니다."
-                                    }
-                                    """)
-                    )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "401",
-                    description = "인증 실패",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "is_success": false,
-                                      "code": 401,
-                                      "message": "인증이 필요합니다."
                                     }
                                     """)
                     )
@@ -243,20 +201,6 @@ public interface UserBookControllerDocs {
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "401",
-                    description = "인증 실패",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "is_success": false,
-                                      "code": 401,
-                                      "message": "인증이 필요합니다."
-                                    }
-                                    """)
-                    )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
                     description = "책 추가 기록을 찾을 수 없음",
                     content = @Content(
@@ -296,20 +240,6 @@ public interface UserBookControllerDocs {
                                       "is_success": true,
                                       "code": 200,
                                       "message": "서재에서 책이 삭제되었습니다."
-                                    }
-                                    """)
-                    )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "401",
-                    description = "인증 실패",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "is_success": false,
-                                      "code": 401,
-                                      "message": "인증이 필요합니다."
                                     }
                                     """)
                     )

@@ -36,20 +36,6 @@ public interface ReadingSessionControllerDocs {
                                     }
                                     """)
                     )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "401",
-                    description = "인증 실패",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "is_success": false,
-                                      "code": 401,
-                                      "message": "인증이 필요합니다."
-                                    }
-                                    """)
-                    )
             )
     })
     ResponseEntity<ApiResponse<ReadingSessionResponse.StartResult>> startSession(
@@ -99,20 +85,6 @@ public interface ReadingSessionControllerDocs {
                                       "is_success": false,
                                       "code": 400,
                                       "message": "진행 중인 세션만 일시정지할 수 있습니다."
-                                    }
-                                    """)
-                    )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "401",
-                    description = "인증 실패",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "is_success": false,
-                                      "code": 401,
-                                      "message": "인증이 필요합니다."
                                     }
                                     """)
                     )
@@ -169,20 +141,6 @@ public interface ReadingSessionControllerDocs {
                                     }
                                     """)
                     )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "401",
-                    description = "인증 실패",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "is_success": false,
-                                      "code": 401,
-                                      "message": "인증이 필요합니다."
-                                    }
-                                    """)
-                    )
             )
     })
     ResponseEntity<ApiResponse<Void>> resumeSession(
@@ -233,20 +191,6 @@ public interface ReadingSessionControllerDocs {
                                       "is_success": false,
                                       "code": 400,
                                       "message": "이미 완료된 세션입니다."
-                                    }
-                                    """)
-                    )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "401",
-                    description = "인증 실패",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "is_success": false,
-                                      "code": 401,
-                                      "message": "인증이 필요합니다."
                                     }
                                     """)
                     )
