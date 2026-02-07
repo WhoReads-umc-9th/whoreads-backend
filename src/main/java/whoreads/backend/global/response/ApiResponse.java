@@ -60,6 +60,15 @@ public class ApiResponse<T> {
                 .build();
     }
 
+    public static <T> ApiResponse<T> created(String message, T result) {
+        return ApiResponse.<T>builder()
+                .isSuccess(true)
+                .code(201)
+                .message(message)
+                .result(result)
+                .build();
+    }
+
     public static ApiResponse<Void> error(int code, String message) {
         return ApiResponse.<Void>builder()
                 .isSuccess(false)

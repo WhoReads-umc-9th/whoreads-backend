@@ -64,6 +64,7 @@ public class Member extends BaseEntity {
         return status;
     }
 
+
 //    @Builder
 //    public Member(String nickname, Gender gender, AgeGroup ageGroup,
 //                  String email, String password, String dnaType, String dnaTypeName) {
@@ -75,4 +76,9 @@ public class Member extends BaseEntity {
 //        this.dnaType = dnaType;
 //        this.dnaTypeName = dnaTypeName;
 //    }
+    public void updateFcmToken(String fcmToken){
+        this.fcmToken = fcmToken;
+        this.fcmTokenUpdatedAt = LocalDateTime.now();
+    }
 }
+
