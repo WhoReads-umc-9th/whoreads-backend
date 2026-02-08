@@ -206,17 +206,66 @@ CREATE TABLE `reading_interval` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
--- 15. DnaType (독서 DNA 타입) - 미구현 상태
+-- 15. TestTrack (DNA 테스트 트랙)
 -- =============================================
-CREATE TABLE `dna_type` (
+CREATE TABLE `test_track` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `code` VARCHAR(50) NOT NULL COMMENT 'COMFORT, HABIT, GROWTH 등',
+    `name` VARCHAR(100) NOT NULL COMMENT '사용자용 이름 (마음 정리/위로 등)',
     `created_at` DATETIME(6) NOT NULL,
     `updated_at` DATETIME(6) NOT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
--- 16. FocusTimerSetting (집중 타이머 설정)
+-- 16. TestQuestion (DNA 테스트 질문)
+-- =============================================
+CREATE TABLE `test_question` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `track_id` BIGINT NOT NULL,
+    `step` INT NOT NULL COMMENT '질문 순서 (1, 2, 3, 4, 5)',
+    `content` TEXT NOT NULL COMMENT '질문 내용',
+    `created_at` DATETIME(6) NOT NULL,
+    `updated_at` DATETIME(6) NOT NULL,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_test_question_track` FOREIGN KEY (`track_id`) REFERENCES `test_track` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================
+-- 17. TestOption (DNA 테스트 선택지)
+-- =============================================
+CREATE TABLE `test_option` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `question_id` BIGINT NOT NULL,
+    `track_id` BIGINT NULL,
+    `content` TEXT NOT NULL COMMENT '선택지 내용',
+    `genre` VARCHAR(50) NOT NULL COMMENT '관련 장르',
+    `score` INT NOT NULL COMMENT '선택 시 장르 점수',
+    `created_at` DATETIME(6) NOT NULL,
+    `updated_at` DATETIME(6) NOT NULL,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_test_option_question` FOREIGN KEY (`question_id`) REFERENCES `test_question` (`id`),
+    CONSTRAINT `fk_test_option_track` FOREIGN KEY (`track_id`) REFERENCES `test_track` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================
+-- 18. TestResult (DNA 테스트 결과)
+-- =============================================
+CREATE TABLE `test_result` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `member_id` BIGINT NOT NULL,
+    `track_id` BIGINT NOT NULL,
+    `celebrity_id` BIGINT NOT NULL,
+    `created_at` DATETIME(6) NOT NULL,
+    `updated_at` DATETIME(6) NOT NULL,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_test_result_member` FOREIGN KEY (`member_id`) REFERENCES `member` (`id`),
+    CONSTRAINT `fk_test_result_track` FOREIGN KEY (`track_id`) REFERENCES `test_track` (`id`),
+    CONSTRAINT `fk_test_result_celebrity` FOREIGN KEY (`celebrity_id`) REFERENCES `celebrity` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================
+-- 19. FocusTimerSetting (집중 타이머 설정)
 -- =============================================
 CREATE TABLE `focus_timer_setting` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
@@ -230,7 +279,7 @@ CREATE TABLE `focus_timer_setting` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
--- 17. WhiteNoise (백색소음 마스터)
+-- 20. WhiteNoise (백색소음 마스터)
 -- =============================================
 CREATE TABLE `white_noise` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
@@ -242,7 +291,7 @@ CREATE TABLE `white_noise` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
--- 18. BlockedApp (사용자별 차단 앱) - 미구현 가능성 있음
+-- 21. BlockedApp (사용자별 차단 앱) - 미구현 가능성 있음
 -- =============================================
 CREATE TABLE `blocked_app` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
@@ -265,3 +314,35 @@ CREATE INDEX `idx_notification_member` ON `notification` (`member_id`);
 CREATE INDEX `idx_reading_session_member` ON `reading_session` (`member_id`);
 CREATE INDEX `idx_reading_interval_session` ON `reading_interval` (`session_id`);
 CREATE INDEX `idx_blocked_app_member` ON `blocked_app` (`member_id`);
+CREATE INDEX `idx_test_question_track` ON `test_question` (`track_id`);
+CREATE INDEX `idx_test_option_question` ON `test_option` (`question_id`);
+CREATE INDEX `idx_test_result_member` ON `test_result` (`member_id`);
+
+-- =============================================
+-- Triggers (context_score 자동 계산)
+-- =============================================
+-- quote_context INSERT 시 quote.context_score 자동 업데이트
+-- how: +1, when: +1, why: +2, help: +1
+DELIMITER //
+CREATE TRIGGER `trg_quote_context_insert` AFTER INSERT ON `quote_context`
+FOR EACH ROW
+BEGIN
+    DECLARE score INT DEFAULT 0;
+    IF NEW.context_how IS NOT NULL AND NEW.context_how != '' THEN SET score = score + 1; END IF;
+    IF NEW.context_when IS NOT NULL AND NEW.context_when != '' THEN SET score = score + 1; END IF;
+    IF NEW.context_why IS NOT NULL AND NEW.context_why != '' THEN SET score = score + 2; END IF;
+    IF NEW.context_help IS NOT NULL AND NEW.context_help != '' THEN SET score = score + 1; END IF;
+    UPDATE `quote` SET `context_score` = score WHERE `quote_id` = NEW.quote_id;
+END //
+
+CREATE TRIGGER `trg_quote_context_update` AFTER UPDATE ON `quote_context`
+FOR EACH ROW
+BEGIN
+    DECLARE score INT DEFAULT 0;
+    IF NEW.context_how IS NOT NULL AND NEW.context_how != '' THEN SET score = score + 1; END IF;
+    IF NEW.context_when IS NOT NULL AND NEW.context_when != '' THEN SET score = score + 1; END IF;
+    IF NEW.context_why IS NOT NULL AND NEW.context_why != '' THEN SET score = score + 2; END IF;
+    IF NEW.context_help IS NOT NULL AND NEW.context_help != '' THEN SET score = score + 1; END IF;
+    UPDATE `quote` SET `context_score` = score WHERE `quote_id` = NEW.quote_id;
+END //
+DELIMITER ;

@@ -1,3 +1,7 @@
+# WhoReads ERD
+
+> ERD Cloud: https://www.erdcloud.com/d/vymgaEnwdvs8Pf2HL
+
 ```mermaid
 erDiagram
     quote ||--o{ quote_source : "has"
