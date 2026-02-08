@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import whoreads.backend.domain.member.entity.Member;
 import whoreads.backend.domain.member.repository.MemberRepository;
-import whoreads.backend.domain.notification.converter.NotificationSettingConverter;
+import whoreads.backend.domain.notification.converter.NotificationConverter;
 import whoreads.backend.domain.notification.dto.NotificationReqDTO;
 import whoreads.backend.domain.notification.dto.NotificationResDTO;
 import whoreads.backend.domain.notification.entity.NotificationSetting;
@@ -57,7 +57,7 @@ public class NotificationSettingServiceImpl implements NotificationSettingServic
             // 기존 리스트에 추가
             notifications.add(savedFollow);
         }
-        return NotificationSettingConverter.toTotalSettingDTO(notifications);
+        return NotificationConverter.toTotalSettingDTO(notifications);
     }
 
     @Override
@@ -97,7 +97,7 @@ public class NotificationSettingServiceImpl implements NotificationSettingServic
 
         // 4. 저장 및 DTO 변환 반환
         notification = notificationSettingRepository.save(notification);
-        return NotificationSettingConverter.toSettingDTO(notification);
+        return NotificationConverter.toSettingDTO(notification);
     }
 
     @Override
@@ -121,7 +121,7 @@ public class NotificationSettingServiceImpl implements NotificationSettingServic
             );
         }
         notificationSettingRepository.save(notification);
-        return NotificationSettingConverter.toSettingDTO(notification);
+        return NotificationConverter.toSettingDTO(notification);
     }
     @Override
     public void deleteNotificationSetting(Long userId, Long notificationSettingId) {

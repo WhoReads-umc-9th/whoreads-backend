@@ -1,12 +1,14 @@
 package whoreads.backend.domain.notification.converter;
 
 import whoreads.backend.domain.notification.dto.NotificationResDTO;
+import whoreads.backend.domain.notification.entity.NotificationHistory;
 import whoreads.backend.domain.notification.entity.NotificationSetting;
 import whoreads.backend.domain.notification.enums.NotificationType;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class NotificationSettingConverter {
+public class NotificationConverter {
 
     // 모든 타입을 이 메서드 하나로 변환합니다.
     public static NotificationResDTO.SettingDTO toSettingDTO(NotificationSetting notification) {
@@ -25,18 +27,49 @@ public class NotificationSettingConverter {
         NotificationResDTO.SettingDTO follow = notifications.stream()
                 .filter(n -> n.getType() == NotificationType.FOLLOW)
                 .findFirst()
-                .map(NotificationSettingConverter::toSettingDTO)
+                .map(NotificationConverter::toSettingDTO)
                 .orElse(null);
 
         // 2. ROUTINE 타입들 찾기
         List<NotificationResDTO.SettingDTO> routines = notifications.stream()
                 .filter(n -> n.getType() == NotificationType.ROUTINE)
-                .map(NotificationSettingConverter::toSettingDTO)
+                .map(NotificationConverter::toSettingDTO)
                 .toList();
 
         return NotificationResDTO.TotalSettingDTO.builder()
                 .followSetting(follow)
                 .routineSettings(routines)
+                .build();
+    }
+    public static NotificationResDTO.HistoryDTO toHistoryDTO(NotificationHistory history) {
+        return NotificationResDTO.HistoryDTO.builder()
+                .id(history.getId())
+                .title(history.getTitle())
+                .body(history.getBody())
+                .type(history.getType().name())
+                .createdAt(history.getCreatedAt())
+                .link(history.getLink())
+                .build();
+    }
+
+    public static NotificationResDTO.TotalInboxDTO toTotalInboxDTO(List<NotificationHistory> histories, int size) {
+
+        boolean hasNext = histories.size() > size;
+
+        List<NotificationHistory> contentList = hasNext
+                ? histories.subList(0, size)
+                : histories;
+
+        List<NotificationResDTO.HistoryDTO> contents = contentList.stream()
+                .map(NotificationConverter::toHistoryDTO)
+                .collect(Collectors.toList());
+
+        Long nextCursor = contentList.isEmpty() ? null : contentList.getLast().getId();
+
+        return NotificationResDTO.TotalInboxDTO.builder()
+                .contents(contents)
+                .nextCursor(nextCursor)
+                .hasNext(hasNext)
                 .build();
     }
 }

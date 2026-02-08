@@ -6,13 +6,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import whoreads.backend.domain.notification.dto.NotificationReqDTO;
 import whoreads.backend.domain.notification.dto.NotificationResDTO;
-
-import java.util.List;
 
 @Tag(name = "Notification (알림)", description = "알림 내역 조회 및 발송 테스트 API")
 public interface NotificationControllerDocs {

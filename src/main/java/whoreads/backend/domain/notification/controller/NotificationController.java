@@ -44,7 +44,7 @@ public class NotificationController implements NotificationControllerDocs {
                "사용자의 알림들을 성공적으로 조회하였습니다.",
                 notificationHistoryService.getNotificationHistory(memberId,cursor,size)
        );
-    };
+    }
     // 알림 수신 처리 ( 삭제 )
     @DeleteMapping("/inbox/{notification_id}")
     public ApiResponse<Void> deleteNotification(

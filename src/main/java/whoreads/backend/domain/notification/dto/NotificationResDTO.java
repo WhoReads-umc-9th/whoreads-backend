@@ -43,6 +43,7 @@ public class NotificationResDTO {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record HistoryDTO(
             Long id,
+            String type,
             String title,
             String body,
             String link,

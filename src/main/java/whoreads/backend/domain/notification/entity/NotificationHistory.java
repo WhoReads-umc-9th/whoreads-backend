@@ -30,6 +30,6 @@ public class NotificationHistory extends BaseEntity {
     @Column(nullable = false)
     private String body;
 
-    @Column(nullable = false)
+    @Column()
     private String link;
 }
