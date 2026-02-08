@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,10 +26,11 @@ public class ReadingSessionRecordsController implements ReadingSessionRecordsCon
     @Override
     @GetMapping("/monthly")
     public ResponseEntity<ApiResponse<ReadingSessionResponse.MonthlyRecords>> getMonthlyRecords(
+            @AuthenticationPrincipal Long memberId,
             @RequestParam @Min(2000) @Max(2100) Integer year,
             @RequestParam @Min(1) @Max(12) Integer month
     ) {
-        ReadingSessionResponse.MonthlyRecords result = readingSessionRecordsService.getMonthlyRecords(year, month);
+        ReadingSessionResponse.MonthlyRecords result = readingSessionRecordsService.getMonthlyRecords(memberId, year, month);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 }

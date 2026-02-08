@@ -50,10 +50,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ApiResponse<Void>> handleConstraintViolationException(ConstraintViolationException e) {
-        log.error("ConstraintViolationException: {}", e.getMessage());
+        e.getConstraintViolations().forEach(v ->
+                log.error("ConstraintViolation - path: {}, message: {}", v.getPropertyPath(), v.getMessage())
+        );
         String message = e.getConstraintViolations().stream()
                 .findFirst()
-                .map(v -> v.getPropertyPath() + ": " + v.getMessage())
+                .map(v -> v.getMessage())
                 .orElse("잘못된 입력값입니다.");
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)

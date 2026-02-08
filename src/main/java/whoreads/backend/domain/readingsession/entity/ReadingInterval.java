@@ -30,7 +30,7 @@ public class ReadingInterval {
     private LocalDateTime endTime;
 
     @Column(name = "duration_minutes")
-    private Integer durationMinutes;
+    private Long durationMinutes;
 
     @Builder
     public ReadingInterval(ReadingSession readingSession, LocalDateTime startTime) {
@@ -45,7 +45,7 @@ public class ReadingInterval {
         if (endTime.isBefore(this.startTime)) {
             throw new IllegalArgumentException("종료 시간은 시작 시간 이후여야 합니다.");
         }
-        this.durationMinutes = (int) ChronoUnit.MINUTES.between(this.startTime, endTime);
+        this.durationMinutes = ChronoUnit.MINUTES.between(this.startTime, endTime);
         this.endTime = endTime;
     }
 

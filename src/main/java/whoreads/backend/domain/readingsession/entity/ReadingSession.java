@@ -32,7 +32,7 @@ public class ReadingSession extends BaseEntity {
     private SessionStatus status;
 
     @Column(name = "total_minutes")
-    private Integer totalMinutes;
+    private Long totalMinutes;
 
     @Column(name = "finished_at")
     private LocalDateTime finishedAt;
@@ -44,7 +44,7 @@ public class ReadingSession extends BaseEntity {
     public ReadingSession(Member member) {
         this.member = member;
         this.status = SessionStatus.IN_PROGRESS;
-        this.totalMinutes = 0;
+        this.totalMinutes = 0L;
     }
 
     public void pause() {
@@ -80,10 +80,10 @@ public class ReadingSession extends BaseEntity {
         interval.setReadingSession(null);
     }
 
-    public int calculateTotalMinutes() {
+    public long calculateTotalMinutes() {
         return this.intervals.stream()
                 .filter(interval -> interval.getDurationMinutes() != null)
-                .mapToInt(ReadingInterval::getDurationMinutes)
+                .mapToLong(ReadingInterval::getDurationMinutes)
                 .sum();
     }
 }

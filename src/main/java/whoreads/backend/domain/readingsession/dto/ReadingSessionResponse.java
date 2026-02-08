@@ -87,14 +87,6 @@ public class ReadingSessionResponse {
 
     @Getter
     @Builder
-    public static class WhiteNoiseItem {
-        private Long id;
-        private String name;
-        private String audioUrl;
-    }
-
-    @Getter
-    @Builder
     public static class BlockedApps {
         private List<BlockedAppItem> blockedApps;
     }

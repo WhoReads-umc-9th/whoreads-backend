@@ -17,9 +17,9 @@ public class ReadingSessionRecordsServiceImpl implements ReadingSessionRecordsSe
     private final ReadingSessionRepository readingSessionRepository;
 
     @Override
-    public ReadingSessionResponse.MonthlyRecords getMonthlyRecords(Integer year, Integer month) {
+    public ReadingSessionResponse.MonthlyRecords getMonthlyRecords(Long memberId, Integer year, Integer month) {
         // TODO: 실제 구현 시
-        // 1. 로그인한 사용자의 해당 년/월 완료된 세션 조회
+        // 1. memberId로 해당 년/월 완료된 세션 조회
         // 2. 각 세션의 시작시간, 종료시간, 총 집중시간 반환
 
         // Mock 데이터
