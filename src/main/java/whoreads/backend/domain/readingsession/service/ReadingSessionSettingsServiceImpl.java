@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import whoreads.backend.domain.readingsession.dto.BlockedAppItem;
 import whoreads.backend.domain.readingsession.dto.ReadingSessionResponse;
+import whoreads.backend.domain.readingsession.dto.WhiteNoiseItem;
 
 import java.util.List;
 
@@ -73,23 +74,23 @@ public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettings
         // DB 또는 S3에서 백색소음 목록 조회
 
         // Mock 데이터
-        List<ReadingSessionResponse.WhiteNoiseItem> items = List.of(
-                ReadingSessionResponse.WhiteNoiseItem.builder()
+        List<WhiteNoiseItem> items = List.of(
+                WhiteNoiseItem.builder()
                         .id(1L)
                         .name("빗소리")
                         .audioUrl("https://example.com/audio/rain.mp3")
                         .build(),
-                ReadingSessionResponse.WhiteNoiseItem.builder()
+                WhiteNoiseItem.builder()
                         .id(2L)
                         .name("파도소리")
                         .audioUrl("https://example.com/audio/wave.mp3")
                         .build(),
-                ReadingSessionResponse.WhiteNoiseItem.builder()
+                WhiteNoiseItem.builder()
                         .id(3L)
                         .name("카페 소음")
                         .audioUrl("https://example.com/audio/cafe.mp3")
                         .build(),
-                ReadingSessionResponse.WhiteNoiseItem.builder()
+                WhiteNoiseItem.builder()
                         .id(4L)
                         .name("모닥불")
                         .audioUrl("https://example.com/audio/fire.mp3")
