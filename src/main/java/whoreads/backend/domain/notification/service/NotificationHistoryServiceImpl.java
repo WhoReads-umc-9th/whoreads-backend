@@ -44,7 +44,7 @@ public class NotificationHistoryServiceImpl implements NotificationHistoryServic
                 new CustomException(ErrorCode.RESOURCE_NOT_FOUND,"알림이 존재하지 않습니다."));
         if (!Objects.equals(history.getMember().getId(), memberId))
             throw new CustomException(ErrorCode.ACCESS_DENIED,"사용자의 알림이 아닙니다.");
-        notificationHistoryRepository.deleteById(notificationId);
+        notificationHistoryRepository.delete(history);
     }
     @Transactional
     public void saveHistory(Long memberId, FcmMessageDTO dto) {

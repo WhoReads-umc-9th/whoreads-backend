@@ -108,10 +108,13 @@ public class NotificationPushServiceImpl implements NotificationPushService {
                     SendResponse sendResponse = response.getResponses().get(j);
                     MemberTokenDTO tokenDTO = subList.get(j);
                     if (sendResponse.isSuccessful()) {
-                        notificationHistoryService.saveHistory(tokenDTO.getMemberId(),dto);
+                        try {
+                            notificationHistoryService.saveHistory(tokenDTO.getMemberId(),dto);
+                        } catch (Exception e) {
+                            log.warn("[History] memberId={} 히스토리 저장 실패",tokenDTO.getMemberId());
+                        }
                     }
                 }
-                firebaseMessaging.sendEachForMulticast(message);
             } catch (FirebaseMessagingException e) {
                 log.error("[FCM Error] 원인: {}, 메시지: {}", e.getMessagingErrorCode(), e.getMessage());
             }
