@@ -7,12 +7,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
 import java.time.DayOfWeek;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
 // NULL 인 필드 보내지 않기
 public class NotificationResDTO {
-    // 알림 리스트 조회
+    // 알림 설정 리스트 조회
     @Builder
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record TotalSettingDTO(
@@ -29,5 +30,22 @@ public class NotificationResDTO {
             LocalTime time,
             List<DayOfWeek> days,
             boolean isEnabled
+    ){}
+    // 알림내역 조회
+    @Builder
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record TotalInboxDTO(
+            List<HistoryDTO> contents,
+            Long nextCursor,
+            Boolean hasNext
+    ){}
+    @Builder
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record HistoryDTO(
+            Long id,
+            String title,
+            String body,
+            String link,
+            LocalDateTime createdAt
     ){}
 }
