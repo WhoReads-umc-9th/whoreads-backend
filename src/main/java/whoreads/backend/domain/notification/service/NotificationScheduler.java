@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import whoreads.backend.domain.notification.dto.MemberTokenDTO;
 import whoreads.backend.domain.notification.event.NotificationEvent;
 import whoreads.backend.domain.notification.repository.NotificationSettingRepository;
 import whoreads.backend.global.exception.CustomException;
@@ -28,7 +29,7 @@ public class NotificationScheduler {
         String currentTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
 
         // 현재 알림 관련 텍스트는 따로 처리가 필요없고 토큰만 가져오면 됨
-        List<String> tokens = notificationSettingRepository.findAllTokensByDayAndTime(currentDay,currentTime);
+        List<MemberTokenDTO> tokens = notificationSettingRepository.findMemberIdAndTokenByDayAndTime(currentDay,currentTime);
         log.info("[디버깅] 현재 요일: {}, 현재 시간: {}", currentDay, currentTime);
         log.info("[디버깅] 검색된 루틴 개수: {}", tokens.size());
 
