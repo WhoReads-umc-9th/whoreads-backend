@@ -65,13 +65,17 @@ public class SwaggerConfig {
     public OpenApiCustomizer globalUnauthorizedResponse() {
         return openApi -> openApi.getPaths().values().forEach(pathItem ->
                 pathItem.readOperations().forEach(operation -> {
+                    if (operation.getResponses() == null) {
+                        operation.setResponses(new io.swagger.v3.oas.models.responses.ApiResponses());
+                    }
                     if (operation.getResponses().get("401") == null) {
                         operation.getResponses().addApiResponse("401",
                                 new ApiResponse()
                                         .description("인증 실패")
                                         .content(new Content().addMediaType(
-                                                org.springframework.http.MediaType.APPLICATION_JSON_VALUE,
+                                                "application/json",
                                                 new MediaType().schema(new Schema<>()
+                                                        .type("object")
                                                         .example("""
                                                                 {
                                                                   "is_success": false,

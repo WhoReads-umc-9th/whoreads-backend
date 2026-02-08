@@ -25,6 +25,7 @@ public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettings
 
     @Override
     public ReadingSessionResponse.FocusBlockSetting updateFocusBlockSetting(Long memberId, Boolean focusBlockEnabled) {
+        boolean enabled = Boolean.TRUE.equals(focusBlockEnabled);
         // TODO: 실제 구현 시
         // 1. memberId로 사용자 조회
         // 2. Member.focusBlockEnabled 업데이트
@@ -32,7 +33,7 @@ public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettings
 
         // Mock: 요청값 그대로 반환
         return ReadingSessionResponse.FocusBlockSetting.builder()
-                .focusBlockEnabled(focusBlockEnabled)
+                .focusBlockEnabled(enabled)
                 .build();
     }
 
@@ -50,6 +51,7 @@ public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettings
 
     @Override
     public ReadingSessionResponse.WhiteNoiseSetting updateWhiteNoiseSetting(Long memberId, Boolean whiteNoiseEnabled) {
+        boolean enabled = Boolean.TRUE.equals(whiteNoiseEnabled);
         // TODO: 실제 구현 시
         // 1. memberId로 사용자 조회
         // 2. Member.whiteNoiseEnabled 업데이트
@@ -57,7 +59,7 @@ public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettings
 
         // Mock: 요청값 그대로 반환
         return ReadingSessionResponse.WhiteNoiseSetting.builder()
-                .whiteNoiseEnabled(whiteNoiseEnabled)
+                .whiteNoiseEnabled(enabled)
                 .build();
     }
 

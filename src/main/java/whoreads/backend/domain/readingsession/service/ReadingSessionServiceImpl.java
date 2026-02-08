@@ -26,29 +26,32 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
     }
 
     @Override
-    public void pauseSession(Long sessionId) {
+    public void pauseSession(Long sessionId, Long memberId) {
         // TODO: 실제 구현 시
         // 1. sessionId로 세션 조회 (없으면 404)
-        // 2. 상태가 IN_PROGRESS인지 확인
-        // 3. 현재 진행중인 interval 종료 (endTime = now, durationMinutes 계산)
-        // 4. 세션 상태를 PAUSED로 변경
+        // 2. 세션의 소유자가 memberId와 일치하는지 확인 (403)
+        // 3. 상태가 IN_PROGRESS인지 확인
+        // 4. 현재 진행중인 interval 종료 (endTime = now, durationMinutes 계산)
+        // 5. 세션 상태를 PAUSED로 변경
     }
 
     @Override
-    public void resumeSession(Long sessionId) {
+    public void resumeSession(Long sessionId, Long memberId) {
         // TODO: 실제 구현 시
         // 1. sessionId로 세션 조회 (없으면 404)
-        // 2. 상태가 PAUSED인지 확인
-        // 3. 새 ReadingInterval 생성 (startTime = now)
-        // 4. 세션 상태를 IN_PROGRESS로 변경
+        // 2. 세션의 소유자가 memberId와 일치하는지 확인 (403)
+        // 3. 상태가 PAUSED인지 확인
+        // 4. 새 ReadingInterval 생성 (startTime = now)
+        // 5. 세션 상태를 IN_PROGRESS로 변경
     }
 
     @Override
-    public void completeSession(Long sessionId) {
+    public void completeSession(Long sessionId, Long memberId) {
         // TODO: 실제 구현 시
         // 1. sessionId로 세션 조회 (없으면 404)
-        // 2. 진행중인 interval이 있으면 종료
-        // 3. 모든 interval의 durationMinutes 합산
-        // 4. 세션 상태를 COMPLETED로 변경, totalMinutes/finishedAt 설정
+        // 2. 세션의 소유자가 memberId와 일치하는지 확인 (403)
+        // 3. 진행중인 interval이 있으면 종료
+        // 4. 모든 interval의 durationMinutes 합산
+        // 5. 세션 상태를 COMPLETED로 변경, totalMinutes/finishedAt 설정
     }
 }

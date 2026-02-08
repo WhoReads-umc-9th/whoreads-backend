@@ -22,7 +22,7 @@ public class ReadingSessionResponse {
     public static class SessionDetail {
         private Long sessionId;
         private SessionStatus status;
-        private Integer totalMinutes;
+        private Long totalMinutes;
         private LocalDateTime createdAt;
         private LocalDateTime finishedAt;
         private List<IntervalInfo> intervals;
@@ -34,7 +34,7 @@ public class ReadingSessionResponse {
         private Long intervalId;
         private LocalDateTime startTime;
         private LocalDateTime endTime;
-        private Integer durationMinutes;
+        private Long durationMinutes;
     }
 
     @Getter
@@ -64,7 +64,7 @@ public class ReadingSessionResponse {
         private LocalTime startTime;
         @JsonFormat(pattern = "HH:mm")
         private LocalTime endTime;
-        private Integer totalMinutes;
+        private Long totalMinutes;
     }
 
     @Getter

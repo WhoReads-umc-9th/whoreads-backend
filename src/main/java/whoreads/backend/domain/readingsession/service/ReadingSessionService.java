@@ -6,9 +6,9 @@ public interface ReadingSessionService {
 
     ReadingSessionResponse.StartResult startSession(Long memberId);
 
-    void pauseSession(Long sessionId);
+    void pauseSession(Long sessionId, Long memberId);
 
-    void resumeSession(Long sessionId);
+    void resumeSession(Long sessionId, Long memberId);
 
-    void completeSession(Long sessionId);
+    void completeSession(Long sessionId, Long memberId);
 }

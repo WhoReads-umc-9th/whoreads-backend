@@ -26,19 +26,19 @@ public class ReadingSessionRecordsServiceImpl implements ReadingSessionRecordsSe
                         .day(1)
                         .startTime(LocalTime.of(14, 0))
                         .endTime(LocalTime.of(14, 45))
-                        .totalMinutes(45)
+                        .totalMinutes(45L)
                         .build(),
                 ReadingSessionResponse.DailyRecord.builder()
                         .day(1)
                         .startTime(LocalTime.of(20, 0))
                         .endTime(LocalTime.of(20, 30))
-                        .totalMinutes(30)
+                        .totalMinutes(30L)
                         .build(),
                 ReadingSessionResponse.DailyRecord.builder()
                         .day(3)
                         .startTime(LocalTime.of(10, 0))
                         .endTime(LocalTime.of(11, 20))
-                        .totalMinutes(80)
+                        .totalMinutes(80L)
                         .build()
         );
 

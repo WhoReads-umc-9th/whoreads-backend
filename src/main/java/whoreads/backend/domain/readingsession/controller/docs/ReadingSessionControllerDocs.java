@@ -92,7 +92,8 @@ public interface ReadingSessionControllerDocs {
     })
     ResponseEntity<ApiResponse<Void>> pauseSession(
             @Parameter(description = "세션 ID", required = true)
-            Long sessionId
+            Long sessionId,
+            @AuthenticationPrincipal Long memberId
     );
 
     @Operation(
@@ -145,7 +146,8 @@ public interface ReadingSessionControllerDocs {
     })
     ResponseEntity<ApiResponse<Void>> resumeSession(
             @Parameter(description = "세션 ID", required = true)
-            Long sessionId
+            Long sessionId,
+            @AuthenticationPrincipal Long memberId
     );
 
     @Operation(
@@ -198,6 +200,7 @@ public interface ReadingSessionControllerDocs {
     })
     ResponseEntity<ApiResponse<Void>> completeSession(
             @Parameter(description = "세션 ID", required = true)
-            Long sessionId
+            Long sessionId,
+            @AuthenticationPrincipal Long memberId
     );
 }

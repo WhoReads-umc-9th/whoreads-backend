@@ -30,27 +30,30 @@ public class ReadingSessionController implements ReadingSessionControllerDocs {
     @Override
     @PostMapping("/{sessionId}/pause")
     public ResponseEntity<ApiResponse<Void>> pauseSession(
-            @PathVariable Long sessionId
+            @PathVariable Long sessionId,
+            @AuthenticationPrincipal Long memberId
     ) {
-        readingSessionService.pauseSession(sessionId);
+        readingSessionService.pauseSession(sessionId, memberId);
         return ResponseEntity.ok(ApiResponse.success("독서 세션을 일시정지했습니다."));
     }
 
     @Override
     @PostMapping("/{sessionId}/resume")
     public ResponseEntity<ApiResponse<Void>> resumeSession(
-            @PathVariable Long sessionId
+            @PathVariable Long sessionId,
+            @AuthenticationPrincipal Long memberId
     ) {
-        readingSessionService.resumeSession(sessionId);
+        readingSessionService.resumeSession(sessionId, memberId);
         return ResponseEntity.ok(ApiResponse.success("독서 세션을 재개했습니다."));
     }
 
     @Override
     @PostMapping("/{sessionId}/complete")
     public ResponseEntity<ApiResponse<Void>> completeSession(
-            @PathVariable Long sessionId
+            @PathVariable Long sessionId,
+            @AuthenticationPrincipal Long memberId
     ) {
-        readingSessionService.completeSession(sessionId);
+        readingSessionService.completeSession(sessionId, memberId);
         return ResponseEntity.ok(ApiResponse.success("독서 세션을 완료했습니다."));
     }
 }

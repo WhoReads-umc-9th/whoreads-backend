@@ -61,12 +61,12 @@ public class ReadingSession extends BaseEntity {
         this.status = SessionStatus.IN_PROGRESS;
     }
 
-    public void complete(Integer totalMinutes) {
+    public void complete() {
         if (this.status == SessionStatus.COMPLETED) {
             throw new IllegalStateException("이미 완료된 세션입니다.");
         }
         this.status = SessionStatus.COMPLETED;
-        this.totalMinutes = totalMinutes;
+        this.totalMinutes = calculateTotalMinutes();
         this.finishedAt = LocalDateTime.now();
     }
 

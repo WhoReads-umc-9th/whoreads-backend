@@ -1,5 +1,6 @@
 package whoreads.backend.global.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +42,18 @@ public class GlobalExceptionHandler {
         String message = e.getBindingResult().getFieldErrors().stream()
                 .findFirst()
                 .map(error -> error.getDefaultMessage())
+                .orElse("잘못된 입력값입니다.");
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(HttpStatus.BAD_REQUEST.value(), message));
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleConstraintViolationException(ConstraintViolationException e) {
+        log.error("ConstraintViolationException: {}", e.getMessage());
+        String message = e.getConstraintViolations().stream()
+                .findFirst()
+                .map(v -> v.getPropertyPath() + ": " + v.getMessage())
                 .orElse("잘못된 입력값입니다.");
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)

@@ -32,11 +32,10 @@ public class ReadingInterval {
     @Column(name = "duration_minutes")
     private Integer durationMinutes;
 
-    `@Builder`
+    @Builder
     public ReadingInterval(ReadingSession readingSession, LocalDateTime startTime) {
         this.readingSession = readingSession;
         this.startTime = startTime;
-        readingSession.addInterval(this);
     }
 
     public void end(LocalDateTime endTime) {
