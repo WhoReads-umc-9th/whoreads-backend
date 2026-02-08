@@ -23,11 +23,9 @@ public class FocusTimerSetting extends BaseEntity {
     private Member member;
 
     @Column(name = "focus_block_enabled", nullable = false)
-    @Builder.Default
     private Boolean focusBlockEnabled = false;
 
     @Column(name = "white_noise_enabled", nullable = false)
-    @Builder.Default
     private Boolean whiteNoiseEnabled = false;
 
     @Builder
