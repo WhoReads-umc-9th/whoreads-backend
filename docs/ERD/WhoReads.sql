@@ -216,13 +216,43 @@ CREATE TABLE `dna_type` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
--- 16. FocusMode (집중 모드) - 미구현 상태
+-- 16. FocusTimerSetting (집중 타이머 설정)
 -- =============================================
-CREATE TABLE `focus_mode` (
+CREATE TABLE `focus_timer_setting` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `member_id` BIGINT NOT NULL UNIQUE,
+    `focus_block_enabled` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '집중 차단 활성화',
+    `white_noise_enabled` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '백색소음 활성화',
+    `created_at` DATETIME(6) NOT NULL,
+    `updated_at` DATETIME(6) NOT NULL,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_focus_timer_setting_member` FOREIGN KEY (`member_id`) REFERENCES `member` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================
+-- 17. WhiteNoise (백색소음 마스터)
+-- =============================================
+CREATE TABLE `white_noise` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(50) NOT NULL,
+    `audio_url` TEXT NOT NULL,
     `created_at` DATETIME(6) NOT NULL,
     `updated_at` DATETIME(6) NOT NULL,
     PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================
+-- 18. BlockedApp (사용자별 차단 앱) - 미구현 가능성 있음
+-- =============================================
+CREATE TABLE `blocked_app` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `member_id` BIGINT NOT NULL,
+    `bundle_id` VARCHAR(255) NOT NULL,
+    `name` VARCHAR(100) NOT NULL,
+    `created_at` DATETIME(6) NOT NULL,
+    `updated_at` DATETIME(6) NOT NULL,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_blocked_app_member` FOREIGN KEY (`member_id`) REFERENCES `member` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
@@ -234,3 +264,4 @@ CREATE INDEX `idx_quote_celebrity` ON `quote` (`celebrity_id`);
 CREATE INDEX `idx_notification_member` ON `notification` (`member_id`);
 CREATE INDEX `idx_reading_session_member` ON `reading_session` (`member_id`);
 CREATE INDEX `idx_reading_interval_session` ON `reading_interval` (`session_id`);
+CREATE INDEX `idx_blocked_app_member` ON `blocked_app` (`member_id`);
