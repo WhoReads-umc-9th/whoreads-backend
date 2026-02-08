@@ -62,9 +62,9 @@ public class NotificationConverter {
 
         List<NotificationResDTO.HistoryDTO> contents = contentList.stream()
                 .map(NotificationConverter::toHistoryDTO)
-                .collect(Collectors.toList());
+                .toList();
 
-        Long nextCursor = contentList.isEmpty() ? null : contentList.getLast().getId();
+        Long nextCursor = !hasNext && contentList.isEmpty() ? null : contentList.getLast().getId();
 
         return NotificationResDTO.TotalInboxDTO.builder()
                 .contents(contents)

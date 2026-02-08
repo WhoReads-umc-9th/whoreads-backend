@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import whoreads.backend.domain.notification.entity.NotificationHistory;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -17,4 +18,6 @@ public interface NotificationHistoryRepository extends JpaRepository<Notificatio
             Long memberId,
             Long cursor,
             Pageable pageable);
+
+    void deleteByCreatedAtBefore(LocalDateTime cutoff);
 }
