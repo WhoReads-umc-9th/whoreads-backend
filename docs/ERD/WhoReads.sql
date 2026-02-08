@@ -206,62 +206,56 @@ CREATE TABLE `reading_interval` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
--- 15. TestTrack (DNA 테스트 트랙)
+-- 15. DnaTrack (DNA 테스트 트랙)
 -- =============================================
-CREATE TABLE `test_track` (
+CREATE TABLE `dna_track` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
-    `code` VARCHAR(50) NOT NULL COMMENT 'COMFORT, HABIT, GROWTH 등',
-    `name` VARCHAR(100) NOT NULL COMMENT '사용자용 이름 (마음 정리/위로 등)',
-    `created_at` DATETIME(6) NOT NULL,
-    `updated_at` DATETIME(6) NOT NULL,
+    `track_code` ENUM('COMFORT', 'HABIT', 'CAREER', 'INSIGHT', 'FOCUS') NOT NULL COMMENT '마음정리, 습관, 커리어, 사고확장, 몰입',
+    `name` VARCHAR(255) NOT NULL COMMENT '사용자용 이름',
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
--- 16. TestQuestion (DNA 테스트 질문)
+-- 16. DnaQuestion (DNA 테스트 질문)
 -- =============================================
-CREATE TABLE `test_question` (
+CREATE TABLE `dna_question` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
-    `track_id` BIGINT NOT NULL,
-    `step` INT NOT NULL COMMENT '질문 순서 (1, 2, 3, 4, 5)',
-    `content` TEXT NOT NULL COMMENT '질문 내용',
-    `created_at` DATETIME(6) NOT NULL,
-    `updated_at` DATETIME(6) NOT NULL,
-    PRIMARY KEY (`id`),
-    CONSTRAINT `fk_test_question_track` FOREIGN KEY (`track_id`) REFERENCES `test_track` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- =============================================
--- 17. TestOption (DNA 테스트 선택지)
--- =============================================
-CREATE TABLE `test_option` (
-    `id` BIGINT NOT NULL AUTO_INCREMENT,
-    `question_id` BIGINT NOT NULL,
     `track_id` BIGINT NULL,
-    `content` TEXT NOT NULL COMMENT '선택지 내용',
-    `genre` VARCHAR(50) NOT NULL COMMENT '관련 장르',
-    `score` INT NOT NULL COMMENT '선택 시 장르 점수',
-    `created_at` DATETIME(6) NOT NULL,
-    `updated_at` DATETIME(6) NOT NULL,
+    `step` INT NOT NULL COMMENT '질문 순서 (1~5)',
+    `content` VARCHAR(255) NOT NULL COMMENT '질문 내용',
     PRIMARY KEY (`id`),
-    CONSTRAINT `fk_test_option_question` FOREIGN KEY (`question_id`) REFERENCES `test_question` (`id`),
-    CONSTRAINT `fk_test_option_track` FOREIGN KEY (`track_id`) REFERENCES `test_track` (`id`)
+    CONSTRAINT `fk_dna_question_track` FOREIGN KEY (`track_id`) REFERENCES `dna_track` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
--- 18. TestResult (DNA 테스트 결과)
+-- 17. DnaOption (DNA 테스트 선택지)
 -- =============================================
-CREATE TABLE `test_result` (
+CREATE TABLE `dna_option` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
-    `member_id` BIGINT NOT NULL,
-    `track_id` BIGINT NOT NULL,
-    `celebrity_id` BIGINT NOT NULL,
+    `question_id` BIGINT NULL,
+    `track_id` BIGINT NULL,
+    `content` VARCHAR(255) NOT NULL COMMENT '선택지 내용',
+    `genre` ENUM('LITERATURE', 'ESSAY', 'HUMANITIES', 'SOCIETY', 'SCIENCE', 'ECONOMY', 'PSYCHOLOGY') NULL COMMENT '장르',
+    `score` INT NOT NULL COMMENT '선택 시 장르 점수',
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_dna_option_question` FOREIGN KEY (`question_id`) REFERENCES `dna_question` (`id`),
+    CONSTRAINT `fk_dna_option_track` FOREIGN KEY (`track_id`) REFERENCES `dna_track` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================
+-- 18. DnaResult (DNA 테스트 결과)
+-- =============================================
+CREATE TABLE `dna_result` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `member_id` BIGINT NULL,
+    `track_id` BIGINT NULL,
+    `celebrity_id` BIGINT NULL,
     `created_at` DATETIME(6) NOT NULL,
     `updated_at` DATETIME(6) NOT NULL,
     PRIMARY KEY (`id`),
-    CONSTRAINT `fk_test_result_member` FOREIGN KEY (`member_id`) REFERENCES `member` (`id`),
-    CONSTRAINT `fk_test_result_track` FOREIGN KEY (`track_id`) REFERENCES `test_track` (`id`),
-    CONSTRAINT `fk_test_result_celebrity` FOREIGN KEY (`celebrity_id`) REFERENCES `celebrity` (`id`)
+    CONSTRAINT `fk_dna_result_member` FOREIGN KEY (`member_id`) REFERENCES `member` (`id`),
+    CONSTRAINT `fk_dna_result_track` FOREIGN KEY (`track_id`) REFERENCES `dna_track` (`id`),
+    CONSTRAINT `fk_dna_result_celebrity` FOREIGN KEY (`celebrity_id`) REFERENCES `celebrity` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
@@ -314,9 +308,9 @@ CREATE INDEX `idx_notification_member` ON `notification` (`member_id`);
 CREATE INDEX `idx_reading_session_member` ON `reading_session` (`member_id`);
 CREATE INDEX `idx_reading_interval_session` ON `reading_interval` (`session_id`);
 CREATE INDEX `idx_blocked_app_member` ON `blocked_app` (`member_id`);
-CREATE INDEX `idx_test_question_track` ON `test_question` (`track_id`);
-CREATE INDEX `idx_test_option_question` ON `test_option` (`question_id`);
-CREATE INDEX `idx_test_result_member` ON `test_result` (`member_id`);
+CREATE INDEX `idx_dna_question_track` ON `dna_question` (`track_id`);
+CREATE INDEX `idx_dna_option_question` ON `dna_option` (`question_id`);
+CREATE INDEX `idx_dna_result_member` ON `dna_result` (`member_id`);
 
 -- =============================================
 -- Triggers (context_score 자동 계산)
