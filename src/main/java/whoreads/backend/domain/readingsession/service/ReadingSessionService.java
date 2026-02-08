@@ -1,14 +1,14 @@
 package whoreads.backend.domain.readingsession.service;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import whoreads.backend.domain.readingsession.repository.ReadingSessionRepository;
+import whoreads.backend.domain.readingsession.dto.ReadingSessionResponse;
 
-@Service
-@RequiredArgsConstructor
-@Transactional(readOnly = true)
-public class ReadingSessionService {
+public interface ReadingSessionService {
 
-    private final ReadingSessionRepository readingSessionRepository;
+    ReadingSessionResponse.StartResult startSession(Long memberId);
+
+    void pauseSession(Long sessionId, Long memberId);
+
+    void resumeSession(Long sessionId, Long memberId);
+
+    void completeSession(Long sessionId, Long memberId);
 }
