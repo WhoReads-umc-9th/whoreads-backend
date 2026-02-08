@@ -50,10 +50,13 @@ public class AladinBookService {
 
             return response.getItems().stream()
                     .map(item -> BookResponse.builder()
-                            .id(0L)
+                            .id(0L) // DB에 저장 안 된 상태
                             .title(item.getTitle())
                             .authorName(item.getAuthor())
                             .coverUrl(item.getCover())
+                            .link(null) // 알라딘 응답에서 링크 필요 시 DTO 매핑 추가 필요
+                            .genre(null)
+                            .pageCount(null)
                             .build())
                     .collect(Collectors.toList());
 

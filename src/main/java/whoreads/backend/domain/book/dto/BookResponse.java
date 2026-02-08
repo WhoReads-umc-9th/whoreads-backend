@@ -11,6 +11,9 @@ public class BookResponse {
     private String title;
     private String authorName;
     private String coverUrl;
+    private String link;
+    private String genre;
+    private Integer pageCount;
 
     public static BookResponse from(Book book) {
         return BookResponse.builder()
@@ -18,6 +21,9 @@ public class BookResponse {
                 .title(book.getTitle())
                 .authorName(book.getAuthorName())
                 .coverUrl(book.getCoverUrl())
+                .link(book.getLink())
+                .genre(book.getGenre())
+                .pageCount(book.getPageCount())
                 .build();
     }
 }

@@ -14,8 +14,8 @@ public class CelebrityResponse {
     private Long id;
     private String name;
     private String imageUrl;
-    private String shortBio;
-    private List<String> jobTags; // 가수, 배우 처럼 한글로 변환해서 전달
+    private String shortBio;    // 한줄 소개
+    private List<String> jobTags;
 
     public static CelebrityResponse from(Celebrity celebrity) {
         return CelebrityResponse.builder()
