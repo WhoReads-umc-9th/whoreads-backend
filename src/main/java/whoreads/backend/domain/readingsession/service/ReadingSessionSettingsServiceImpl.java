@@ -2,6 +2,7 @@ package whoreads.backend.domain.readingsession.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import whoreads.backend.domain.readingsession.dto.BlockedAppItem;
 import whoreads.backend.domain.readingsession.dto.ReadingSessionResponse;
 
@@ -9,6 +10,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettingsService {
 
     @Override
@@ -24,6 +26,7 @@ public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettings
     }
 
     @Override
+    @Transactional
     public ReadingSessionResponse.FocusBlockSetting updateFocusBlockSetting(Long memberId, Boolean focusBlockEnabled) {
         boolean enabled = Boolean.TRUE.equals(focusBlockEnabled);
         // TODO: 실제 구현 시
@@ -50,6 +53,7 @@ public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettings
     }
 
     @Override
+    @Transactional
     public ReadingSessionResponse.WhiteNoiseSetting updateWhiteNoiseSetting(Long memberId, Boolean whiteNoiseEnabled) {
         boolean enabled = Boolean.TRUE.equals(whiteNoiseEnabled);
         // TODO: 실제 구현 시
@@ -121,6 +125,7 @@ public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettings
     }
 
     @Override
+    @Transactional
     public ReadingSessionResponse.BlockedApps updateBlockedApps(Long memberId, List<BlockedAppItem> blockedApps) {
         if (blockedApps == null) {
             blockedApps = List.of();
