@@ -47,6 +47,7 @@ public class NotificationResDTO {
             String title,
             String body,
             String link,
+            @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
             LocalDateTime createdAt
     ){}
 }
