@@ -6,7 +6,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import whoreads.backend.domain.notification.event.NotificationEvent;
-import whoreads.backend.domain.notification.repository.NotificationRepository;
+import whoreads.backend.domain.notification.repository.NotificationSettingRepository;
 import whoreads.backend.global.exception.CustomException;
 import whoreads.backend.global.exception.ErrorCode;
 
@@ -19,7 +19,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class NotificationScheduler {
-    private final NotificationRepository notificationRepository;
+    private final NotificationSettingRepository notificationSettingRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Scheduled(cron = "0 * * * * *",zone = "Asia/Seoul")
@@ -28,7 +28,7 @@ public class NotificationScheduler {
         String currentTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
 
         // 현재 알림 관련 텍스트는 따로 처리가 필요없고 토큰만 가져오면 됨
-        List<String> tokens = notificationRepository.findAllTokensByDayAndTime(currentDay,currentTime);
+        List<String> tokens = notificationSettingRepository.findAllTokensByDayAndTime(currentDay,currentTime);
         log.info("[디버깅] 현재 요일: {}, 현재 시간: {}", currentDay, currentTime);
         log.info("[디버깅] 검색된 루틴 개수: {}", tokens.size());
 
