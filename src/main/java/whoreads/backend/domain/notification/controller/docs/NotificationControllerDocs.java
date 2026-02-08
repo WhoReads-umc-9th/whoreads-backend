@@ -36,6 +36,7 @@ public interface NotificationControllerDocs {
     @Parameter(name = "notification_id", description = "삭제할 알림의 고유 ID", example = "1")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "삭제 성공"),
+            @ApiResponse(responseCode = "403",description = "자신의 알림이 아님"),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 알림 ID", content = @Content)
     })
     whoreads.backend.global.response.ApiResponse<Void> deleteNotification(
