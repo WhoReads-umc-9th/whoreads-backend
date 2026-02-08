@@ -7,11 +7,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import whoreads.backend.domain.notification.dto.MemberTokenDTO;
 import whoreads.backend.domain.notification.event.NotificationEvent;
+import whoreads.backend.domain.notification.repository.NotificationHistoryRepository;
 import whoreads.backend.domain.notification.repository.NotificationSettingRepository;
 import whoreads.backend.global.exception.CustomException;
 import whoreads.backend.global.exception.ErrorCode;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -22,6 +24,7 @@ import java.util.List;
 public class NotificationScheduler {
     private final NotificationSettingRepository notificationSettingRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final NotificationHistoryRepository notificationHistoryRepository;
 
     @Scheduled(cron = "0 * * * * *",zone = "Asia/Seoul")
     public void checkRoutineNotifications() {
@@ -43,5 +46,10 @@ public class NotificationScheduler {
             log.error("알림 발송 실패 : {}건", tokens.size());
             throw new CustomException(ErrorCode.FCM_SEND_FAILED);
         }
+    }
+    @Scheduled(cron = "0 0 0 * * *",zone = "Asia/Seoul") // 매일 자정 실행
+    public void deleteOldNotifications() {
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(30);
+        notificationHistoryRepository.deleteByCreatedAtBefore(cutoff);
     }
 }
