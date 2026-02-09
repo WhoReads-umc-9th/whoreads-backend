@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import whoreads.backend.global.entity.BaseEntity;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -38,6 +40,12 @@ public class Member extends BaseEntity {
 
     @Column
     private String dnaTypeName;
+
+    @Column()
+    private String fcmToken;
+
+    @Column()
+    private LocalDateTime fcmTokenUpdatedAt;
 
     @Builder
     public Member(String nickname, Gender gender, AgeGroup ageGroup,

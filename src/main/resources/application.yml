@@ -1,7 +1,6 @@
 spring:
   application:
     name: whoreads
-
   # JPA (공통 설정)
   jpa:
     hibernate:
@@ -35,6 +34,16 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
+management:
+  endpoints:
+    web:
+      base-path: /api      # 기본 /actuator를 /api로 변경
+      exposure:
+        include: health    # health 엔드포인트만 노출
+  endpoint:
+    health:
+      show-details: always # DB 상태 등을 포함한 상세 정보 출력
+
 # JWT (기본 구조만 공유)
 jwt:
   # 실제 배포 시에는 환경변수로 주입하거나 application-prod.yml에서 JWT 관련 설정을 따로 관리함
@@ -45,3 +54,7 @@ jwt:
 
   # 기본값(604800000 = 7일)
   refresh-token-validity: ${JWT_REFRESH_EXP:604800000}
+
+firebase:
+  secret:
+    path: ${FIREBASE_SECRET_PATH:firebase/secret-key.json}

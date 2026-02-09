@@ -34,6 +34,17 @@ Repository → Settings → Secrets and variables → Actions → New repository
 | `DB_USERNAME` | 데이터베이스 사용자명 | `admin` |
 | `DB_PASSWORD` | 데이터베이스 비밀번호 | (비밀번호) |
 
+### Firebase (FCM)
+| Name | Description | Example |
+|------|-------------|---------|
+| `FIREBASE_SECRET_JSON_BASE64` | Firebase 서비스 계정 JSON 파일을 Base64 인코딩한 값 | (Base64 문자열) |
+| `FIREBASE_SECRET_PATH` | Firebase 시크릿 파일 경로 (CI에서 자동 설정) | `./src/main/resources/firebase/secret-key.json` |
+
+> Base64 인코딩 방법:
+> ```bash
+> base64 -i firebase-service-account.json | tr -d '\n'
+> ```
+
 ## EC2 사전 준비사항
 
 배포 전 EC2 서버에서 아래 작업이 필요합니다:

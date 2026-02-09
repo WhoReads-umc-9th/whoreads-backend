@@ -1,3 +1,12 @@
+---
+name: Feature Request
+about: 기능 구현 템플릿
+title: "[Feat]"
+labels: ''
+assignees: ''
+
+---
+
 ## ✨ 기능 설명
 - 어떤 기능을 구현하는지 설명해주세요.
 
