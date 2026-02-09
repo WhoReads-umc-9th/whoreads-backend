@@ -6,7 +6,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import whoreads.backend.auth.dto.AuthReqDto;
 import whoreads.backend.auth.dto.AuthResDto;
-import whoreads.backend.auth.service.AuthServiceImpl;
+import whoreads.backend.auth.service.AuthService;
 import whoreads.backend.auth.service.EmailService;
 import whoreads.backend.global.response.ApiResponse;
 
@@ -28,8 +28,7 @@ import whoreads.backend.global.response.ApiResponse;
 @RequestMapping("/api/auth")
 public class AuthController implements AuthControllerDocs {
 
-//    private final AuthService authService;
-    private final AuthServiceImpl authService;
+    private final AuthService authService;
     private final EmailService emailService;
 
     // TODO: 로그인 API - POST /api/auth/login
@@ -39,20 +38,20 @@ public class AuthController implements AuthControllerDocs {
 
     @Override
     @PostMapping("/signup")
-    public ApiResponse<AuthResDto.JoinData> signUp(@RequestBody AuthReqDto.SignUpRequest request) {
+    public ApiResponse<AuthResDto.JoinData> signUp(@RequestBody @Valid AuthReqDto.SignUpRequest request) {
 
-        AuthResDto.JoinData dummyData = authService.signup(request);
+        AuthResDto.JoinData data = authService.signup(request);
 
-        return ApiResponse.success(dummyData);
+        return ApiResponse.created("회원가입에 성공했습니다.", data);
     }
 
     @Override
     @PostMapping("/login")
     public ApiResponse<AuthResDto.TokenData> login(@RequestBody @Valid AuthReqDto.LoginRequest request) {
 
-        AuthResDto.TokenData dummyData = authService.login(request);
+        AuthResDto.TokenData tokenData = authService.login(request);
 
-        return ApiResponse.success(dummyData);
+        return ApiResponse.success("로그인에 성공했습니다.", tokenData);
     }
 
     @Override
@@ -80,6 +79,13 @@ public class AuthController implements AuthControllerDocs {
         return ApiResponse.success("회원 탈퇴 접수가 완료되었습니다. 7일 이내에 재로그인하시면 탈퇴를 취소할 수 있습니다.");
     }
 
+    // 아이디 중복 확인
+    @PostMapping("/check-id")
+    public ApiResponse<Void> checkLoginId(@RequestBody @Valid AuthReqDto.CheckIdRequest request) {
+        authService.checkLoginIdDuplicate(request.loginId());
+        return ApiResponse.success("사용 가능한 아이디입니다.");
+    }
+
     @PostMapping("/email/send")
     public ApiResponse<Void> sendEmail(@RequestBody @Valid AuthReqDto.EmailRequest request) {
         emailService.sendVerificationCode(request.email());
@@ -89,10 +95,8 @@ public class AuthController implements AuthControllerDocs {
 
     @PostMapping("/email/verify")
     public ApiResponse<Void> verifyEmail(@RequestBody @Valid AuthReqDto.VerificationRequest request) {
-        boolean isSuccess = emailService.verifyCode(request.email(), request.code());
-        if (isSuccess)
-            return ApiResponse.success("이메일 인증에 성공했습니다.");
-        else
-            return ApiResponse.error(400, "인증 번호가 올바르지 않습니다. 인증번호를 다시 입력해주세요.");
+        emailService.verifyCode(request.email(), request.code());
+
+        return ApiResponse.success("이메일 인증에 성공했습니다.");
     }
 }

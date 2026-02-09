@@ -41,6 +41,7 @@ public class EmailService {
         if (code.equals(savedCode)) {
             // 검증 성공시 인증된 상태를 레디스에 다시 저장 (회원가입 버튼 클릭시 확인용)
             redisTemplate.opsForValue().set("VERIFIED_" + email, "DONE", Duration.ofMinutes(10));
+            redisTemplate.delete("CHECK_" + email);
             return true;
         }
 
