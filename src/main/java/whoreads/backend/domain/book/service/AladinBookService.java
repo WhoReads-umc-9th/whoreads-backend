@@ -54,7 +54,6 @@ public class AladinBookService {
                             .title(item.getTitle())
                             .authorName(item.getAuthor())
                             .coverUrl(item.getCover())
-                            .link(null) // 알라딘 응답에서 링크 필요 시 DTO 매핑 추가 필요
                             .genre(null)
                             .pageCount(null)
                             .build())
