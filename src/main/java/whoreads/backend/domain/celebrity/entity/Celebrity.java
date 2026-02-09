@@ -29,9 +29,6 @@ public class Celebrity extends BaseEntity {
     @Column(name = "short_bio", nullable = false)
     private String shortBio;
 
-    @Column(name = "one_line_introduction")
-    private String oneLineIntroduction;
-
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "celebrity_job_tags",
@@ -42,11 +39,10 @@ public class Celebrity extends BaseEntity {
     private List<CelebrityTag> jobTags = new ArrayList<>();
 
     @Builder
-    public Celebrity(String name, String imageUrl, String shortBio, String oneLineIntroduction, List<CelebrityTag> jobTags) {
+    public Celebrity(String name, String imageUrl, String shortBio, List<CelebrityTag> jobTags) {
         this.name = name;
         this.imageUrl = imageUrl;
         this.shortBio = shortBio;
-        this.oneLineIntroduction = oneLineIntroduction;
         this.jobTags = (jobTags != null) ? jobTags : new ArrayList<>();
     }
 }

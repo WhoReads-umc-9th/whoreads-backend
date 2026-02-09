@@ -63,7 +63,6 @@ CREATE TABLE `celebrity` (
     `name` VARCHAR(50) NOT NULL,
     `image_url` TEXT NULL,
     `short_bio` VARCHAR(255) NOT NULL,
-    `one_line_introduction` VARCHAR(255) NULL,
     `created_at` DATETIME(6) NOT NULL,
     `updated_at` DATETIME(6) NOT NULL,
     PRIMARY KEY (`id`)
@@ -143,22 +142,21 @@ CREATE TABLE `quote_source` (
 CREATE TABLE `topic` (
     `topic_id` BIGINT NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(255) NOT NULL UNIQUE,
-    `description` VARCHAR(255) NULL,
     `created_at` DATETIME(6) NOT NULL,
     `updated_at` DATETIME(6) NOT NULL,
     PRIMARY KEY (`topic_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
--- 11. TopicQuote (주제-인용 교차 테이블)
+-- 11. BookTopic (책-주제 교차 테이블)
 -- =============================================
-CREATE TABLE `topic_quote` (
+CREATE TABLE `book_topic` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `book_id` BIGINT NULL,
     `topic_id` BIGINT NULL,
-    `quote_id` BIGINT NULL,
     PRIMARY KEY (`id`),
-    CONSTRAINT `fk_topic_quote_topic` FOREIGN KEY (`topic_id`) REFERENCES `topic` (`topic_id`),
-    CONSTRAINT `fk_topic_quote_quote` FOREIGN KEY (`quote_id`) REFERENCES `quote` (`quote_id`)
+    CONSTRAINT `fk_book_topic_book` FOREIGN KEY (`book_id`) REFERENCES `book` (`id`),
+    CONSTRAINT `fk_book_topic_topic` FOREIGN KEY (`topic_id`) REFERENCES `topic` (`topic_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
