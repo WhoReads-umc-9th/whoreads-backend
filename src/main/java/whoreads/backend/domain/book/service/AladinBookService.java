@@ -54,8 +54,7 @@ public class AladinBookService {
                             .title(item.getTitle())
                             .authorName(item.getAuthor())
                             .coverUrl(item.getCover())
-                            .genre(null)
-                            .pageCount(null)
+                            .totalPage(null)
                             .build())
                     .collect(Collectors.toList());
 
