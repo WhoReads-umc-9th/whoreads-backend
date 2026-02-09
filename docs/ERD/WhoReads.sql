@@ -12,14 +12,14 @@ CREATE TABLE `member` (
     `email` VARCHAR(255) NOT NULL UNIQUE,
     `login_id` VARCHAR(255) NOT NULL UNIQUE,
     `password` VARCHAR(255) NOT NULL,
-    `status` ENUM('INACTIVE', 'ACTIVE') NULL,
+    `status` ENUM('INACTIVE', 'ACTIVE') NOT NULL,
     `dna_type` VARCHAR(255) NULL,
     `dna_type_name` VARCHAR(255) NULL,
     `fcm_token` VARCHAR(255) NULL,
     `fcm_token_updated_at` DATETIME(6) NULL,
     `deleted_at` DATETIME(6) NULL,
-    `created_at` DATETIME(6) NOT NULL,
-    `updated_at` DATETIME(6) NOT NULL,
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -34,8 +34,8 @@ CREATE TABLE `book` (
     `genre` VARCHAR(255) NULL,
     `cover_url` TEXT NULL,
     `total_page` INT NULL,
-    `created_at` DATETIME(6) NOT NULL,
-    `updated_at` DATETIME(6) NOT NULL,
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -48,8 +48,8 @@ CREATE TABLE `user_book` (
     `book_id` BIGINT NOT NULL,
     `reading_status` ENUM('WISH', 'READING', 'COMPLETE') NOT NULL,
     `reading_page` INT NULL,
-    `created_at` DATETIME(6) NOT NULL,
-    `updated_at` DATETIME(6) NOT NULL,
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_user_book_member` FOREIGN KEY (`member_id`) REFERENCES `member` (`id`),
     CONSTRAINT `fk_user_book_book` FOREIGN KEY (`book_id`) REFERENCES `book` (`id`)
@@ -63,8 +63,8 @@ CREATE TABLE `celebrity` (
     `name` VARCHAR(50) NOT NULL,
     `image_url` TEXT NULL,
     `short_bio` VARCHAR(255) NOT NULL,
-    `created_at` DATETIME(6) NOT NULL,
-    `updated_at` DATETIME(6) NOT NULL,
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -90,8 +90,8 @@ CREATE TABLE `quote` (
     `original_text` TEXT NOT NULL,
     `language` ENUM('KO', 'EN') NULL,
     `context_score` INT NOT NULL DEFAULT 0,
-    `created_at` DATETIME(6) NOT NULL,
-    `updated_at` DATETIME(6) NOT NULL,
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     PRIMARY KEY (`quote_id`),
     CONSTRAINT `fk_quote_celebrity` FOREIGN KEY (`celebrity_id`) REFERENCES `celebrity` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -142,8 +142,8 @@ CREATE TABLE `quote_source` (
 CREATE TABLE `topic` (
     `topic_id` BIGINT NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(255) NOT NULL UNIQUE,
-    `created_at` DATETIME(6) NOT NULL,
-    `updated_at` DATETIME(6) NOT NULL,
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     PRIMARY KEY (`topic_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -169,8 +169,8 @@ CREATE TABLE `notification` (
     `days` JSON NULL COMMENT '요일 목록 (MONDAY, TUESDAY, ...)',
     `time` TIME NULL,
     `is_enabled` TINYINT(1) NOT NULL DEFAULT 1,
-    `created_at` DATETIME(6) NOT NULL,
-    `updated_at` DATETIME(6) NOT NULL,
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_notification_member` FOREIGN KEY (`member_id`) REFERENCES `member` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -184,8 +184,8 @@ CREATE TABLE `reading_session` (
     `status` ENUM('IN_PROGRESS', 'PAUSED', 'COMPLETED') NOT NULL,
     `total_minutes` BIGINT NULL,
     `finished_at` DATETIME(6) NULL,
-    `created_at` DATETIME(6) NOT NULL,
-    `updated_at` DATETIME(6) NOT NULL,
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_reading_session_member` FOREIGN KEY (`member_id`) REFERENCES `member` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -248,8 +248,8 @@ CREATE TABLE `dna_result` (
     `member_id` BIGINT NULL,
     `track_id` BIGINT NULL,
     `celebrity_id` BIGINT NULL,
-    `created_at` DATETIME(6) NOT NULL,
-    `updated_at` DATETIME(6) NOT NULL,
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_dna_result_member` FOREIGN KEY (`member_id`) REFERENCES `member` (`id`),
     CONSTRAINT `fk_dna_result_track` FOREIGN KEY (`track_id`) REFERENCES `dna_track` (`id`),
@@ -264,8 +264,8 @@ CREATE TABLE `focus_timer_setting` (
     `member_id` BIGINT NOT NULL UNIQUE,
     `focus_block_enabled` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '집중 차단 활성화',
     `white_noise_enabled` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '백색소음 활성화',
-    `created_at` DATETIME(6) NOT NULL,
-    `updated_at` DATETIME(6) NOT NULL,
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_focus_timer_setting_member` FOREIGN KEY (`member_id`) REFERENCES `member` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -277,8 +277,8 @@ CREATE TABLE `white_noise` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(50) NOT NULL,
     `audio_url` TEXT NOT NULL,
-    `created_at` DATETIME(6) NOT NULL,
-    `updated_at` DATETIME(6) NOT NULL,
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -290,8 +290,8 @@ CREATE TABLE `blocked_app` (
     `member_id` BIGINT NOT NULL,
     `bundle_id` VARCHAR(255) NOT NULL,
     `name` VARCHAR(100) NOT NULL,
-    `created_at` DATETIME(6) NOT NULL,
-    `updated_at` DATETIME(6) NOT NULL,
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_blocked_app_member` FOREIGN KEY (`member_id`) REFERENCES `member` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

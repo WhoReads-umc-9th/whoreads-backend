@@ -34,7 +34,7 @@ erDiagram
         varchar email "NOT_NULL, Unique"
         varchar login_id "NOT_NULL, Unique"
         varchar password "NOT_NULL"
-        enum status
+        enum status "NOT_NULL"
         varchar dna_type
         varchar dna_type_name
         varchar fcm_token
