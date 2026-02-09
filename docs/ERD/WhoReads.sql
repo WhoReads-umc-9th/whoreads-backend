@@ -148,15 +148,15 @@ CREATE TABLE `topic` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
--- 11. BookTopic (책-주제 교차 테이블)
+-- 11. TopicBook (주제-책 교차 테이블)
 -- =============================================
-CREATE TABLE `book_topic` (
+CREATE TABLE `topic_book` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
     `book_id` BIGINT NULL,
     `topic_id` BIGINT NULL,
     PRIMARY KEY (`id`),
-    CONSTRAINT `fk_book_topic_book` FOREIGN KEY (`book_id`) REFERENCES `book` (`id`),
-    CONSTRAINT `fk_book_topic_topic` FOREIGN KEY (`topic_id`) REFERENCES `topic` (`topic_id`)
+    CONSTRAINT `fk_topic_book_book` FOREIGN KEY (`book_id`) REFERENCES `book` (`id`),
+    CONSTRAINT `fk_topic_book_topic` FOREIGN KEY (`topic_id`) REFERENCES `topic` (`topic_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================

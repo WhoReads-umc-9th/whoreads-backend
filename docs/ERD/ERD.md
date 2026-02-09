@@ -12,8 +12,8 @@ erDiagram
     quote ||--o{ book_quote : "linked_to_book"
     quote ||--o{ quote_context : "contextualized_by"
     quote ||--o{ quote_source : "sourced_from"
-    book ||--o{ book_topic : "categorized_by"
-    topic ||--o{ book_topic : "contains"
+    book ||--o{ topic_book : "categorized_by"
+    topic ||--o{ topic_book : "contains"
     member ||--o{ notification : "configures"
     member ||--o{ reading_session : "starts"
     reading_session ||--o{ reading_interval : "divided_into"
@@ -121,7 +121,7 @@ erDiagram
         datetime updated_at "NOT_NULL"
     }
 
-    book_topic {
+    topic_book {
         bigint id PK
         bigint book_id FK
         bigint topic_id FK

@@ -7,8 +7,8 @@ import whoreads.backend.domain.book.entity.Book;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "book_topic")
-public class BookTopic { // 책 - 주제 교차 테이블
+@Table(name = "topic_book")
+public class TopicBook { // 주제 - 책 교차 테이블
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,7 +24,7 @@ public class BookTopic { // 책 - 주제 교차 테이블
     private Topic topic;
 
     @Builder
-    public BookTopic(Book book, Topic topic) {
+    public TopicBook(Book book, Topic topic) {
         this.book = book;
         this.topic = topic;
     }
