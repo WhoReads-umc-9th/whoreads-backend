@@ -45,7 +45,7 @@ public class Book extends BaseEntity {
     private List<BookQuote> quotes = new ArrayList<>();
 
     @Builder
-    public Book(String title, String authorName, String link, String genre, String coverUrl, Integer pageCount) {
+    public Book(String title, String authorName, String link, String genre, String coverUrl, Integer totalPage) {
         this.title = title;
         this.authorName = authorName;
         this.link = link;
