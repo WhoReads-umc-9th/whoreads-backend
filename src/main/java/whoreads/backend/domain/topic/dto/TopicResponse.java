@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 public class TopicResponse {
     private Long id;
     private String name;
-    private String description;
+    // description 삭제
     private List<String> tags;
     private List<BookResponse> books;
 
@@ -23,7 +23,6 @@ public class TopicResponse {
         return TopicResponse.builder()
                 .id(topic.getId())
                 .name(topic.getName())
-                .description(topic.getDescription())
                 .tags(topic.getTags().stream()
                         .map(TopicTag::getDescription)
                         .collect(Collectors.toList()))

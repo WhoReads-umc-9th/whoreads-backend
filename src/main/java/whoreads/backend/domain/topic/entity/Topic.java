@@ -19,10 +19,7 @@ public class Topic {
     private Long id;
 
     @Column(nullable = false)
-    private String name;        // 예: 각 분야의 유명인들이 사회를 이해하기 위해 읽은 책
-
-    @Column(nullable = false)
-    private String description; // 예: 세상은 왜 이렇게 돌아갈까?
+    private String name;
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
@@ -33,9 +30,8 @@ public class Topic {
     @Column(name = "tag")
     private List<TopicTag> tags = new ArrayList<>();
 
-    public Topic(String name, String description, List<TopicTag> tags) {
+    public Topic(String name, List<TopicTag> tags) {
         this.name = name;
-        this.description = description;
         this.tags = (tags != null) ? tags : new ArrayList<>();
     }
 }

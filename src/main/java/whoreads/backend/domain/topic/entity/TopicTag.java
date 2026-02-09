@@ -7,11 +7,12 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum TopicTag {
     LIFE_DIRECTION("삶의 방향"),
-    HUMAN_UNDERSTANDING("인간 이해"),
+    HUMAN_UNDERSTANDING("사람·인간 이해"),
+    SOCIETY("사회 이해"),
     MINDSET("사고방식"),
     TURNING_POINT("전환점"),
-    CAREER("커리어"),
-    SOCIETY("사회 이해");
+    TOP_20("최다추천TOP20")
+;
 
     private final String description;
 }
