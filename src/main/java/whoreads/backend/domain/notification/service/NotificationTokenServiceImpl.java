@@ -43,14 +43,4 @@ public class NotificationTokenServiceImpl implements NotificationTokenService {
                 .map(Member::getFcmToken)
                 .orElse(null);
     }
-    /*
-    * 매일 2시 30일 지난 토큰 정리
-    * */
-    @Scheduled(cron = "0 0 2 * * *",zone = "Asia/Seoul")
-    @Transactional
-    public void deleteInactiveUsers() {
-        LocalDateTime threshold = LocalDateTime.now().minusDays(30);
-        memberRepository.clearExpiredTokens(threshold);
-        log.info("미접속자 토큰 제거 완료");
-    }
 }
