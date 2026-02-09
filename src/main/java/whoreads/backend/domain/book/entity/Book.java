@@ -51,6 +51,6 @@ public class Book extends BaseEntity {
         this.link = link;
         this.genre = genre;
         this.coverUrl = coverUrl;
-        this.pageCount = pageCount;
+        this.totalPage = totalPage;
     }
 }
