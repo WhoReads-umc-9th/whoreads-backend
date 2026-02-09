@@ -18,7 +18,7 @@ public class BookRequest {
     private String coverUrl;
     private String link;
     private String genre;
-    private Integer pageCount;
+    private Integer totalPage;
 
     // DTO -> Entity 변환 메서드
     public Book toEntity() {
@@ -28,7 +28,7 @@ public class BookRequest {
                 .coverUrl(coverUrl)
                 .link(link)
                 .genre(genre)
-                .pageCount(pageCount)
+                .totalPage(totalPage)
                 .build();
     }
 }
