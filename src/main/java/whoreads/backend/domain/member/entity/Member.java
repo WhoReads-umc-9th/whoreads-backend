@@ -42,8 +42,9 @@ public class Member extends BaseEntity {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    @Column
-    private Status status;
+    @Column(nullable = false)
+    @Builder.Default
+    private Status status = Status.ACTIVE;
 
     @Column
     private String dnaType;
@@ -64,21 +65,15 @@ public class Member extends BaseEntity {
         return status;
     }
 
-
-//    @Builder
-//    public Member(String nickname, Gender gender, AgeGroup ageGroup,
-//                  String email, String password, String dnaType, String dnaTypeName) {
-//        this.nickname = nickname;
-//        this.gender = gender;
-//        this.ageGroup = ageGroup;
-//        this.email = email;
-//        this.password = password;
-//        this.dnaType = dnaType;
-//        this.dnaTypeName = dnaTypeName;
-//    }
     public void updateFcmToken(String fcmToken){
         this.fcmToken = fcmToken;
         this.fcmTokenUpdatedAt = LocalDateTime.now();
+    }
+
+    // 회원 탈퇴 (Soft Delete)
+    public void withdraw() {
+        this.status = Status.INACTIVE;
+        this.deletedAt = LocalDateTime.now();
     }
 }
 

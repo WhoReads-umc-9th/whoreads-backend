@@ -14,6 +14,8 @@ import whoreads.backend.domain.dna.enums.TrackCode;
 import whoreads.backend.domain.dna.repository.DnaOptionRepository;
 import whoreads.backend.domain.dna.repository.DnaQuestionRepository;
 import whoreads.backend.domain.dna.repository.DnaResultRepository;
+import whoreads.backend.global.exception.CustomException;
+import whoreads.backend.global.exception.ErrorCode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +33,7 @@ public class DnaService {
     public DnaResDto.Question getRootQuestion() {
         // Q1 질문
         DnaQuestion rootQuestion = questionRepository.findByStep(1)
-                .orElseThrow(() -> new EntityNotFoundException("Q1 질문을 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.DNA_TEST_NOT_FOUND));
 
         // Q1 보기
         List<DnaOption> options =  optionRepository.findByQuestion(rootQuestion);
@@ -44,7 +46,7 @@ public class DnaService {
         List<DnaResDto.Question> questionsDtos = new ArrayList<>();
 
         // Q2~Q5 질문 가져오기
-        List<DnaQuestion> questions = questionRepository.findByTrackTrackCodeAndStepBetweenOrderByStepAsc(trackCode, 2, 5);
+        List<DnaQuestion> questions = questionRepository.findQuestionsByTrackAndStepRange(trackCode, 2, 5);
 
         for (DnaQuestion question: questions) {
             List<DnaOption> options = optionRepository.findByQuestion(question);

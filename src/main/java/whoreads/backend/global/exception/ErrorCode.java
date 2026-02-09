@@ -22,6 +22,7 @@ public enum ErrorCode {
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
 
     // Member
+    DUPLICATE_ID(HttpStatus.CONFLICT, "이미 사용 중인 아이디입니다."),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다."),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다."),
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 올바르지 않습니다."),
@@ -36,6 +37,7 @@ public enum ErrorCode {
     QUOTE_NOT_FOUND(HttpStatus.NOT_FOUND, "인용을 찾을 수 없습니다."),
 
     // DNA
+    DNA_TEST_NOT_FOUND(HttpStatus.NOT_FOUND, "DNA 테스트 질문을 찾을 수 없습니다."),
     DNA_TEST_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "독서 DNA 테스트를 완료해주세요."),
 
     // Reading Session
