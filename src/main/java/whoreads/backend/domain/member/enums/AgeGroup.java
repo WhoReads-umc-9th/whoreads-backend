@@ -1,10 +1,9 @@
-package whoreads.backend.domain.member.entity;
+package whoreads.backend.domain.member.enums;
 
 public enum AgeGroup {
     TEENAGERS,
     TWENTIES,
     THIRTIES,
     FORTIES,
-    FIFTIES,
-    SIXTIES_AND_ABOVE
+    FIFTY_PLUS
 }

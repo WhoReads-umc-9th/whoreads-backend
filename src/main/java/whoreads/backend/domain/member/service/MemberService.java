@@ -3,6 +3,8 @@ package whoreads.backend.domain.member.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import whoreads.backend.auth.dto.AuthReqDto;
+import whoreads.backend.domain.member.entity.Member;
 import whoreads.backend.domain.member.repository.MemberRepository;
 
 @Service
@@ -11,4 +13,8 @@ import whoreads.backend.domain.member.repository.MemberRepository;
 public class MemberService {
 
     private final MemberRepository memberRepository;
+
+//    public Member signup(AuthReqDto.JoinRequest request, AuthReqDto.MemberInfo memberInfo) {
+//
+//    }
 }

@@ -45,6 +45,43 @@ Repository → Settings → Secrets and variables → Actions → New repository
 > base64 -i firebase-service-account.json | tr -d '\n'
 > ```
 
+### JWT
+| Name | Description | Example | 기본값 |
+|------|-------------|---------|--------|
+| `JWT_SECRET` | JWT 서명용 비밀키 (Base64 인코딩 필수) | (Base64 문자열) | 개발용 더미값 |
+| `JWT_ACCESS_EXP` | Access Token 유효기간 (ms) | `3600000` | `3600000` (1시간) |
+| `JWT_REFRESH_EXP` | Refresh Token 유효기간 (ms) | `604800000` | `604800000` (7일) |
+
+> ⚠️ **운영 환경에서는 반드시 `JWT_SECRET`을 설정해야 합니다.**
+>
+> Base64 인코딩 방법:
+> ```bash
+> echo -n "your-secret-key-here" | base64
+> ```
+
+### Mail (SMTP)
+| Name | Description | Example | 기본값 |
+|------|-------------|---------|--------|
+| `MAIL_ID` | SMTP 계정 이메일 | `whoreads@naver.com` | `dummy_user@naver.com` |
+| `MAIL_PASSWORD` | SMTP 앱 비밀번호 | (비밀번호) | `dummy_password` |
+
+> 기본값은 개발/테스트 환경용입니다. 운영 환경에서는 실제 SMTP 계정 정보를 설정하세요.
+
+### Redis
+| Name | Description | Example | 기본값 |
+|------|-------------|---------|--------|
+| `REDIS_HOST` | Redis 서버 호스트 | `whoreads-redis` | `localhost` |
+| `REDIS_PORT` | Redis 서버 포트 | `6379` | `6379` |
+
+> Docker 환경에서는 Redis 컨테이너 이름을 호스트로 사용합니다.
+
+### Aladin API
+| Name | Description | Example |
+|------|-------------|---------|
+| `ALADIN_KEY` | 알라딘 Open API TTBKey | `ttbxxxxx...` |
+
+> 알라딘 API 키 발급: https://www.aladin.co.kr/ttb/wblog_manage.aspx
+
 ## EC2 사전 준비사항
 
 배포 전 EC2 서버에서 아래 작업이 필요합니다:

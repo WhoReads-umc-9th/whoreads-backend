@@ -2,6 +2,7 @@ package whoreads.backend.domain.quote.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import whoreads.backend.domain.book.entity.Book;
@@ -10,6 +11,7 @@ import whoreads.backend.domain.book.repository.BookQuoteRepository;
 import whoreads.backend.domain.book.repository.BookRepository;
 import whoreads.backend.domain.celebrity.entity.Celebrity;
 import whoreads.backend.domain.celebrity.repository.CelebrityRepository;
+import whoreads.backend.domain.notification.event.NotificationEvent;
 import whoreads.backend.domain.quote.dto.QuoteRequest;
 import whoreads.backend.domain.quote.dto.QuoteResponse;
 import whoreads.backend.domain.quote.entity.Quote;
@@ -33,6 +35,7 @@ public class QuoteService {
     private final BookQuoteRepository bookQuoteRepository;
     private final QuoteContextRepository quoteContextRepository;
     private final QuoteSourceRepository quoteSourceRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
     public Long registerQuote(QuoteRequest request) { // Void -> Long (ID 반환)
@@ -82,8 +85,10 @@ public class QuoteService {
                     .build();
             quoteContextRepository.save(context);
         }
-
-        return quote.getId(); // 생성된 ID 반환
+        applicationEventPublisher.publishEvent(
+                new NotificationEvent.FollowEvent
+                        (celebrity.getId(), celebrity.getName(),
+                                book.getId(), book.getTitle(),book.getAuthorName()));
     }
 
     // 조회 메서드들 (기존 유지, EntityNotFoundException 처리는 Repository 단계에서 안전하거나 Optional 처리됨)
