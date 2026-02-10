@@ -7,21 +7,29 @@ import lombok.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "quote_context")
-public class QuoteContext { // 독서맥락
+public class QuoteContext {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "quote_id")
+    // 인용 하나당 맥락 하나 (1:1)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quote_id", unique = true, nullable = false)
     private Quote quote;
 
-    private String contextHow;  // 읽게 된 계기
-    private String contextWhen; // 어떤 시기에 읽었는지
-    private String contextWhy;  // 왜 이 책이었나
-    private String contextHelp; // 어떤 도움을 받았나
+    @Column(columnDefinition = "TEXT")
+    private String contextHow;  // 계기
+
+    @Column(columnDefinition = "TEXT")
+    private String contextWhen; // 시기
+
+    @Column(columnDefinition = "TEXT")
+    private String contextWhy;  // 이유
+
+    @Column(columnDefinition = "TEXT")
+    private String contextHelp; // 도움
 
     @Builder
     public QuoteContext(Quote quote, String contextHow, String contextWhen, String contextWhy, String contextHelp) {

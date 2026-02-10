@@ -1,5 +1,6 @@
 package whoreads.backend.domain.celebrity.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -7,7 +8,6 @@ import whoreads.backend.domain.celebrity.dto.CelebrityResponse;
 import whoreads.backend.domain.celebrity.entity.Celebrity;
 import whoreads.backend.domain.celebrity.entity.CelebrityTag;
 import whoreads.backend.domain.celebrity.repository.CelebrityRepository;
-import whoreads.backend.global.exception.GlobalExceptionHandler;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,10 +24,8 @@ public class CelebrityService {
         List<Celebrity> celebrities;
 
         if (tag == null) {
-            // 태그가 없으면(전체) -> 모두 조회
             celebrities = celebrityRepository.findAll();
         } else {
-            // 태그가 있으면(직업별) -> 필터링 조회
             celebrities = celebrityRepository.findAllByJobTagsContains(tag);
         }
 
@@ -39,7 +37,7 @@ public class CelebrityService {
     // 상세 조회 (ID)
     public CelebrityResponse getCelebrity(Long id) {
         Celebrity celebrity = celebrityRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유명인입니다. ID=" + id));
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유명인입니다. ID=" + id));
 
         return CelebrityResponse.from(celebrity);
     }

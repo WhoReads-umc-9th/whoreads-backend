@@ -50,10 +50,11 @@ public class AladinBookService {
 
             return response.getItems().stream()
                     .map(item -> BookResponse.builder()
-                            .id(0L)
+                            .id(0L) // DB에 저장 안 된 상태
                             .title(item.getTitle())
                             .authorName(item.getAuthor())
                             .coverUrl(item.getCover())
+                            .totalPage(null)
                             .build())
                     .collect(Collectors.toList());
 

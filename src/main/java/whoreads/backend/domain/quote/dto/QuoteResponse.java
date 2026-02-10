@@ -12,20 +12,20 @@ import whoreads.backend.domain.quote.entity.QuoteSource;
 @Builder
 public class QuoteResponse {
 
-    private Long id; // 인용 ID
-    private String originalText; // 인용 문구
-    private int contextScore; // 맥락 점수
+    private Long id;
+    private String originalText;
+    private int contextScore;
 
-    // 책 정보 (인물 서재에서 볼 때 필요)
+    // 책 정보
     private Long bookId;
     private String bookTitle;
     private String bookCover;
 
-    // 인물 정보 (책 상세에서 볼 때 필요)
+    // 인물 정보
     private Long celebrityId;
     private String celebrityName;
     private String celebrityImg;
-    private String celebrityBio; // 한줄 소개
+    private String celebrityJob;
 
     // 맥락 (Why, How)
     private ContextInfo context;
@@ -44,11 +44,10 @@ public class QuoteResponse {
     @Getter @Builder
     public static class SourceInfo {
         private String url;
-        private String type;
+        private String type; // Enum Name or Description
         private String timestamp;
     }
 
-    // 데이터를 받아서 DTO로 변환하는 생성 메서드
     public static QuoteResponse of(Quote quote, Book book, Celebrity celebrity, QuoteContext ctx, QuoteSource src) {
         return QuoteResponse.builder()
                 .id(quote.getId())
@@ -62,7 +61,7 @@ public class QuoteResponse {
                 .celebrityId(celebrity.getId())
                 .celebrityName(celebrity.getName())
                 .celebrityImg(celebrity.getImageUrl())
-                .celebrityBio(celebrity.getShortBio())
+                .celebrityJob(celebrity.getShortBio())
                 // 맥락
                 .context(ctx != null ? ContextInfo.builder()
                         .how(ctx.getContextHow())
@@ -70,10 +69,10 @@ public class QuoteResponse {
                         .why(ctx.getContextWhy())
                         .help(ctx.getContextHelp())
                         .build() : null)
-                // 출처
+                // 출처 (NPE 방지 처리)
                 .source(src != null ? SourceInfo.builder()
                         .url(src.getSourceUrl())
-                        .type(src.getSourceType().toString())
+                        .type(src.getSourceType() != null ? src.getSourceType().name() : null)
                         .timestamp(src.getTimestamp())
                         .build() : null)
                 .build();
