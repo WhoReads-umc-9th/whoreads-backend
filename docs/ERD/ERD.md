@@ -15,7 +15,8 @@ erDiagram
     topic ||--o{ topic_tags : "has_tags"
     book ||--o{ topic_book : "categorized_by"
     topic ||--o{ topic_book : "contains"
-    member ||--o{ notification : "configures"
+    member ||--o{ notification_setting : "references"
+    member ||--o{ notification_history : "references"
     member ||--o{ reading_session : "starts"
     reading_session ||--o{ reading_interval : "divided_into"
     dna_track ||--o{ dna_question : "composed_of"
@@ -133,13 +134,24 @@ erDiagram
         bigint topic_id FK
     }
 
-    notification {
+    notification_setting {
         bigint id PK
         bigint member_id FK
         enum type "NOT_NULL"
         json days
         time time
         tinyint is_enabled "NOT_NULL"
+        datetime created_at "NOT_NULL"
+        datetime updated_at "NOT_NULL"
+    }
+
+    notification_history {
+        bigint id PK
+        bigint member_id FK
+        enum type "NOT_NULL"
+        varchar title "NOT_NULL"
+        varchar body "NOT_NULL"
+        varchar link
         datetime created_at "NOT_NULL"
         datetime updated_at "NOT_NULL"
     }
