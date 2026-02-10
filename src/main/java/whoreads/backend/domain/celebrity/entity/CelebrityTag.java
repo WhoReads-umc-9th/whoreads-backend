@@ -9,7 +9,7 @@ public enum CelebrityTag {
     SINGER("가수"),
     CHEF("요리사"),
     ACTOR("배우"),
-    MUSICAL_ACTOR("뮤지컬 배우"),
+    MUSICAL_ACTOR("뮤지컬배우"),
     INSTRUCTOR("강사"),
     SCHOLAR("학자"),
     PROFILER("프로파일러"),
