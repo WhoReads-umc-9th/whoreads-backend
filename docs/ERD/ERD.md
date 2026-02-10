@@ -14,6 +14,7 @@ erDiagram
     quote ||--o{ quote_source : "sourced_from"
     book ||--o{ topic_book : "categorized_by"
     topic ||--o{ topic_book : "contains"
+    topic ||--o{ topic_tags : "has_tags"
     member ||--o{ notification : "configures"
     member ||--o{ reading_session : "starts"
     reading_session ||--o{ reading_interval : "divided_into"
@@ -121,10 +122,15 @@ erDiagram
         datetime updated_at "NOT_NULL"
     }
 
+    topic_tags {
+        bigint topic_id FK
+        enum tag "NOT_NULL"
+    }
+
     topic_book {
         bigint id PK
-        bigint book_id FK
-        bigint topic_id FK
+        bigint book_id FK "NOT_NULL"
+        bigint topic_id FK "NOT_NULL"
     }
 
     notification {
