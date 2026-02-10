@@ -23,20 +23,16 @@ public class QuoteSource {
     private String sourceUrl;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "source_type", nullable = false)
     private QuoteSourceType sourceType;
 
     private String timestamp;
 
-    // 직접 인용 여부 (true: 직접, false: 간접 등)
-    // 요청사항: 추천사 여부와 반대로 작업 (isDirectQuote=true -> 직접 말함)
-    private boolean isDirectQuote;
-
     @Builder
-    public QuoteSource(Quote quote, String sourceUrl, QuoteSourceType sourceType, String timestamp, boolean isDirectQuote) {
+    public QuoteSource(Quote quote, String sourceUrl, QuoteSourceType sourceType, String timestamp) {
         this.quote = quote;
         this.sourceUrl = sourceUrl;
         this.sourceType = sourceType;
         this.timestamp = timestamp;
-        this.isDirectQuote = isDirectQuote;
     }
 }

@@ -48,6 +48,8 @@ CREATE TABLE `user_book` (
     `book_id` BIGINT NOT NULL,
     `reading_status` ENUM('WISH', 'READING', 'COMPLETE') NOT NULL,
     `reading_page` INT NULL,
+    `started_at` DATE NULL COMMENT '읽기 시작한 날짜',
+    `completed_at` DATE NULL COMMENT '다 읽은 날짜',
     `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     PRIMARY KEY (`id`),

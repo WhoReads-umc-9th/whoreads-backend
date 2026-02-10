@@ -10,6 +10,8 @@ import whoreads.backend.domain.member.entity.Member;
 import whoreads.backend.domain.library.enums.ReadingStatus;
 import whoreads.backend.global.entity.BaseEntity;
 
+import java.time.LocalDate;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -35,6 +37,12 @@ public class UserBook extends BaseEntity {
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
+    @Column(name = "started_at")
+    private LocalDate startedAt;
+
+    @Column(name = "completed_at")
+    private LocalDate completedAt;
+
     @Builder
     public UserBook(ReadingStatus readingStatus, Integer readingPage, Member member, Book book) {
         this.readingStatus = readingStatus;
@@ -45,6 +53,14 @@ public class UserBook extends BaseEntity {
 
     public void updateReadingStatus(ReadingStatus readingStatus) {
         this.readingStatus = readingStatus;
+    }
+
+    public void updateStartedAt(LocalDate startedAt) {
+        this.startedAt = startedAt;
+    }
+
+    public void updateCompletedAt(LocalDate completedAt) {
+        this.completedAt = completedAt;
     }
 
     public void updateReadingPage(Integer readingPage) {

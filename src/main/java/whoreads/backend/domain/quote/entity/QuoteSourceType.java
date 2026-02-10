@@ -9,15 +9,13 @@ public enum QuoteSourceType {
 
     INTERVIEW("인터뷰"),
 
-    VIDEO("유튜브 및 영상 매체"),
+    YOUTUBE_VIDEO("유튜브 영상"),
 
-    SOCIAL_MEDIA("소셜 미디어"),
+    SNS("SNS"),
 
     ARTICLE("기사"),
 
-    MAGAZINE("잡지"),
-
-    ETC("기타");
+    MAGAZINE("매거진");
 
     private final String description;
 }
