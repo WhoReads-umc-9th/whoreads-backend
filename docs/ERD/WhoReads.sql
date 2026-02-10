@@ -85,14 +85,14 @@ CREATE TABLE `celebrity_job_tags` (
 -- 6. Quote (인용)
 -- =============================================
 CREATE TABLE `quote` (
-    `quote_id` BIGINT NOT NULL AUTO_INCREMENT,
+    `id` BIGINT NOT NULL AUTO_INCREMENT,
     `celebrity_id` BIGINT NULL,
     `original_text` TEXT NOT NULL,
     `language` ENUM('KO', 'EN') NULL,
     `context_score` INT NOT NULL DEFAULT 0,
     `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
-    PRIMARY KEY (`quote_id`),
+    PRIMARY KEY (`id`),
     CONSTRAINT `fk_quote_celebrity` FOREIGN KEY (`celebrity_id`) REFERENCES `celebrity` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -105,7 +105,7 @@ CREATE TABLE `book_quote` (
     `quote_id` BIGINT NULL,
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_book_quote_book` FOREIGN KEY (`book_id`) REFERENCES `book` (`id`),
-    CONSTRAINT `fk_book_quote_quote` FOREIGN KEY (`quote_id`) REFERENCES `quote` (`quote_id`)
+    CONSTRAINT `fk_book_quote_quote` FOREIGN KEY (`quote_id`) REFERENCES `quote` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
@@ -119,7 +119,7 @@ CREATE TABLE `quote_context` (
     `context_why` VARCHAR(255) NULL COMMENT '왜 이 책이었나',
     `context_help` VARCHAR(255) NULL COMMENT '어떤 도움을 받았나',
     PRIMARY KEY (`id`),
-    CONSTRAINT `fk_quote_context_quote` FOREIGN KEY (`quote_id`) REFERENCES `quote` (`quote_id`)
+    CONSTRAINT `fk_quote_context_quote` FOREIGN KEY (`quote_id`) REFERENCES `quote` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
@@ -133,18 +133,18 @@ CREATE TABLE `quote_source` (
     `timestamp` VARCHAR(255) NULL COMMENT '영상일 경우 타임스탬프',
     `is_direct_quote` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '직접 인용 여부',
     PRIMARY KEY (`id`),
-    CONSTRAINT `fk_quote_source_quote` FOREIGN KEY (`quote_id`) REFERENCES `quote` (`quote_id`)
+    CONSTRAINT `fk_quote_source_quote` FOREIGN KEY (`quote_id`) REFERENCES `quote` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
 -- 10. Topic (주제)
 -- =============================================
 CREATE TABLE `topic` (
-    `topic_id` BIGINT NOT NULL AUTO_INCREMENT,
+    `id` BIGINT NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(255) NOT NULL UNIQUE,
     `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
-    PRIMARY KEY (`topic_id`)
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
@@ -153,7 +153,7 @@ CREATE TABLE `topic` (
 CREATE TABLE `topic_tags` (
     `topic_id` BIGINT NOT NULL,
     `tag` ENUM('LIFE_DIRECTION', 'HUMAN_UNDERSTANDING', 'SOCIETY', 'MINDSET', 'TURNING_POINT', 'TOP_20') NOT NULL,
-    CONSTRAINT `fk_topic_tags_topic` FOREIGN KEY (`topic_id`) REFERENCES `topic` (`topic_id`)
+    CONSTRAINT `fk_topic_tags_topic` FOREIGN KEY (`topic_id`) REFERENCES `topic` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
@@ -165,7 +165,7 @@ CREATE TABLE `topic_book` (
     `topic_id` BIGINT NOT NULL,
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_topic_book_book` FOREIGN KEY (`book_id`) REFERENCES `book` (`id`),
-    CONSTRAINT `fk_topic_book_topic` FOREIGN KEY (`topic_id`) REFERENCES `topic` (`topic_id`)
+    CONSTRAINT `fk_topic_book_topic` FOREIGN KEY (`topic_id`) REFERENCES `topic` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
@@ -333,7 +333,7 @@ BEGIN
     IF NEW.context_when IS NOT NULL AND NEW.context_when != '' THEN SET score = score + 1; END IF;
     IF NEW.context_why IS NOT NULL AND NEW.context_why != '' THEN SET score = score + 2; END IF;
     IF NEW.context_help IS NOT NULL AND NEW.context_help != '' THEN SET score = score + 1; END IF;
-    UPDATE `quote` SET `context_score` = score WHERE `quote_id` = NEW.quote_id;
+    UPDATE `quote` SET `context_score` = score WHERE `id` = NEW.quote_id;
 END //
 
 CREATE TRIGGER `trg_quote_context_update` AFTER UPDATE ON `quote_context`
@@ -344,6 +344,6 @@ BEGIN
     IF NEW.context_when IS NOT NULL AND NEW.context_when != '' THEN SET score = score + 1; END IF;
     IF NEW.context_why IS NOT NULL AND NEW.context_why != '' THEN SET score = score + 2; END IF;
     IF NEW.context_help IS NOT NULL AND NEW.context_help != '' THEN SET score = score + 1; END IF;
-    UPDATE `quote` SET `context_score` = score WHERE `quote_id` = NEW.quote_id;
+    UPDATE `quote` SET `context_score` = score WHERE `id` = NEW.quote_id;
 END //
 DELIMITER ;

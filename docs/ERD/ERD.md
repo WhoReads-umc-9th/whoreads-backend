@@ -82,7 +82,7 @@ erDiagram
     }
 
     quote {
-        bigint quote_id PK
+        bigint id PK
         bigint celebrity_id FK
         text original_text "NOT_NULL"
         enum language
@@ -116,7 +116,7 @@ erDiagram
     }
 
     topic {
-        bigint topic_id PK
+        bigint id PK
         varchar name "NOT_NULL, Unique"
         datetime created_at "NOT_NULL"
         datetime updated_at "NOT_NULL"
