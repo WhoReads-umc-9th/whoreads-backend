@@ -16,6 +16,11 @@ import whoreads.backend.domain.member.converter.MemberConverter;
 import whoreads.backend.domain.member.entity.Member;
 import whoreads.backend.domain.member.enums.Status;
 import whoreads.backend.domain.member.repository.MemberRepository;
+import whoreads.backend.global.exception.CustomException;
+import whoreads.backend.global.exception.ErrorCode;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 @Slf4j
 @Service
@@ -35,11 +40,13 @@ public class AuthServiceImpl implements AuthService {
     public AuthResDto.JoinData signup(AuthReqDto.SignUpRequest dto) {
 
         String email = dto.request().email();
-        if (!emailService.isVerified(email))
-            throw new RuntimeException("이메일 인증이 필요합니다.");
+        // 이메일 인증 체크 (테스트 시 주석)
+         if (!emailService.isVerified(email))
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
 
-        // 아이디 중복 체크
-        validateDuplicateMember(dto.request().loginId());
+        // 중복 체크
+        validateDuplicateEmail(email);
+        checkLoginIdDuplicate(dto.request().loginId());
 
         String encodedPassword = passwordEncoder.encode(dto.request().password());
 
@@ -54,14 +61,19 @@ public class AuthServiceImpl implements AuthService {
         return MemberConverter.toJoinData(member, token);
     }
 
-    private void validateDuplicateMember(String loginId) {
+    @Override
+    public void checkLoginIdDuplicate(String loginId) {
         if (memberRepository.existsByLoginId(loginId))
-            throw new RuntimeException("이미 사용중인 아이디 입니다. 다른 아이디를 사용하세요.");
+            throw new CustomException(ErrorCode.DUPLICATE_ID);
+    }
+
+    public void validateDuplicateEmail(String email) {
+        if (memberRepository.existsByEmail(email))
+            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
     }
 
     @Override
     public AuthResDto.TokenData login(AuthReqDto.LoginRequest request) {
-
         // 1. 인증 시도
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(request.loginId(), request.password());
@@ -72,17 +84,22 @@ public class AuthServiceImpl implements AuthService {
         // 3. 인증 결과에서 ID 추출 (Long 타입으로 변환)
         Long memberId = Long.parseLong(authentication.getName());
 
+        AuthResDto.TokenData tokenData = jwtTokenProvider.generateTokenResponse(memberId);
+
+        redisTemplate.opsForValue().set(
+                "RT:" + memberId,
+                tokenData.refreshToken(),
+                Duration.ofDays(7)
+        );
+
         // 4. 요구사항에 맞춰 토큰 생성 후 반환
-        return jwtTokenProvider.generateTokenResponse(memberId);
+        return tokenData;
     }
 
     @Override
     public void logout(Long memberId) {
-
-        // refreshTokenRepository.deleteByMemberId(memberId);
-
-        // 해당 memberId를 가진 리프레시 토큰이 DB에 있다면 삭제
-        log.info("{}번 사용자 로그아웃 - Refresh Token 폐기 완료", memberId);
+        redisTemplate.delete("RT:" + memberId);
+        log.info("{}번 사용자 로그아웃 - Refresh Token 삭제", memberId);
     }
 
     @Override
@@ -103,14 +120,17 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void delete(Long memberId) {
+        if (memberId == null)
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         member.setStatus(Status.INACTIVE);
-        // member.setDeletedAt(LocalDateTime.now());
+        member.setDeletedAt(LocalDateTime.now());
 
         // 리프레시 토큰은 즉시 삭제하여 접근 차단
-        // refreshTokenRepository.deleteByMemberId(memberId);
+        redisTemplate.delete("RT:" + memberId);
 
         log.info("{}번 사용자 회원 탈퇴(Patch) 접수 - 유예 기간 시작", memberId);
     }
