@@ -89,6 +89,8 @@ public class QuoteService {
                 new NotificationEvent.FollowEvent
                         (celebrity.getId(), celebrity.getName(),
                                 book.getId(), book.getTitle(),book.getAuthorName()));
+
+        return quote.getId();
     }
 
     // 조회 메서드들 (기존 유지, EntityNotFoundException 처리는 Repository 단계에서 안전하거나 Optional 처리됨)
