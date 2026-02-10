@@ -27,15 +27,22 @@ spring:
     property-naming-strategy: SNAKE_CASE
     time-zone: Asia/Seoul
 
+  # Mail (더미)
+  mail:
+    host: smtp.test.com
+    port: 587
+    username: test@test.com
+    password: test-password
+
 # Aladin API (더미)
 aladin:
   api:
     key: "test-aladin-api-key"
     url: "http://www.aladin.co.kr/ttb/api/ItemSearch.aspx"
 
-# JWT (더미)
+# JWT (더미 - Base64 인코딩 필수)
 jwt:
-  secret: "test-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256-algorithm-1234567890"
+  secret: "d2hvcmVhZHMtdGVzdC1zZWNyZXQta2V5LWZvci1qd3QtZGV2ZWxvcG1lbnQtb25seQ=="
   access-token-validity: 3600000
   refresh-token-validity: 604800000
 

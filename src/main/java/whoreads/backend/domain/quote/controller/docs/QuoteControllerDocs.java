@@ -18,8 +18,9 @@ public interface QuoteControllerDocs {
 
     @Operation(summary = "인용 등록", description = "유명인이 책에 대해 언급한 인용(Quote)과 출처(Source), 맥락(Context) 정보를 한 번에 등록합니다.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "인용 등록 성공"),
+            @ApiResponse(responseCode = "201", description = "인용 등록 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청 (책이나 유명인 ID 없음)"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 책/유명인"),
             @ApiResponse(responseCode = "500", description = "서버 에러")
     })
     ResponseEntity<Void> registerQuote(@RequestBody QuoteRequest request);

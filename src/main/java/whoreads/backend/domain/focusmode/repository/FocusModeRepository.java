@@ -1,7 +1,7 @@
 package whoreads.backend.domain.focusmode.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import whoreads.backend.domain.focusmode.entity.FocusMode;
+import whoreads.backend.domain.focusmode.entity.FocusTimerSetting;
 
-public interface FocusModeRepository extends JpaRepository<FocusMode, Long> {
+public interface FocusModeRepository extends JpaRepository<FocusTimerSetting, Long> {
 }
