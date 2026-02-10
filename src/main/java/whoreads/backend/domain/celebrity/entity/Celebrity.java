@@ -36,7 +36,7 @@ public class Celebrity extends BaseEntity {
             joinColumns = @JoinColumn(name = "celebrity_id")
     )
     @Enumerated(EnumType.STRING)
-    @Column(name = "tag")
+    @Column(name = "job_tag")
     private List<CelebrityTag> jobTags = new ArrayList<>();
 
     @Builder
