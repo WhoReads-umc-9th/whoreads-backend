@@ -53,6 +53,7 @@ jobs:
         if: steps.changes.outputs.source == 'true'
         run: ./gradlew build -x test
       - name: Run tests
+        if: steps.changes.outputs.source == 'true'
         run: ./gradlew test
         env:
           FIREBASE_SECRET_PATH: firebase/secret-key.json
