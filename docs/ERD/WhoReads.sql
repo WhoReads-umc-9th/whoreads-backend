@@ -169,9 +169,9 @@ CREATE TABLE `topic_book` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
--- 13. Notification (알림)
+-- 13. NotificationSetting (알림 설정)
 -- =============================================
-CREATE TABLE `notification` (
+CREATE TABLE `notification_setting` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
     `member_id` BIGINT NOT NULL,
     `type` ENUM('FOLLOW', 'ROUTINE') NOT NULL,
@@ -181,11 +181,27 @@ CREATE TABLE `notification` (
     `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     PRIMARY KEY (`id`),
-    CONSTRAINT `fk_notification_member` FOREIGN KEY (`member_id`) REFERENCES `member` (`id`)
+    CONSTRAINT `fk_notification_setting_member` FOREIGN KEY (`member_id`) REFERENCES `member` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
--- 14. ReadingSession (독서 세션)
+-- 14. NotificationHistory (알림 내역)
+-- =============================================
+CREATE TABLE `notification_history` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `member_id` BIGINT NOT NULL,
+    `type` ENUM('FOLLOW', 'ROUTINE') NOT NULL,
+    `title` VARCHAR(255) NOT NULL,
+    `body` VARCHAR(255) NOT NULL,
+    `link` VARCHAR(255) NULL,
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_notification_history_member` FOREIGN KEY (`member_id`) REFERENCES `member` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================
+-- 15. ReadingSession (독서 세션)
 -- =============================================
 CREATE TABLE `reading_session` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
@@ -200,7 +216,7 @@ CREATE TABLE `reading_session` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
--- 15. ReadingInterval (독서 인터벌)
+-- 16. ReadingInterval (독서 인터벌)
 -- =============================================
 CREATE TABLE `reading_interval` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
@@ -213,7 +229,7 @@ CREATE TABLE `reading_interval` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
--- 16. DnaTrack (DNA 테스트 트랙)
+-- 17. DnaTrack (DNA 테스트 트랙)
 -- =============================================
 CREATE TABLE `dna_track` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
@@ -223,7 +239,7 @@ CREATE TABLE `dna_track` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
--- 17. DnaQuestion (DNA 테스트 질문)
+-- 18. DnaQuestion (DNA 테스트 질문)
 -- =============================================
 CREATE TABLE `dna_question` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
@@ -235,7 +251,7 @@ CREATE TABLE `dna_question` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
--- 18. DnaOption (DNA 테스트 선택지)
+-- 19. DnaOption (DNA 테스트 선택지)
 -- =============================================
 CREATE TABLE `dna_option` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
@@ -250,7 +266,7 @@ CREATE TABLE `dna_option` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
--- 19. DnaResult (DNA 테스트 결과)
+-- 20. DnaResult (DNA 테스트 결과)
 -- =============================================
 CREATE TABLE `dna_result` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
@@ -266,7 +282,7 @@ CREATE TABLE `dna_result` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
--- 20. FocusTimerSetting (집중 타이머 설정)
+-- 21. FocusTimerSetting (집중 타이머 설정)
 -- =============================================
 CREATE TABLE `focus_timer_setting` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
@@ -280,7 +296,7 @@ CREATE TABLE `focus_timer_setting` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
--- 21. WhiteNoise (백색소음 마스터)
+-- 22. WhiteNoise (백색소음 마스터)
 -- =============================================
 CREATE TABLE `white_noise` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
@@ -292,7 +308,7 @@ CREATE TABLE `white_noise` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
--- 22. BlockedApp (사용자별 차단 앱) - 미구현 가능성 있음
+-- 23. BlockedApp (사용자별 차단 앱) - 미구현 가능성 있음
 -- =============================================
 CREATE TABLE `blocked_app` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
@@ -311,7 +327,8 @@ CREATE TABLE `blocked_app` (
 CREATE INDEX `idx_user_book_member` ON `user_book` (`member_id`);
 CREATE INDEX `idx_user_book_book` ON `user_book` (`book_id`);
 CREATE INDEX `idx_quote_celebrity` ON `quote` (`celebrity_id`);
-CREATE INDEX `idx_notification_member` ON `notification` (`member_id`);
+CREATE INDEX `idx_notification_setting_member` ON `notification_setting` (`member_id`);
+CREATE INDEX `idx_notification_history_member` ON `notification_history` (`member_id`);
 CREATE INDEX `idx_reading_session_member` ON `reading_session` (`member_id`);
 CREATE INDEX `idx_reading_interval_session` ON `reading_interval` (`session_id`);
 CREATE INDEX `idx_blocked_app_member` ON `blocked_app` (`member_id`);
