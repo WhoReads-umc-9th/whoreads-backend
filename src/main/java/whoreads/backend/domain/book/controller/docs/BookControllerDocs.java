@@ -34,4 +34,18 @@ public interface BookControllerDocs {
 
     @Operation(summary = "가장 많이 추천된 책 (TOP 20)", description = "유명인들이 가장 많이 언급(인용)한 책들을 추천 수 내림차순으로 조회합니다.")
     ResponseEntity<List<BookResponse>> getMostRecommendedBooks(@Parameter(description = "가져올 책 개수 (기본값 20)") @RequestParam(defaultValue = "20") int limit);
+
+    @Operation(
+            summary = "책 상세페이지 조회",
+            description = "책 상세 정보를 조회합니다. 책 기본 정보, 관련 인용(유명인, 출처 포함), 추천 수를 반환합니다.\n\n"
+                    + "로그인한 사용자가 담아둔 책이면 reading_info(읽기 상태, 진행 페이지, 시작/종료 날짜)도 함께 반환합니다."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 책 ID", content = @Content)
+    })
+    whoreads.backend.global.response.ApiResponse<BookDetailResponse> getBookDetail(
+            @Parameter(description = "책 ID") @PathVariable Long bookId,
+            @AuthenticationPrincipal Long memberId
+    );
 }

@@ -3,6 +3,7 @@ package whoreads.backend.domain.book.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import whoreads.backend.domain.book.entity.Book;
 import whoreads.backend.domain.book.entity.BookQuote;
 import whoreads.backend.domain.celebrity.entity.Celebrity;
@@ -29,6 +30,7 @@ public class BookDetailResponse {
     private String coverUrl;
     private String link;
     private int quoteCount;
+    @Setter
     private ReadingInfo readingInfo;  // 담아둔 책이 아니면 null
     private List<QuoteDetail> quotes;
 
