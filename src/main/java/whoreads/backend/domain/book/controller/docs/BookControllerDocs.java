@@ -3,6 +3,7 @@ package whoreads.backend.domain.book.controller.docs;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -41,8 +42,68 @@ public interface BookControllerDocs {
                     + "로그인한 사용자가 담아둔 책이면 reading_info(읽기 상태, 진행 페이지, 시작/종료 날짜)도 함께 반환합니다."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "조회 성공"),
-            @ApiResponse(responseCode = "404", description = "존재하지 않는 책 ID", content = @Content)
+            @ApiResponse(responseCode = "200", description = "조회 성공",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": true,
+                                      "code": 200,
+                                      "message": "요청이 성공했습니다.",
+                                      "result": {
+                                        "id": 1,
+                                        "title": "사피엔스",
+                                        "author_name": "유발 하라리",
+                                        "genre": "인문",
+                                        "cover_url": "https://image.aladin.co.kr/product/4860/35/cover/8934972467_2.jpg",
+                                        "link": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=48603543",
+                                        "quote_count": 2,
+                                        "reading_info": null,
+                                        "quotes": [
+                                          {
+                                            "quote_id": 10,
+                                            "original_text": "역사의 가장 큰 거짓말은 우리가 진보하고 있다는 믿음이다.",
+                                            "context_score": 5,
+                                            "celebrity": {
+                                              "id": 5,
+                                              "name": "빌 게이츠",
+                                              "image_url": "https://example.com/billgates.jpg",
+                                              "job_tags": ["기업가"]
+                                            },
+                                            "source": {
+                                              "url": "https://youtube.com/watch?v=example",
+                                              "type": "VIDEO",
+                                              "timestamp": "03:25"
+                                            }
+                                          },
+                                          {
+                                            "quote_id": 15,
+                                            "original_text": "이 책은 우리가 어디서 왔는지를 가장 명쾌하게 설명한다.",
+                                            "context_score": 3,
+                                            "celebrity": {
+                                              "id": 8,
+                                              "name": "오바마",
+                                              "image_url": "https://example.com/obama.jpg",
+                                              "job_tags": ["정치인", "대통령"]
+                                            },
+                                            "source": {
+                                              "url": "https://twitter.com/BarackObama/status/example",
+                                              "type": "SOCIAL_MEDIA",
+                                              "timestamp": null
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    }
+                                    """))),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 책 ID",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": false,
+                                      "code": 404,
+                                      "message": "책을 찾을 수 없습니다."
+                                    }
+                                    """)))
     })
     whoreads.backend.global.response.ApiResponse<BookDetailResponse> getBookDetail(
             @Parameter(description = "책 ID") @PathVariable Long bookId,
