@@ -16,19 +16,21 @@ public class Quote extends BaseEntity {
     @Column(name = "quote_id")
     private Long id;
 
-    // 1. 내용 및 언어
+    // 1. 내용 (필수, TEXT 타입)
     @Column(columnDefinition = "TEXT", nullable = false)
     private String originalText;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Language language; // KO, EN
 
-    // 2. 점수
+    // 2. 점수 (필수)
+    @Column(nullable = false)
     private int contextScore;
 
-    // 3. 인물 연결
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "celebrity_id")
+    // 3. 인물 연결 (필수)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "celebrity_id", nullable = false)
     private Celebrity celebrity;
 
     @Builder

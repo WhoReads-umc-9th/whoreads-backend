@@ -1,6 +1,8 @@
 package whoreads.backend.domain.quote.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import whoreads.backend.domain.book.entity.Book;
@@ -9,6 +11,7 @@ import whoreads.backend.domain.book.repository.BookQuoteRepository;
 import whoreads.backend.domain.book.repository.BookRepository;
 import whoreads.backend.domain.celebrity.entity.Celebrity;
 import whoreads.backend.domain.celebrity.repository.CelebrityRepository;
+import whoreads.backend.domain.notification.event.NotificationEvent;
 import whoreads.backend.domain.quote.dto.QuoteRequest;
 import whoreads.backend.domain.quote.dto.QuoteResponse;
 import whoreads.backend.domain.quote.entity.Quote;
@@ -32,14 +35,15 @@ public class QuoteService {
     private final BookQuoteRepository bookQuoteRepository;
     private final QuoteContextRepository quoteContextRepository;
     private final QuoteSourceRepository quoteSourceRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
-    public void registerQuote(QuoteRequest request) {
+    public Long registerQuote(QuoteRequest request) { // Void -> Long (ID 반환)
 
         Book book = bookRepository.findById(request.getBookId())
-                .orElseThrow(() -> new IllegalArgumentException("책이 없습니다. ID=" + request.getBookId()));
+                .orElseThrow(() -> new EntityNotFoundException("책이 없습니다. ID=" + request.getBookId()));
         Celebrity celebrity = celebrityRepository.findById(request.getCelebrityId())
-                .orElseThrow(() -> new IllegalArgumentException("유명인이 없습니다. ID=" + request.getCelebrityId()));
+                .orElseThrow(() -> new EntityNotFoundException("유명인이 없습니다. ID=" + request.getCelebrityId()));
 
         // 1. Quote 저장
         Quote quote = Quote.builder()
@@ -75,36 +79,38 @@ public class QuoteService {
             QuoteContext context = QuoteContext.builder()
                     .quote(quote)
                     .contextHow(request.getContext().getHow())
-                    .contextWhen(request.getContext().getWhen()) // [추가]
+                    .contextWhen(request.getContext().getWhen())
                     .contextWhy(request.getContext().getWhy())
                     .contextHelp(request.getContext().getHelp())
                     .build();
             quoteContextRepository.save(context);
         }
+        applicationEventPublisher.publishEvent(
+                new NotificationEvent.FollowEvent
+                        (celebrity.getId(), celebrity.getName(),
+                                book.getId(), book.getTitle(),book.getAuthorName()));
+
+        return quote.getId();
     }
 
-    // 1. 책 ID로 인용 목록 조회 (책 상세 페이지용)
+    // 조회 메서드들 (기존 유지, EntityNotFoundException 처리는 Repository 단계에서 안전하거나 Optional 처리됨)
     public List<QuoteResponse> getQuotesByBook(Long bookId) {
-        return bookQuoteRepository.findByBookIdOrderByQuoteContextScoreDesc(bookId).stream()
+        return bookQuoteRepository.findByBookIdWithFetchJoin(bookId).stream() // (Book Repository 수정사항 반영: FetchJoin 메서드 사용 권장)
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
 
-    // 2. 인물 ID로 인용 목록 조회 (가상 서재용)
     public List<QuoteResponse> getQuotesByCelebrity(Long celebrityId) {
-        return bookQuoteRepository.findByQuote_Celebrity_IdOrderByQuoteContextScoreDesc(celebrityId).stream()
+        return bookQuoteRepository.findByCelebrityIdWithFetchJoin(celebrityId).stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
 
-    // [내부 메서드] BookQuote 엔티티를 DTO로 변환하는 로직
     private QuoteResponse convertToResponse(BookQuote bq) {
         Quote quote = bq.getQuote();
         Book book = bq.getBook();
         Celebrity celebrity = quote.getCelebrity();
 
-        // 맥락(Context)과 출처(Source) 가져오기
-        // (단방향 매핑이라 레포지토리에서 별도로 조회)
         QuoteContext context = quoteContextRepository.findByQuoteId(quote.getId()).orElse(null);
         QuoteSource source = quoteSourceRepository.findByQuoteId(quote.getId()).orElse(null);
 

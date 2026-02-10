@@ -1,19 +1,28 @@
 package whoreads.backend.global.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Builder;
 import lombok.Getter;
 
+
 @Getter
 @Builder
-@JsonPropertyOrder({"isSuccess", "code", "message", "result"})
+@JsonPropertyOrder({"is_success", "code", "message", "result"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
 
-    private final boolean isSuccess;
+    @JsonProperty("is_success")
+    private final Boolean isSuccess;
+
+    @JsonProperty("code")
     private final int code;
+
+    @JsonProperty("message")
     private final String message;
+
+    @JsonProperty("result")
     private final T result;
 
     public static <T> ApiResponse<T> success(T result) {
@@ -47,6 +56,15 @@ public class ApiResponse<T> {
                 .isSuccess(true)
                 .code(201)
                 .message("리소스가 생성되었습니다.")
+                .result(result)
+                .build();
+    }
+
+    public static <T> ApiResponse<T> created(String message, T result) {
+        return ApiResponse.<T>builder()
+                .isSuccess(true)
+                .code(201)
+                .message(message)
                 .result(result)
                 .build();
     }

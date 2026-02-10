@@ -1,31 +1,37 @@
-package whoreads.backend.domain.topic.entity; // 👈 entity 패키지 추가
+package whoreads.backend.domain.topic.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import whoreads.backend.global.entity.BaseEntity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "topic")
-public class Topic extends BaseEntity { // 주제
+public class Topic {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "topic_id")
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String name; // 예: "번아웃", "창업 초기"
+    @Column(nullable = false)
+    private String name;
 
-    private String description; // 예: "지친 마음을 위로하는 책들"
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(
+            name = "topic_tags",
+            joinColumns = @JoinColumn(name = "topic_id")
+    )
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tag")
+    private List<TopicTag> tags = new ArrayList<>();
 
-    @Builder
-    public Topic(String name, String description) {
+    public Topic(String name, List<TopicTag> tags) {
         this.name = name;
-        this.description = description;
+        this.tags = (tags != null) ? tags : new ArrayList<>();
     }
 }

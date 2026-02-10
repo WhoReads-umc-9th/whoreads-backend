@@ -1,5 +1,6 @@
 package whoreads.backend.domain.book.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +31,13 @@ public class BookController implements BookControllerDocs {
     }
 
     @Override
+    @GetMapping("/{bookId}")
+    public BookResponse getBook(@PathVariable Long bookId) {
+        Book book = bookService.getBook(bookId);
+        return BookResponse.from(book);
+    }
+
+    @Override
     @GetMapping("/search")
     public List<BookResponse> aladinSearchBooks(@RequestParam String keyword) {
         return aladinBookService.searchBooks(keyword);
@@ -37,15 +45,15 @@ public class BookController implements BookControllerDocs {
 
     @Override
     @PostMapping
-    public ResponseEntity<BookResponse> registerBook(@RequestBody BookRequest request) {
+    public ResponseEntity<BookResponse> registerBook(@RequestBody @Valid BookRequest request) {
         Book savedBook = bookService.registerBook(request.toEntity());
         return ResponseEntity.ok(BookResponse.from(savedBook));
     }
 
     @Override
     @GetMapping("/ranks")
-    public ResponseEntity<List<BookResponse>> getMostRecommendedBooks() {
-        List<Book> books = bookService.getMostRecommendedBooks(20);
+    public ResponseEntity<List<BookResponse>> getMostRecommendedBooks(@RequestParam(defaultValue = "20") int limit) {
+        List<Book> books = bookService.getMostRecommendedBooks(limit);
 
         List<BookResponse> response = books.stream()
                 .map(BookResponse::from)
