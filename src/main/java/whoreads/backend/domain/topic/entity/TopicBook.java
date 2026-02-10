@@ -2,13 +2,13 @@ package whoreads.backend.domain.topic.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import whoreads.backend.domain.quote.entity.Quote;
+import whoreads.backend.domain.book.entity.Book;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "topic_quote")
-public class TopicQuote { // 주제 - 인용 교차 테이블
+@Table(name = "topic_book")
+public class TopicBook { // 주제 - 책 교차 테이블
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,16 +16,16 @@ public class TopicQuote { // 주제 - 인용 교차 테이블
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_id")
+    private Book book;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "topic_id")
     private Topic topic;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "quote_id")
-    private Quote quote;
-
     @Builder
-    public TopicQuote(Topic topic, Quote quote) {
+    public TopicBook(Book book, Topic topic) {
+        this.book = book;
         this.topic = topic;
-        this.quote = quote;
     }
 }

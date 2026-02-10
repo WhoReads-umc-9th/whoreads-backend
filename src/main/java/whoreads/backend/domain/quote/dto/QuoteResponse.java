@@ -25,7 +25,7 @@ public class QuoteResponse {
     private Long celebrityId;
     private String celebrityName;
     private String celebrityImg;
-    private String celebrityJob; // 직업(한줄소개)
+    private String celebrityBio; // 한줄 소개
 
     // 맥락 (Why, How)
     private ContextInfo context;
@@ -62,7 +62,7 @@ public class QuoteResponse {
                 .celebrityId(celebrity.getId())
                 .celebrityName(celebrity.getName())
                 .celebrityImg(celebrity.getImageUrl())
-                .celebrityJob(celebrity.getOneLineIntroduction())
+                .celebrityBio(celebrity.getShortBio())
                 // 맥락
                 .context(ctx != null ? ContextInfo.builder()
                         .how(ctx.getContextHow())

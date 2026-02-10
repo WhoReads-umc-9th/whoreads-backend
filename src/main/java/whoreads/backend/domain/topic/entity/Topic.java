@@ -21,11 +21,8 @@ public class Topic extends BaseEntity { // 주제
     @Column(nullable = false, unique = true)
     private String name; // 예: "번아웃", "창업 초기"
 
-    private String description; // 예: "지친 마음을 위로하는 책들"
-
     @Builder
-    public Topic(String name, String description) {
+    public Topic(String name) {
         this.name = name;
-        this.description = description;
     }
 }
