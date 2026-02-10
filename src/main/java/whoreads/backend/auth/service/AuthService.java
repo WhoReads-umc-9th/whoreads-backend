@@ -26,6 +26,8 @@ public interface AuthService {
     // TODO: 토큰 갱신 - refresh(String refreshToken) -> 새 Access Token 반환
     AuthResDto.JoinData signup(AuthReqDto.SignUpRequest request);
 
+    void checkLoginIdDuplicate(String loginId);
+
     AuthResDto.TokenData login(AuthReqDto.LoginRequest dto);
 
     void logout(Long memberId);

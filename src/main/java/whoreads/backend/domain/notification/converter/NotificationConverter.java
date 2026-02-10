@@ -1,15 +1,17 @@
 package whoreads.backend.domain.notification.converter;
 
 import whoreads.backend.domain.notification.dto.NotificationResDTO;
-import whoreads.backend.domain.notification.entity.Notification;
+import whoreads.backend.domain.notification.entity.NotificationHistory;
+import whoreads.backend.domain.notification.entity.NotificationSetting;
 import whoreads.backend.domain.notification.enums.NotificationType;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class NotificationConverter {
 
     // 모든 타입을 이 메서드 하나로 변환합니다.
-    public static NotificationResDTO.SettingDTO toSettingDTO(Notification notification) {
+    public static NotificationResDTO.SettingDTO toSettingDTO(NotificationSetting notification) {
         return NotificationResDTO.SettingDTO.builder()
                 .id(notification.getId())
                 .type(notification.getType().name())
@@ -20,7 +22,7 @@ public class NotificationConverter {
     }
 
     // 전체 목록 조회 시 사용
-    public static NotificationResDTO.TotalSettingDTO toTotalSettingDTO(List<Notification> notifications) {
+    public static NotificationResDTO.TotalSettingDTO toTotalSettingDTO(List<NotificationSetting> notifications) {
         // 1. FOLLOW 타입 찾기 (0번 찍기)
         NotificationResDTO.SettingDTO follow = notifications.stream()
                 .filter(n -> n.getType() == NotificationType.FOLLOW)
@@ -37,6 +39,37 @@ public class NotificationConverter {
         return NotificationResDTO.TotalSettingDTO.builder()
                 .followSetting(follow)
                 .routineSettings(routines)
+                .build();
+    }
+    public static NotificationResDTO.HistoryDTO toHistoryDTO(NotificationHistory history) {
+        return NotificationResDTO.HistoryDTO.builder()
+                .id(history.getId())
+                .title(history.getTitle())
+                .body(history.getBody())
+                .type(history.getType().name())
+                .createdAt(history.getCreatedAt())
+                .link(history.getLink())
+                .build();
+    }
+
+    public static NotificationResDTO.TotalInboxDTO toTotalInboxDTO(List<NotificationHistory> histories, int size) {
+
+        boolean hasNext = histories.size() > size;
+
+        List<NotificationHistory> contentList = hasNext
+                ? histories.subList(0, size)
+                : histories;
+
+        List<NotificationResDTO.HistoryDTO> contents = contentList.stream()
+                .map(NotificationConverter::toHistoryDTO)
+                .toList();
+
+        Long nextCursor = !hasNext && contentList.isEmpty() ? null : contentList.getLast().getId();
+
+        return NotificationResDTO.TotalInboxDTO.builder()
+                .contents(contents)
+                .nextCursor(nextCursor)
+                .hasNext(hasNext)
                 .build();
     }
 }

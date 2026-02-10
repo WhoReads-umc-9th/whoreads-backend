@@ -1,120 +1,211 @@
 import re
-import sys
-import os
+from pathlib import Path
 
-def parse_sql_to_mermaid(sql_content):
-    mermaid_lines = ["erDiagram"]
+SQL_PATH = "docs/ERD/WhoReads.sql"
+ERD_PATH = "docs/ERD/ERD.md"
+ERD_CLOUD_URL = "https://www.erdcloud.com/d/vymgaEnwdvs8Pf2HL"
 
-    # 1. 테이블 추출 (CREATE TABLE `tableName` ...)
-    # 대소문자 무시, 백틱 처리
-    table_pattern = re.compile(r"CREATE\s+TABLE\s+`?(\w+)`?", re.IGNORECASE)
 
-    # 테이블 안의 컬럼 추출 로직을 위한 분할
-    # SQL 문을 ';' 기준으로 나누어 처리
-    statements = sql_content.split(';')
+def parse_existing_labels(erd_path):
+    """기존 ERD.md에서 관계 라벨을 추출하여 보존"""
+    labels = {}
+    path = Path(erd_path)
+    if not path.exists():
+        return labels
+    text = path.read_text(encoding="utf-8")
+    for m in re.finditer(r'(\w+)\s+\|\|--o\{\s+(\w+)\s*:\s*"([^"]+)"', text):
+        labels[(m.group(1), m.group(2))] = m.group(3)
+    return labels
 
-    tables = {} # 테이블 정보 저장 {table_name: [columns...]}
-    relationships = [] # 관계 정보 저장
 
-    for statement in statements:
-        statement = statement.strip()
-        if not statement:
-            continue
+def normalize_type(raw_type):
+    """SQL 타입을 Mermaid용으로 변환"""
+    raw = raw_type.strip()
+    upper = raw.upper()
 
-        # 테이블 찾기
-        table_match = table_pattern.search(statement)
-        if table_match:
-            table_name = table_match.group(1)
-            tables[table_name] = []
+    # VARCHAR(N) → varchar / varchar_N
+    vm = re.match(r'VARCHAR\((\d+)\)', upper)
+    if vm:
+        length = vm.group(1)
+        return "varchar" if length == "255" else f"varchar_{length}"
+    if upper == "VARCHAR":
+        return "varchar"
 
-            # 괄호 안의 내용(컬럼 정의) 추출
-            content_match = re.search(r"\((.*)\)", statement, re.DOTALL)
-            if content_match:
-                columns_block = content_match.group(1)
-                # 줄바꿈으로 나누기
-                lines = columns_block.split('\n')
+    # DATETIME(6) → datetime
+    if upper.startswith("DATETIME"):
+        return "datetime"
 
-                for line in lines:
-                    line = line.strip()
-                    if not line or line.startswith(('PRIMARY', 'KEY', 'CONSTRAINT', ')')):
-                        continue
+    # TINYINT(1) → tinyint
+    if upper.startswith("TINYINT"):
+        return "tinyint"
 
-                    # 컬럼명과 타입 추출 (간단한 파싱)
-                    # 예: `id` bigint NOT NULL...
-                    parts = line.replace('`', '').split()
-                    if len(parts) >= 2:
-                        col_name = parts[0]
-                        col_type = parts[1]
+    # ENUM(...) → enum
+    if upper.startswith("ENUM"):
+        return "enum"
 
-                        # PK 확인 (단순 문자열 체크)
-                        is_pk = "PK" if "PRIMARY KEY" in statement and col_name in statement else ""
-                        if "id" == col_name and "PRIMARY KEY" not in statement:
-                            # 보통 id는 PK이므로 명시가 없어도 처리 (약식)
-                            is_pk = "PK"
+    # BIGINT, INT, TEXT, JSON, TIME, etc.
+    base = re.match(r'(\w+)', upper)
+    return base.group(1).lower() if base else raw.lower()
 
-                        # FK 추론 로직 (사용자님의 스키마 스타일에 맞춤)
-                        # 예: member_id -> member 테이블 참조
-                        if col_name.endswith("_id") and col_name != "id":
-                            target_table = col_name.replace("_id", "")
-                            # 관계 추가 (나중에 테이블 존재 여부 확인 후 확정)
-                            relationships.append((target_table, table_name))
-                            is_fk = "FK"
-                        else:
-                            is_fk = ""
 
-                        tables[table_name].append(f"{col_type} {col_name} {is_pk} {is_fk}")
+def parse_sql(sql_path):
+    """SQL 파싱 → 테이블 목록 + FK 관계"""
+    raw = Path(sql_path).read_text(encoding="utf-8")
 
-    # 2. 관계(Relationship) 생성
-    # Mermaid 문법: table1 ||--o{ table2 : "label"
-    # 여기서는 단순하게 ||--o{ 로 통일 (1:N 가정)
+    # DELIMITER 이후 제거 (트리거 등)
+    raw = re.split(r'DELIMITER\s', raw, flags=re.IGNORECASE)[0]
 
-    # 존재하는 테이블끼리만 관계 연결
-    table_names = set(tables.keys())
+    # 주석 제거
+    raw = re.sub(r'--[^\n]*', '', raw)
+    raw = re.sub(r'/\*.*?\*/', '', raw, flags=re.DOTALL)
 
-    for target, source in relationships:
-        # 대소문자 문제 해결을 위해 검색 (User -> member 매칭 등은 추가 로직 필요하나 여기서는 정확한 이름 매칭)
-        # 업로드한 SQL에서는 member_id -> member 로 정확히 매칭됨
-        if target in table_names and source in table_names:
-            mermaid_lines.append(f"    {target} ||--o{{ {source} : \"has\"")
+    # CREATE INDEX 제거
+    raw = re.sub(r'CREATE\s+INDEX\s+[^;]*;', '', raw, flags=re.IGNORECASE)
 
-    mermaid_lines.append("")
+    tables = {}
+    relationships = []
 
-    # 3. 테이블 정의 생성
-    for table_name, columns in tables.items():
-        mermaid_lines.append(f"    {table_name} {{")
-        for col in columns:
-            mermaid_lines.append(f"        {col}")
-        mermaid_lines.append("    }")
+    for m in re.finditer(
+        r'CREATE\s+TABLE\s+[`"]?(\w+)[`"]?\s*\((.*?)\)\s*(?:ENGINE|;)',
+        raw, re.IGNORECASE | re.DOTALL,
+    ):
+        tname = m.group(1)
+        body = m.group(2)
 
-    return "\n".join(mermaid_lines)
+        # PK 추출
+        pk_m = re.search(r'PRIMARY\s+KEY\s*\(([^)]+)\)', body, re.IGNORECASE)
+        pk_cols = set()
+        if pk_m:
+            pk_cols = {c.strip().strip('`"') for c in pk_m.group(1).split(',')}
+
+        # FK 추출: {fk_col: parent_table}
+        fk_map = {}
+        for fk_m in re.finditer(
+            r'FOREIGN\s+KEY\s*\(\s*[`"]?(\w+)[`"]?\s*\)\s*REFERENCES\s+[`"]?(\w+)[`"]?',
+            body, re.IGNORECASE,
+        ):
+            fk_col, parent = fk_m.group(1), fk_m.group(2)
+            fk_map[fk_col] = parent
+            relationships.append((parent, tname))
+
+        # 여러 줄에 걸친 ENUM 정의를 한 줄로 합치기
+        collapsed = body
+        while True:
+            merged = re.sub(r"(ENUM\s*\([^)]*?)\n\s*", r"\1 ", collapsed)
+            if merged == collapsed:
+                break
+            collapsed = merged
+
+        # 컬럼 파싱
+        columns = []
+        for line in collapsed.split('\n'):
+            line = line.strip().rstrip(',')
+            if not line:
+                continue
+            if re.match(
+                r'(?:PRIMARY|CONSTRAINT|UNIQUE\s+KEY|KEY\s|INDEX|FOREIGN)',
+                line, re.IGNORECASE,
+            ):
+                continue
+
+            # 컬럼 이름 추출
+            col_m = re.match(r'[`"]?(\w+)[`"]?\s+(.*)', line)
+            if not col_m:
+                continue
+
+            col_name = col_m.group(1)
+            rest = col_m.group(2)
+
+            # 타입 추출 — ENUM(...) 은 괄호 깊이로 처리
+            if rest.upper().startswith('ENUM'):
+                depth, end = 0, 0
+                for i, c in enumerate(rest):
+                    if c == '(':
+                        depth += 1
+                    elif c == ')':
+                        depth -= 1
+                        if depth == 0:
+                            end = i + 1
+                            break
+                type_str = rest[:end]
+                after_type = rest[end:]
+            else:
+                type_m = re.match(r'(\w+(?:\([^)]*\))?)', rest)
+                if not type_m:
+                    continue
+                type_str = type_m.group(1)
+                after_type = rest[len(type_str):]
+
+            col_type = normalize_type(type_str)
+            is_not_null = bool(re.search(r'NOT\s+NULL', after_type, re.IGNORECASE))
+            is_unique = bool(re.search(r'\bUNIQUE\b', after_type, re.IGNORECASE))
+
+            # 플래그 및 어노테이션
+            flag = ""
+            annotation = ""
+            if col_name in pk_cols:
+                flag = "PK"
+            elif col_name in fk_map:
+                flag = "FK"
+                if is_unique:
+                    annotation = '"Unique"'
+            else:
+                parts = []
+                if is_not_null:
+                    parts.append("NOT_NULL")
+                if is_unique:
+                    parts.append("Unique")
+                if parts:
+                    annotation = f'"{", ".join(parts)}"'
+
+            entry = f"{col_type} {col_name}"
+            if flag:
+                entry += f" {flag}"
+            if annotation:
+                entry += f" {annotation}"
+            columns.append(entry)
+
+        tables[tname] = columns
+
+    # 중복 제거 (순서 유지)
+    relationships = list(dict.fromkeys(relationships))
+    return tables, relationships
+
+
+def generate_erd(tables, relationships, labels):
+    """ERD.md 생성"""
+    lines = [
+        "# WhoReads ERD",
+        "",
+        f"> ERD Cloud: {ERD_CLOUD_URL}",
+        "",
+        "```mermaid",
+        "erDiagram",
+    ]
+
+    for parent, child in relationships:
+        label = labels.get((parent, child), "references")
+        lines.append(f'    {parent} ||--o{{ {child} : "{label}"')
+
+    lines.append("")
+
+    for tname, cols in tables.items():
+        lines.append(f"    {tname} {{")
+        for col in cols:
+            lines.append(f"        {col}")
+        lines.append("    }")
+        lines.append("")
+
+    lines.append("```")
+    return "\n".join(lines) + "\n"
+
 
 if __name__ == "__main__":
-    # 1. 현재 실행 중인 스크립트(sql_to_mermaid.py)의 절대 경로를 구합니다.
-    current_script_path = os.path.abspath(__file__)
+    print(f"[*] {SQL_PATH} 파싱 중...")
 
-    # 2. 스크립트가 있는 폴더(scripts) 경로를 구합니다.
-    scripts_dir = os.path.dirname(current_script_path)
+    labels = parse_existing_labels(ERD_PATH)
+    tables, rels = parse_sql(SQL_PATH)
+    result = generate_erd(tables, rels, labels)
 
-    # 3. 프로젝트 루트 폴더(WhoReads)는 scripts 폴더의 상위 폴더입니다.
-    project_root = os.path.dirname(scripts_dir)
-
-    # 4. 프로젝트 루트를 기준으로 SQL 파일 경로를 합칩니다.
-    file_path = os.path.join(project_root, 'docs', 'ERD', 'WhoReads.sql')
-
-    # 저장할 MD 파일 경로도 똑같이 프로젝트 루트 기준으로 잡습니다.
-    output_path = os.path.join(project_root, 'docs', 'ERD', 'ERD.md')
-
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            sql = f.read()
-
-        mermaid_output = parse_sql_to_mermaid(sql)
-
-        # 결과 출력 (GitHub Actions에서는 파일로 저장)
-        print(mermaid_output)
-
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(f"```mermaid\n{mermaid_output}\n```")
-
-    except FileNotFoundError:
-        print(f"Error: File {file_path} not found.")
+    Path(ERD_PATH).write_text(result, encoding="utf-8")
+    print(f"[*] {ERD_PATH} 업데이트 완료 ({len(tables)}개 테이블, {len(rels)}개 관계)")

@@ -21,32 +21,29 @@ public class Celebrity extends BaseEntity {
     private Long id;
 
     @Column(nullable = false, length = 50)
-    private String name;
+    private String name; // 추천인 이름
 
     @Column(name = "image_url", columnDefinition = "TEXT")
-    private String imageUrl;
+    private String imageUrl; // 이미지 URL
 
     @Column(name = "short_bio", nullable = false)
-    private String shortBio;
+    private String shortBio; // 한줄 소개
 
-    @Column(name = "one_line_introduction")
-    private String oneLineIntroduction;
-
+    // 직업 태그 (가수, 배우 등) - 필터링용
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
-            name = "celebrity_job_tags",
+            name = "celebrity_tags",
             joinColumns = @JoinColumn(name = "celebrity_id")
     )
     @Enumerated(EnumType.STRING)
-    @Column(name = "job_tag")
+    @Column(name = "tag")
     private List<CelebrityTag> jobTags = new ArrayList<>();
 
     @Builder
-    public Celebrity(String name, String imageUrl, String shortBio, String oneLineIntroduction, List<CelebrityTag> jobTags) {
+    public Celebrity(String name, String imageUrl, String shortBio, List<CelebrityTag> jobTags) {
         this.name = name;
         this.imageUrl = imageUrl;
         this.shortBio = shortBio;
-        this.oneLineIntroduction = oneLineIntroduction;
         this.jobTags = (jobTags != null) ? jobTags : new ArrayList<>();
     }
 }

@@ -1,5 +1,7 @@
 package whoreads.backend.domain.notification.event;
 
+import whoreads.backend.domain.notification.dto.MemberTokenDTO;
+
 import java.util.List;
 
 public interface NotificationEvent {
@@ -12,6 +14,6 @@ public interface NotificationEvent {
     ) implements NotificationEvent {} // 인터페이스 구현!
 
     record RoutineEvent(
-            List<String> tokens
+            List<MemberTokenDTO> memberTokens
     ) implements NotificationEvent {} // 인터페이스 구현!
 }
