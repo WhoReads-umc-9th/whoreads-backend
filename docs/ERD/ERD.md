@@ -12,9 +12,9 @@ erDiagram
     quote ||--o{ book_quote : "linked_to_book"
     quote ||--o{ quote_context : "contextualized_by"
     quote ||--o{ quote_source : "sourced_from"
+    topic ||--o{ topic_tags : "has_tags"
     book ||--o{ topic_book : "categorized_by"
     topic ||--o{ topic_book : "contains"
-    topic ||--o{ topic_tags : "has_tags"
     member ||--o{ notification : "configures"
     member ||--o{ reading_session : "starts"
     reading_session ||--o{ reading_interval : "divided_into"
@@ -63,6 +63,8 @@ erDiagram
         bigint book_id FK
         enum reading_status "NOT_NULL"
         int reading_page
+        date started_at
+        date completed_at
         datetime created_at "NOT_NULL"
         datetime updated_at "NOT_NULL"
     }
@@ -129,8 +131,8 @@ erDiagram
 
     topic_book {
         bigint id PK
-        bigint book_id FK "NOT_NULL"
-        bigint topic_id FK "NOT_NULL"
+        bigint book_id FK
+        bigint topic_id FK
     }
 
     notification {
