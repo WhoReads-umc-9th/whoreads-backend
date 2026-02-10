@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import whoreads.backend.domain.member.repository.MemberRepository;
 import whoreads.backend.domain.notification.dto.FcmMessageDTO;
+import whoreads.backend.domain.notification.dto.MemberTokenDTO;
 import whoreads.backend.global.exception.CustomException;
 import whoreads.backend.global.exception.ErrorCode;
 
@@ -23,6 +24,7 @@ public class NotificationPushServiceImpl implements NotificationPushService {
     private final FirebaseMessaging firebaseMessaging;
     private final MemberRepository memberRepository;
     private static final int FCM_BATCH_SIZE = 500;
+    private final NotificationHistoryService notificationHistoryService;
 
     @Async("WhoReadsAsyncExecutor")
     @Transactional
@@ -72,15 +74,17 @@ public class NotificationPushServiceImpl implements NotificationPushService {
     }
     
     // 팔로우나 루틴 알림처럼 대량 발송
-    public void sendMulticast(List<String> tokens, FcmMessageDTO dto) {
-        if (tokens == null || tokens.isEmpty()) return;
+    public void sendMulticast(List<MemberTokenDTO> memberTokens, FcmMessageDTO dto) {
+        if (memberTokens == null || memberTokens.isEmpty()) return;
 
         // 한번에 FCM_BATCH_SIZE 만큼만 발송
-        for (int i = 0; i < tokens.size(); i += FCM_BATCH_SIZE) {
-            List<String> subList = tokens.subList(i, Math.min(i + FCM_BATCH_SIZE, tokens.size()));
+        for (int i = 0; i < memberTokens.size(); i += FCM_BATCH_SIZE) {
+            List<MemberTokenDTO> subList = memberTokens.subList(i, Math.min(i + FCM_BATCH_SIZE, memberTokens.size()));
 
             MulticastMessage message = MulticastMessage.builder()
-                    .addAllTokens(subList)
+                    .addAllTokens(subList.stream()
+                            .map(MemberTokenDTO::getFcmToken)
+                            .toList())
                     .setNotification(Notification.builder()
                             .setTitle(dto.getTitle())
                             .setBody(dto.getBody())
@@ -98,10 +102,23 @@ public class NotificationPushServiceImpl implements NotificationPushService {
                     .putData("link", Optional.ofNullable(dto.getLink()).orElse(""))
                     .build();
             try {
-                firebaseMessaging.sendEachForMulticast(message);
+                BatchResponse response = firebaseMessaging.sendEachForMulticast(message);
+                for (int j = 0; j< response.getResponses().size();j++)
+                {
+                    SendResponse sendResponse = response.getResponses().get(j);
+                    MemberTokenDTO tokenDTO = subList.get(j);
+                    if (sendResponse.isSuccessful()) {
+                        try {
+                            notificationHistoryService.saveHistory(tokenDTO.getMemberId(),dto);
+                        } catch (Exception e) {
+                            log.warn("[History] memberId={} 히스토리 저장 실패",tokenDTO.getMemberId());
+                        }
+                    }
+                }
             } catch (FirebaseMessagingException e) {
                 log.error("[FCM Error] 원인: {}, 메시지: {}", e.getMessagingErrorCode(), e.getMessage());
             }
         }
+
     }
 }

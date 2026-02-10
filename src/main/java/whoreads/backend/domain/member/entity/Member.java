@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 @Builder
 @Entity
-@Getter
+@Getter @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Table
@@ -58,12 +58,6 @@ public class Member extends BaseEntity {
     private LocalDateTime fcmTokenUpdatedAt;
 
     private LocalDateTime deletedAt;
-
-    public Status setStatus(Status status) {
-        this.status = status;
-        return status;
-    }
-
 
 //    @Builder
 //    public Member(String nickname, Gender gender, AgeGroup ageGroup,
