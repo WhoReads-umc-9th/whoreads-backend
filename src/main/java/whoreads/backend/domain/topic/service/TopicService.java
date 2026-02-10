@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class TopicService {
 
     private final TopicRepository topicRepository;
-    private final TopicBookRepository topicBookRepository; // 👈 TopicBook 사용
+    private final TopicBookRepository topicBookRepository;
 
     public List<TopicResponse> getAllTopics() {
         List<Topic> topics = topicRepository.findAll();

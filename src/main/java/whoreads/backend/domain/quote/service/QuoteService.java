@@ -69,7 +69,6 @@ public class QuoteService {
                     .sourceUrl(request.getSource().getUrl())
                     .sourceType(request.getSource().getType())
                     .timestamp(request.getSource().getTimestamp())
-                    .isDirectQuote(request.getSource().isDirect())
                     .build();
             quoteSourceRepository.save(source);
         }

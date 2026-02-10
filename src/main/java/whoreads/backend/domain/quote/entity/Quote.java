@@ -13,7 +13,7 @@ public class Quote extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "quote_id")
+    @Column(name = "id")
     private Long id;
 
     // 1. 내용 (필수, TEXT 타입)
