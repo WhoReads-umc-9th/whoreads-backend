@@ -3,13 +3,16 @@ package whoreads.backend.domain.book.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import whoreads.backend.domain.book.controller.docs.BookControllerDocs;
+import whoreads.backend.domain.book.dto.BookDetailResponse;
 import whoreads.backend.domain.book.dto.BookRequest;
 import whoreads.backend.domain.book.dto.BookResponse;
 import whoreads.backend.domain.book.entity.Book;
 import whoreads.backend.domain.book.service.AladinBookService;
 import whoreads.backend.domain.book.service.BookService;
+import whoreads.backend.global.response.ApiResponse;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -60,5 +63,14 @@ public class BookController implements BookControllerDocs {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(response);
+    }
+
+    @Override
+    @GetMapping("/{bookId}/detail")
+    public ApiResponse<BookDetailResponse> getBookDetail(
+            @PathVariable Long bookId,
+            @AuthenticationPrincipal Long memberId
+    ) {
+        return ApiResponse.success(bookService.getBookDetail(bookId, memberId));
     }
 }

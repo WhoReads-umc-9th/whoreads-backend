@@ -31,11 +31,11 @@ public class Celebrity extends BaseEntity {
     // 직업 태그 (가수, 배우 등) - 필터링용
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
-            name = "celebrity_tags",
+            name = "celebrity_job_tags",
             joinColumns = @JoinColumn(name = "celebrity_id")
     )
     @Enumerated(EnumType.STRING)
-    @Column(name = "tag")
+    @Column(name = "job_tag")
     private List<CelebrityTag> jobTags = new ArrayList<>();
 
     @OneToMany(mappedBy = "celebrity", cascade = CascadeType.ALL)

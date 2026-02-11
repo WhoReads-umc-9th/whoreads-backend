@@ -2,11 +2,9 @@ package whoreads.backend.domain.topic.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Getter
@@ -18,20 +16,12 @@ public class Topic {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String name;
-
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(
-            name = "topic_tags",
-            joinColumns = @JoinColumn(name = "topic_id")
-    )
     @Enumerated(EnumType.STRING)
-    @Column(name = "tag")
-    private List<TopicTag> tags = new ArrayList<>();
+    @Column(nullable = false, unique = true)
+    private TopicTag name; // ENUM으로 매핑 ("삶의 방향", "사고방식" 등)
 
-    public Topic(String name, List<TopicTag> tags) {
+    @Builder
+    public Topic(TopicTag name) {
         this.name = name;
-        this.tags = (tags != null) ? tags : new ArrayList<>();
     }
 }

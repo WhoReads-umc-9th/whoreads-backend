@@ -6,11 +6,22 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import whoreads.backend.domain.book.dto.BookDetailResponse;
 import whoreads.backend.domain.book.entity.Book;
+import whoreads.backend.domain.book.entity.BookQuote;
 import whoreads.backend.domain.book.repository.BookQuoteRepository;
 import whoreads.backend.domain.book.repository.BookRepository;
+import whoreads.backend.domain.library.repository.UserBookRepository;
+import whoreads.backend.domain.quote.entity.QuoteSource;
+import whoreads.backend.domain.quote.repository.QuoteSourceRepository;
+import whoreads.backend.global.exception.CustomException;
+import whoreads.backend.global.exception.ErrorCode;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +30,8 @@ public class BookService {
 
     private final BookRepository bookRepository;
     private final BookQuoteRepository bookQuoteRepository;
+    private final QuoteSourceRepository quoteSourceRepository;
+    private final UserBookRepository userBookRepository;
 
     // 책 상세 조회
     public Book getBook(Long bookId) {
@@ -51,5 +64,40 @@ public class BookService {
     // 가장 많이 추천된 책 TOP N 조회
     public List<Book> getMostRecommendedBooks(int limit) {
         return bookQuoteRepository.findMostRecommendedBooks(PageRequest.of(0, limit));
+    }
+
+    // 책 상세페이지 조회
+    public BookDetailResponse getBookDetail(Long bookId, Long memberId) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new CustomException(ErrorCode.BOOK_NOT_FOUND));
+
+        // 인용 + 유명인 JOIN FETCH (contextScore DESC 정렬)
+        List<BookQuote> bookQuotes = bookQuoteRepository.findByBookIdWithFetchJoin(bookId);
+
+        // 출처 배치 조회
+        List<Long> quoteIds = bookQuotes.stream()
+                .map(bq -> bq.getQuote().getId())
+                .collect(Collectors.toList());
+
+        Map<Long, QuoteSource> sourceMap = quoteIds.isEmpty()
+                ? Collections.emptyMap()
+                : quoteSourceRepository.findByQuoteIdIn(quoteIds).stream()
+                        .collect(Collectors.toMap(
+                                src -> src.getQuote().getId(),
+                                Function.identity()
+                        ));
+
+        // 응답 조립
+        BookDetailResponse response = BookDetailResponse.of(book, bookQuotes, sourceMap);
+
+        // 로그인 사용자의 읽기 상태 확인
+        if (memberId != null) {
+            userBookRepository.findByMemberIdAndBookId(memberId, bookId)
+                    .ifPresent(userBook -> response.setReadingInfo(
+                            BookDetailResponse.ReadingInfo.from(userBook, book)
+                    ));
+        }
+
+        return response;
     }
 }
