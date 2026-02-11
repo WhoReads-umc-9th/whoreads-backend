@@ -37,7 +37,7 @@ public interface BookControllerDocs {
     ResponseEntity<List<BookResponse>> getMostRecommendedBooks(@Parameter(description = "가져올 책 개수 (기본값 20)") @RequestParam(defaultValue = "20") int limit);
 
     @Operation(
-            summary = "책 상세페이지 조회",
+            summary = "책 상세페이지 조회 by 쏘이/김서연",
             description = "책 상세 정보를 조회합니다. 책 기본 정보, 관련 인용(유명인, 출처 포함), 추천 수를 반환합니다.\n\n"
                     + "로그인한 사용자가 담아둔 책이면 reading_info(읽기 상태, 진행 페이지, 시작/종료 날짜)도 함께 반환합니다."
     )
