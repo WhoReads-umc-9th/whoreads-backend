@@ -28,6 +28,9 @@ public class Celebrity extends BaseEntity {
     @Column(name = "short_bio", nullable = false)
     private String shortBio; // 한줄 소개
 
+    @Column(columnDefinition = "TEXT")
+    private String resultComment;
+
     // 직업 태그 (가수, 배우 등) - 필터링용
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
