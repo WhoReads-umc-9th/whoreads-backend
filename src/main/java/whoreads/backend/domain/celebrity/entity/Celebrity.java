@@ -1,18 +1,17 @@
 package whoreads.backend.domain.celebrity.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import whoreads.backend.global.entity.BaseEntity;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Builder
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Table(name = "celebrity")
 public class Celebrity extends BaseEntity {
 
@@ -38,6 +37,10 @@ public class Celebrity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "job_tag")
     private List<CelebrityTag> jobTags = new ArrayList<>();
+
+    @OneToMany(mappedBy = "celebrity", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<CelebrityBook> celebrityBookList = new ArrayList<>();
 
     @Builder
     public Celebrity(String name, String imageUrl, String shortBio, List<CelebrityTag> jobTags) {

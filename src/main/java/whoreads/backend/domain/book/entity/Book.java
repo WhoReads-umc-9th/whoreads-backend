@@ -1,18 +1,18 @@
 package whoreads.backend.domain.book.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import whoreads.backend.domain.celebrity.entity.CelebrityBook;
 import whoreads.backend.global.entity.BaseEntity;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Builder
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Table(name = "book", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"title", "author_name"}) // 제목+저자 중복 방지 (선택 사항이나 추천)
 })
@@ -43,6 +43,10 @@ public class Book extends BaseEntity {
     // 책을 조회하면, 이 책에 달린 인용들도 같이 가져올 수 있도록 연결
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)
     private List<BookQuote> quotes = new ArrayList<>();
+
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<CelebrityBook> celebrityBookList = new ArrayList<>();
 
     @Builder
     public Book(String title, String authorName, String link, String genre, String coverUrl, Integer totalPage) {

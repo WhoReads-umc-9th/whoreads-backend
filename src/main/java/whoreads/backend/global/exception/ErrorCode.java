@@ -37,6 +37,7 @@ public enum ErrorCode {
     QUOTE_NOT_FOUND(HttpStatus.NOT_FOUND, "인용을 찾을 수 없습니다."),
 
     // DNA
+    DNA_TEST_NOT_FOUND(HttpStatus.NOT_FOUND, "DNA 테스트 질문을 찾을 수 없습니다."),
     DNA_TEST_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "독서 DNA 테스트를 완료해주세요."),
 
     // Reading Session
