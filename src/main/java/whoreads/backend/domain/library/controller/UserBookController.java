@@ -10,6 +10,8 @@ import whoreads.backend.domain.library.dto.UserBookRequest;
 import whoreads.backend.domain.library.dto.UserBookResponse;
 import whoreads.backend.domain.library.enums.ReadingStatus;
 import whoreads.backend.domain.library.service.UserBookService;
+import whoreads.backend.global.exception.CustomException;
+import whoreads.backend.global.exception.ErrorCode;
 import whoreads.backend.global.response.ApiResponse;
 
 @RestController
@@ -24,6 +26,7 @@ public class UserBookController implements UserBookControllerDocs {
     public ResponseEntity<ApiResponse<UserBookResponse.Summary>> getLibrarySummary(
             @AuthenticationPrincipal Long memberId
     ) {
+        validateAuthentication(memberId);
         UserBookResponse.Summary summary = userBookService.getLibrarySummary(memberId);
         return ResponseEntity.ok(ApiResponse.success(summary));
     }
@@ -36,6 +39,7 @@ public class UserBookController implements UserBookControllerDocs {
             @RequestParam(required = false) Long cursor,
             @RequestParam(defaultValue = "10") Integer size
     ) {
+        validateAuthentication(memberId);
         UserBookResponse.BookList bookList = userBookService.getBookList(memberId, status, cursor, size);
         return ResponseEntity.ok(ApiResponse.success(bookList));
     }
@@ -46,6 +50,7 @@ public class UserBookController implements UserBookControllerDocs {
             @AuthenticationPrincipal Long memberId,
             @PathVariable Long bookId
     ) {
+        validateAuthentication(memberId);
         UserBookResponse.AddResult result = userBookService.addBookToLibrary(memberId, bookId);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.created("책을 추가했습니다.", result));
@@ -58,6 +63,7 @@ public class UserBookController implements UserBookControllerDocs {
             @PathVariable Long userBookId,
             @RequestBody UserBookRequest.UpdateStatus request
     ) {
+        validateAuthentication(memberId);
         userBookService.updateUserBook(memberId, userBookId, request);
         return ResponseEntity.ok(ApiResponse.success("책 상태를 변경했습니다."));
     }
@@ -68,7 +74,14 @@ public class UserBookController implements UserBookControllerDocs {
             @AuthenticationPrincipal Long memberId,
             @PathVariable Long userBookId
     ) {
+        validateAuthentication(memberId);
         userBookService.deleteBookFromLibrary(memberId, userBookId);
         return ResponseEntity.ok(ApiResponse.success("서재에서 책이 삭제되었습니다."));
+    }
+
+    private void validateAuthentication(Long memberId) {
+        if (memberId == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
     }
 }
