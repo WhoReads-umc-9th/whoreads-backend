@@ -40,6 +40,7 @@ public class SecurityConfig {
                 // 3. 인가 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(allowUris).permitAll()
+                        .requestMatchers("/api/health").permitAll()
                         .requestMatchers("/api/books/**", "/api/celebrities/**").permitAll()
                         .anyRequest().authenticated()
                 )
