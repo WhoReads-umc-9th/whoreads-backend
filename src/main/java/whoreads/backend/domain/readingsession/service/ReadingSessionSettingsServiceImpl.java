@@ -3,9 +3,19 @@ package whoreads.backend.domain.readingsession.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import whoreads.backend.domain.focusmode.entity.BlockedApp;
+import whoreads.backend.domain.focusmode.entity.FocusTimerSetting;
+import whoreads.backend.domain.focusmode.entity.WhiteNoise;
+import whoreads.backend.domain.focusmode.repository.BlockedAppRepository;
+import whoreads.backend.domain.focusmode.repository.FocusModeRepository;
+import whoreads.backend.domain.focusmode.repository.WhiteNoiseRepository;
+import whoreads.backend.domain.member.entity.Member;
+import whoreads.backend.domain.member.repository.MemberRepository;
 import whoreads.backend.domain.readingsession.dto.BlockedAppItem;
 import whoreads.backend.domain.readingsession.dto.ReadingSessionResponse;
 import whoreads.backend.domain.readingsession.dto.WhiteNoiseItem;
+import whoreads.backend.global.exception.CustomException;
+import whoreads.backend.global.exception.ErrorCode;
 
 import java.util.List;
 
@@ -14,88 +24,60 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettingsService {
 
+    private final FocusModeRepository focusModeRepository;
+    private final BlockedAppRepository blockedAppRepository;
+    private final WhiteNoiseRepository whiteNoiseRepository;
+    private final MemberRepository memberRepository;
+
     @Override
     public ReadingSessionResponse.FocusBlockSetting getFocusBlockSetting(Long memberId) {
-        // TODO: 실제 구현 시
-        // 1. memberId로 사용자 조회
-        // 2. Member.focusBlockEnabled 값 반환
+        FocusTimerSetting setting = getOrCreateSetting(memberId);
 
-        // Mock: 기본값 false
         return ReadingSessionResponse.FocusBlockSetting.builder()
-                .focusBlockEnabled(false)
+                .focusBlockEnabled(setting.getFocusBlockEnabled())
                 .build();
     }
 
     @Override
     @Transactional
     public ReadingSessionResponse.FocusBlockSetting updateFocusBlockSetting(Long memberId, Boolean focusBlockEnabled) {
-        boolean enabled = Boolean.TRUE.equals(focusBlockEnabled);
-        // TODO: 실제 구현 시
-        // 1. memberId로 사용자 조회
-        // 2. Member.focusBlockEnabled 업데이트
-        // 3. 변경된 값 반환
+        FocusTimerSetting setting = getOrCreateSetting(memberId);
+        setting.updateFocusBlockEnabled(focusBlockEnabled);
 
-        // Mock: 요청값 그대로 반환
         return ReadingSessionResponse.FocusBlockSetting.builder()
-                .focusBlockEnabled(enabled)
+                .focusBlockEnabled(setting.getFocusBlockEnabled())
                 .build();
     }
 
     @Override
     public ReadingSessionResponse.WhiteNoiseSetting getWhiteNoiseSetting(Long memberId) {
-        // TODO: 실제 구현 시
-        // 1. memberId로 사용자 조회
-        // 2. Member.whiteNoiseEnabled 값 반환
+        FocusTimerSetting setting = getOrCreateSetting(memberId);
 
-        // Mock: 기본값 false
         return ReadingSessionResponse.WhiteNoiseSetting.builder()
-                .whiteNoiseEnabled(false)
+                .whiteNoiseEnabled(setting.getWhiteNoiseEnabled())
                 .build();
     }
 
     @Override
     @Transactional
     public ReadingSessionResponse.WhiteNoiseSetting updateWhiteNoiseSetting(Long memberId, Boolean whiteNoiseEnabled) {
-        boolean enabled = Boolean.TRUE.equals(whiteNoiseEnabled);
-        // TODO: 실제 구현 시
-        // 1. memberId로 사용자 조회
-        // 2. Member.whiteNoiseEnabled 업데이트
-        // 3. 변경된 값 반환
+        FocusTimerSetting setting = getOrCreateSetting(memberId);
+        setting.updateWhiteNoiseEnabled(whiteNoiseEnabled);
 
-        // Mock: 요청값 그대로 반환
         return ReadingSessionResponse.WhiteNoiseSetting.builder()
-                .whiteNoiseEnabled(enabled)
+                .whiteNoiseEnabled(setting.getWhiteNoiseEnabled())
                 .build();
     }
 
     @Override
     public ReadingSessionResponse.WhiteNoiseList getWhiteNoiseList() {
-        // TODO: 실제 구현 시
-        // DB 또는 S3에서 백색소음 목록 조회
-
-        // Mock 데이터
-        List<WhiteNoiseItem> items = List.of(
-                WhiteNoiseItem.builder()
-                        .id(1L)
-                        .name("빗소리")
-                        .audioUrl("https://example.com/audio/rain.mp3")
-                        .build(),
-                WhiteNoiseItem.builder()
-                        .id(2L)
-                        .name("파도소리")
-                        .audioUrl("https://example.com/audio/wave.mp3")
-                        .build(),
-                WhiteNoiseItem.builder()
-                        .id(3L)
-                        .name("카페 소음")
-                        .audioUrl("https://example.com/audio/cafe.mp3")
-                        .build(),
-                WhiteNoiseItem.builder()
-                        .id(4L)
-                        .name("모닥불")
-                        .audioUrl("https://example.com/audio/fire.mp3")
-                        .build()
-        );
+        List<WhiteNoiseItem> items = whiteNoiseRepository.findAll().stream()
+                .map(wn -> WhiteNoiseItem.builder()
+                        .id(wn.getId())
+                        .name(wn.getName())
+                        .audioUrl(wn.getAudioUrl())
+                        .build())
+                .toList();
 
         return ReadingSessionResponse.WhiteNoiseList.builder()
                 .items(items)
@@ -104,21 +86,12 @@ public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettings
 
     @Override
     public ReadingSessionResponse.BlockedApps getBlockedApps(Long memberId) {
-        // TODO: 실제 구현 시
-        // 1. memberId로 사용자 조회
-        // 2. 사용자의 차단 앱 목록 조회
-
-        // Mock 데이터
-        List<BlockedAppItem> blockedApps = List.of(
-                BlockedAppItem.builder()
-                        .bundleId("com.burbn.instagram")
-                        .name("Instagram")
-                        .build(),
-                BlockedAppItem.builder()
-                        .bundleId("com.google.ios.youtube")
-                        .name("YouTube")
-                        .build()
-        );
+        List<BlockedAppItem> blockedApps = blockedAppRepository.findByMemberId(memberId).stream()
+                .map(app -> BlockedAppItem.builder()
+                        .bundleId(app.getBundleId())
+                        .name(app.getName())
+                        .build())
+                .toList();
 
         return ReadingSessionResponse.BlockedApps.builder()
                 .blockedApps(blockedApps)
@@ -131,14 +104,42 @@ public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettings
         if (blockedApps == null) {
             blockedApps = List.of();
         }
-        // TODO: 실제 구현 시
-        // 1. memberId로 사용자 조회
-        // 2. 기존 차단 앱 목록 삭제
-        // 3. 새 차단 앱 목록 저장
 
-        // Mock: 요청값 그대로 반환
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        // 기존 차단 앱 삭제 후 새로 저장
+        blockedAppRepository.deleteByMemberId(memberId);
+
+        List<BlockedApp> newApps = blockedApps.stream()
+                .map(item -> BlockedApp.builder()
+                        .member(member)
+                        .bundleId(item.getBundleId())
+                        .name(item.getName())
+                        .build())
+                .toList();
+        blockedAppRepository.saveAll(newApps);
+
+        List<BlockedAppItem> result = newApps.stream()
+                .map(app -> BlockedAppItem.builder()
+                        .bundleId(app.getBundleId())
+                        .name(app.getName())
+                        .build())
+                .toList();
+
         return ReadingSessionResponse.BlockedApps.builder()
-                .blockedApps(blockedApps)
+                .blockedApps(result)
                 .build();
+    }
+
+    private FocusTimerSetting getOrCreateSetting(Long memberId) {
+        return focusModeRepository.findByMemberId(memberId)
+                .orElseGet(() -> {
+                    Member member = memberRepository.findById(memberId)
+                            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+                    return focusModeRepository.save(FocusTimerSetting.builder()
+                            .member(member)
+                            .build());
+                });
     }
 }
