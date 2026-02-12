@@ -9,6 +9,8 @@ import whoreads.backend.domain.readingsession.controller.docs.ReadingSessionSett
 import whoreads.backend.domain.readingsession.dto.ReadingSessionRequest;
 import whoreads.backend.domain.readingsession.dto.ReadingSessionResponse;
 import whoreads.backend.domain.readingsession.service.ReadingSessionSettingsService;
+import whoreads.backend.global.exception.CustomException;
+import whoreads.backend.global.exception.ErrorCode;
 import whoreads.backend.global.response.ApiResponse;
 
 @RestController
@@ -23,6 +25,7 @@ public class ReadingSessionSettingsController implements ReadingSessionSettingsC
     public ResponseEntity<ApiResponse<ReadingSessionResponse.FocusBlockSetting>> getFocusBlockSetting(
             @AuthenticationPrincipal Long memberId
     ) {
+        validateAuthentication(memberId);
         ReadingSessionResponse.FocusBlockSetting result = readingSessionSettingsService.getFocusBlockSetting(memberId);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
@@ -33,6 +36,7 @@ public class ReadingSessionSettingsController implements ReadingSessionSettingsC
             @AuthenticationPrincipal Long memberId,
             @Valid @RequestBody ReadingSessionRequest.UpdateFocusBlock request
     ) {
+        validateAuthentication(memberId);
         ReadingSessionResponse.FocusBlockSetting result = readingSessionSettingsService.updateFocusBlockSetting(memberId, request.getFocusBlockEnabled());
         return ResponseEntity.ok(ApiResponse.success("집중 차단 모드 설정이 변경되었습니다.", result));
     }
@@ -42,6 +46,7 @@ public class ReadingSessionSettingsController implements ReadingSessionSettingsC
     public ResponseEntity<ApiResponse<ReadingSessionResponse.WhiteNoiseSetting>> getWhiteNoiseSetting(
             @AuthenticationPrincipal Long memberId
     ) {
+        validateAuthentication(memberId);
         ReadingSessionResponse.WhiteNoiseSetting result = readingSessionSettingsService.getWhiteNoiseSetting(memberId);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
@@ -52,6 +57,7 @@ public class ReadingSessionSettingsController implements ReadingSessionSettingsC
             @AuthenticationPrincipal Long memberId,
             @Valid @RequestBody ReadingSessionRequest.UpdateWhiteNoise request
     ) {
+        validateAuthentication(memberId);
         ReadingSessionResponse.WhiteNoiseSetting result = readingSessionSettingsService.updateWhiteNoiseSetting(memberId, request.getWhiteNoiseEnabled());
         return ResponseEntity.ok(ApiResponse.success("백색소음 설정이 변경되었습니다.", result));
     }
@@ -68,6 +74,7 @@ public class ReadingSessionSettingsController implements ReadingSessionSettingsC
     public ResponseEntity<ApiResponse<ReadingSessionResponse.BlockedApps>> getBlockedApps(
             @AuthenticationPrincipal Long memberId
     ) {
+        validateAuthentication(memberId);
         ReadingSessionResponse.BlockedApps result = readingSessionSettingsService.getBlockedApps(memberId);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
@@ -78,7 +85,14 @@ public class ReadingSessionSettingsController implements ReadingSessionSettingsC
             @AuthenticationPrincipal Long memberId,
             @Valid @RequestBody ReadingSessionRequest.UpdateBlockedApps request
     ) {
+        validateAuthentication(memberId);
         ReadingSessionResponse.BlockedApps result = readingSessionSettingsService.updateBlockedApps(memberId, request.getBlockedApps());
         return ResponseEntity.ok(ApiResponse.success("차단 앱 목록이 저장되었습니다.", result));
+    }
+
+    private void validateAuthentication(Long memberId) {
+        if (memberId == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
     }
 }
