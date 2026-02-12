@@ -19,6 +19,9 @@ public class SecurityConfig {
 
     private final String[] allowUris = {
             "/api/auth/**",
+            "/api/health",
+            "/api/books/**",
+            "/api/celebrities/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/v3/api-docs/**",
@@ -28,25 +31,24 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtTokenProvider jwtTokenProvider) throws Exception {
         http
+                // 1. CSRF 및 세션 관리 설정 (REST API 및 JWT 환경 최적화)
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
 
-                                .anyRequest().permitAll()
-//                                .requestMatchers(allowUris).permitAll()
-//                                .anyRequest().authenticated()
+                // 2. 폼 로그인 및 기본 HTTP 인증 비활성화
+                .formLogin(AbstractHttpConfigurer::disable) // 폼 로그인 기능 끄기
+                .httpBasic(AbstractHttpConfigurer::disable) // 기본 ID/PW 인증 끄기
+
+                // 3. 인가 설정
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(allowUris).permitAll()
+                        .anyRequest().authenticated()
                 )
+
+                // 4. JWT 필터 배치
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
-                        UsernamePasswordAuthenticationFilter.class)
-                .formLogin(form -> form
-                        .defaultSuccessUrl("/swagger-ui/index.html", true)
-                        .permitAll())
-                .csrf(AbstractHttpConfigurer::disable)
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/swaager-ui/index.html")
-                        .permitAll()
-                );
+                        UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

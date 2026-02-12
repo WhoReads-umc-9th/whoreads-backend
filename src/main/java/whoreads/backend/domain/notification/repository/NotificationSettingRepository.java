@@ -18,7 +18,7 @@ public interface NotificationSettingRepository extends JpaRepository<Notificatio
     @Query(value = "SELECT DISTINCT m.id AS memberId, m.fcm_token AS fcmToken " +
             "FROM notification_setting n " +
             "JOIN member m ON n.member_id = m.id " +
-            "WHERE JSON_CONTAINS(n.days, CONCAT('\\\"', :day, '\\\"')) " +
+            "WHERE JSON_CONTAINS(n.days, JSON_QUOTE(:day))" +
             "AND TIME_FORMAT(n.time, '%H:%i') = :time " +
             "AND n.type = 'ROUTINE' " +
             "AND n.is_enabled IS true " +

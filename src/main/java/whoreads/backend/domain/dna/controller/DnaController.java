@@ -1,5 +1,6 @@
 package whoreads.backend.domain.dna.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import whoreads.backend.domain.dna.dto.DnaReqDto;
@@ -33,8 +34,8 @@ public class DnaController implements DnaControllerDocs {
 
     // 최종 결과 계산
     @PostMapping("/results")
-    public ApiResponse<DnaResDto.Result> calculateResult(@RequestBody DnaReqDto.Submit request) {
-        DnaResDto.Result result = dnaService.calculateResult(request);
+    public ApiResponse<DnaResDto.Result> calculateResult(@RequestBody @Valid DnaReqDto.Submit request) {
+        DnaResDto.Result result = dnaService.submitTest(request);
 
         return ApiResponse.success("테스트 결과가 성공적으로 나왔습니다", result);
     }

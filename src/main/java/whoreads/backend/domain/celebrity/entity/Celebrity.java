@@ -1,18 +1,17 @@
 package whoreads.backend.domain.celebrity.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import whoreads.backend.global.entity.BaseEntity;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Builder
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Table(name = "celebrity")
 public class Celebrity extends BaseEntity {
 
@@ -29,15 +28,22 @@ public class Celebrity extends BaseEntity {
     @Column(name = "short_bio", nullable = false)
     private String shortBio; // 한줄 소개
 
+    @Column(columnDefinition = "TEXT")
+    private String resultComment;
+
     // 직업 태그 (가수, 배우 등) - 필터링용
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
-            name = "celebrity_tags",
+            name = "celebrity_job_tags",
             joinColumns = @JoinColumn(name = "celebrity_id")
     )
     @Enumerated(EnumType.STRING)
-    @Column(name = "tag")
+    @Column(name = "job_tag")
     private List<CelebrityTag> jobTags = new ArrayList<>();
+
+    @OneToMany(mappedBy = "celebrity", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<CelebrityBook> celebrityBookList = new ArrayList<>();
 
     @Builder
     public Celebrity(String name, String imageUrl, String shortBio, List<CelebrityTag> jobTags) {
