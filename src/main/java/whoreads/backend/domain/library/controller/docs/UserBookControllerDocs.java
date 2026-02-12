@@ -81,7 +81,7 @@ public interface UserBookControllerDocs {
                                             "book": {
                                               "id": 2,
                                               "title": "이펙티브 자바",
-                                            "author_name": "조슈아 블로크",
+                                              "author_name": "조슈아 블로크",
                                               "cover_url": "https://image.aladin.co.kr/product/cover2.jpg",
                                               "total_page": 412
                                             },

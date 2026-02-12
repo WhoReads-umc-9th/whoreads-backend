@@ -52,6 +52,13 @@ public class UserBookServiceImpl implements UserBookService {
 
     @Override
     public UserBookResponse.BookList getBookList(Long memberId, ReadingStatus status, Long cursor, Integer size) {
+        // size 파라미터 방어 검증
+        if (size == null || size < 1) {
+            size = 10;
+        } else if (size > 100) {
+            size = 100;
+        }
+
         // size + 1개를 조회하여 다음 페이지 존재 여부 확인
         List<UserBook> userBooks = userBookRepository.findByMemberIdAndStatusWithCursor(
                 memberId, status, cursor, PageRequest.of(0, size + 1)
@@ -126,13 +133,7 @@ public class UserBookServiceImpl implements UserBookService {
     @Override
     @Transactional
     public void updateUserBook(Long memberId, Long userBookId, UserBookRequest.UpdateStatus request) {
-        UserBook userBook = userBookRepository.findById(userBookId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_BOOK_NOT_FOUND));
-
-        // 소유권 확인
-        if (!userBook.getMember().getId().equals(memberId)) {
-            throw new CustomException(ErrorCode.ACCESS_DENIED);
-        }
+        UserBook userBook = findByIdAndValidateOwnership(userBookId, memberId);
 
         // READING이 아닌데 readingPage를 보내면 에러
         if (request.getReadingStatus() != ReadingStatus.READING && request.getReadingPage() != null) {
@@ -140,9 +141,14 @@ public class UserBookServiceImpl implements UserBookService {
         }
 
         // readingPage 유효성 검증
-        if (request.getReadingPage() != null && userBook.getBook().getTotalPage() != null
-                && request.getReadingPage() > userBook.getBook().getTotalPage()) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "읽은 페이지가 전체 페이지 수를 초과할 수 없습니다.");
+        if (request.getReadingPage() != null) {
+            if (request.getReadingPage() <= 0) {
+                throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "읽은 페이지는 1 이상이어야 합니다.");
+            }
+            if (userBook.getBook().getTotalPage() != null
+                    && request.getReadingPage() > userBook.getBook().getTotalPage()) {
+                throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "읽은 페이지가 전체 페이지 수를 초과할 수 없습니다.");
+            }
         }
 
         ReadingStatus oldStatus = userBook.getReadingStatus();
@@ -151,13 +157,17 @@ public class UserBookServiceImpl implements UserBookService {
         // 상태 변경
         userBook.updateReadingStatus(newStatus);
 
-        // READING으로 처음 전환 시 startedAt 설정
-        if (newStatus == ReadingStatus.READING && oldStatus != ReadingStatus.READING) {
+        // READING으로 전환 시 startedAt 설정 (기존 값이 없을 때만, 재시작 시 보존)
+        if (newStatus == ReadingStatus.READING && userBook.getStartedAt() == null) {
             userBook.updateStartedAt(LocalDate.now());
         }
 
-        // COMPLETE로 전환 시 completedAt 설정
+        // COMPLETE로 전환 시
         if (newStatus == ReadingStatus.COMPLETE && oldStatus != ReadingStatus.COMPLETE) {
+            // WISH → COMPLETE: startedAt이 없으면 설정
+            if (userBook.getStartedAt() == null) {
+                userBook.updateStartedAt(LocalDate.now());
+            }
             userBook.updateCompletedAt(LocalDate.now());
         }
 
@@ -170,14 +180,18 @@ public class UserBookServiceImpl implements UserBookService {
     @Override
     @Transactional
     public void deleteBookFromLibrary(Long memberId, Long userBookId) {
+        UserBook userBook = findByIdAndValidateOwnership(userBookId, memberId);
+        userBookRepository.delete(userBook);
+    }
+
+    private UserBook findByIdAndValidateOwnership(Long userBookId, Long memberId) {
         UserBook userBook = userBookRepository.findById(userBookId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_BOOK_NOT_FOUND));
 
-        // 소유권 확인
         if (!userBook.getMember().getId().equals(memberId)) {
             throw new CustomException(ErrorCode.ACCESS_DENIED);
         }
 
-        userBookRepository.delete(userBook);
+        return userBook;
     }
 }
