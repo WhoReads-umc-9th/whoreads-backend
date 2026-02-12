@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -45,7 +44,6 @@ public interface BookControllerDocs {
             @ApiResponse(responseCode = "404", description = "존재하지 않는 책 ID", content = @Content)
     })
     whoreads.backend.global.response.ApiResponse<BookDetailResponse> getBookDetail(
-            @Parameter(description = "책 ID") @PathVariable Long bookId,
-            @Parameter(hidden = true) HttpServletRequest request
+            @Parameter(description = "책 ID") @PathVariable Long bookId
     );
 }
