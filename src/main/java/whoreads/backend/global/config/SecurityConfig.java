@@ -19,6 +19,9 @@ public class SecurityConfig {
 
     private final String[] allowUris = {
             "/api/auth/**",
+            "/api/health",
+            "/api/books/**",
+            "/api/celebrities/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/v3/api-docs/**",
@@ -40,7 +43,6 @@ public class SecurityConfig {
                 // 3. 인가 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(allowUris).permitAll()
-                        .requestMatchers("/api/books/**", "/api/celebrities/**").permitAll()
                         .anyRequest().authenticated()
                 )
 
