@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import whoreads.backend.domain.readingsession.controller.docs.ReadingSessionRecordsControllerDocs;
 import whoreads.backend.domain.readingsession.dto.ReadingSessionResponse;
 import whoreads.backend.domain.readingsession.service.ReadingSessionRecordsService;
+import whoreads.backend.global.exception.CustomException;
+import whoreads.backend.global.exception.ErrorCode;
 import whoreads.backend.global.response.ApiResponse;
 
 @RestController
@@ -30,7 +32,14 @@ public class ReadingSessionRecordsController implements ReadingSessionRecordsCon
             @RequestParam @Min(2000) @Max(2100) Integer year,
             @RequestParam @Min(1) @Max(12) Integer month
     ) {
+        validateAuthentication(memberId);
         ReadingSessionResponse.MonthlyRecords result = readingSessionRecordsService.getMonthlyRecords(memberId, year, month);
         return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
+    private void validateAuthentication(Long memberId) {
+        if (memberId == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
     }
 }
