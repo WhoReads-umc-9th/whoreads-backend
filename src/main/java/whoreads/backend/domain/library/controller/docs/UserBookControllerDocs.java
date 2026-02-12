@@ -41,7 +41,9 @@ public interface UserBookControllerDocs {
                     )
             )
     })
-    ResponseEntity<ApiResponse<UserBookResponse.Summary>> getLibrarySummary();
+    ResponseEntity<ApiResponse<UserBookResponse.Summary>> getLibrarySummary(
+            @Parameter(hidden = true) Long memberId
+    );
 
     @Operation(
             summary = "서재 책 목록 조회",
@@ -79,7 +81,7 @@ public interface UserBookControllerDocs {
                                             "book": {
                                               "id": 2,
                                               "title": "이펙티브 자바",
-                                              "author_name": "조슈아 블로크",
+                                            "author_name": "조슈아 블로크",
                                               "cover_url": "https://image.aladin.co.kr/product/cover2.jpg",
                                               "total_page": 412
                                             },
@@ -97,6 +99,7 @@ public interface UserBookControllerDocs {
             )
     })
     ResponseEntity<ApiResponse<UserBookResponse.BookList>> getBookList(
+            @Parameter(hidden = true) Long memberId,
             @Parameter(description = "읽기 상태 (WISH, READING, COMPLETE)", required = true)
             ReadingStatus status,
             @Parameter(description = "커서 (이전 응답의 nextCursor 값)")
@@ -157,6 +160,7 @@ public interface UserBookControllerDocs {
             )
     })
     ResponseEntity<ApiResponse<UserBookResponse.AddResult>> addBookToLibrary(
+            @Parameter(hidden = true) Long memberId,
             @Parameter(description = "책 ID", required = true)
             Long bookId
     );
@@ -216,6 +220,7 @@ public interface UserBookControllerDocs {
             )
     })
     ResponseEntity<ApiResponse<Void>> updateUserBook(
+            @Parameter(hidden = true) Long memberId,
             @Parameter(description = "UserBook ID", required = true)
             Long userBookId,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -260,6 +265,7 @@ public interface UserBookControllerDocs {
             )
     })
     ResponseEntity<ApiResponse<Void>> deleteBookFromLibrary(
+            @Parameter(hidden = true) Long memberId,
             @Parameter(description = "UserBook ID", required = true)
             Long userBookId
     );

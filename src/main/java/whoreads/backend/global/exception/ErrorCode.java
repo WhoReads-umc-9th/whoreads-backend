@@ -30,6 +30,10 @@ public enum ErrorCode {
     // Book
     BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "책을 찾을 수 없습니다."),
 
+    // Library (UserBook)
+    USER_BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "서재에서 책을 찾을 수 없습니다."),
+    DUPLICATE_USER_BOOK(HttpStatus.CONFLICT, "이미 서재에 존재하는 책입니다."),
+
     // Celebrity
     CELEBRITY_NOT_FOUND(HttpStatus.NOT_FOUND, "유명인을 찾을 수 없습니다."),
 
