@@ -7,8 +7,8 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import whoreads.backend.domain.book.dto.BookDetailResponse;
@@ -46,6 +46,6 @@ public interface BookControllerDocs {
     })
     whoreads.backend.global.response.ApiResponse<BookDetailResponse> getBookDetail(
             @Parameter(description = "책 ID") @PathVariable Long bookId,
-            @AuthenticationPrincipal Long memberId
+            @Parameter(hidden = true) HttpServletRequest request
     );
 }

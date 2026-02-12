@@ -1,10 +1,11 @@
 package whoreads.backend.domain.book.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import whoreads.backend.auth.jwt.JwtTokenProvider;
 import whoreads.backend.domain.book.controller.docs.BookControllerDocs;
 import whoreads.backend.domain.book.dto.BookDetailResponse;
 import whoreads.backend.domain.book.dto.BookRequest;
@@ -24,6 +25,7 @@ public class BookController implements BookControllerDocs {
 
     private final AladinBookService aladinBookService;
     private final BookService bookService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Override
     @GetMapping
@@ -69,8 +71,20 @@ public class BookController implements BookControllerDocs {
     @GetMapping("/{bookId}/detail")
     public ApiResponse<BookDetailResponse> getBookDetail(
             @PathVariable Long bookId,
-            @AuthenticationPrincipal Long memberId
+            HttpServletRequest request
     ) {
+        Long memberId = resolveCurrentMemberId(request);
         return ApiResponse.success(bookService.getBookDetail(bookId, memberId));
+    }
+
+    private Long resolveCurrentMemberId(HttpServletRequest request) {
+        String bearer = request.getHeader("Authorization");
+        if (bearer != null && bearer.startsWith("Bearer ")) {
+            String token = bearer.substring(7);
+            if (jwtTokenProvider.validateToken(token)) {
+                return jwtTokenProvider.getMemberIdFromToken(token);
+            }
+        }
+        return null;
     }
 }
