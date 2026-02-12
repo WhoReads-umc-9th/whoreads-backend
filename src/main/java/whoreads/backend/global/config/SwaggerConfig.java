@@ -14,6 +14,8 @@ import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+
+import java.util.Map;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -76,13 +78,11 @@ public class SwaggerConfig {
                                                 "application/json",
                                                 new MediaType().schema(new Schema<>()
                                                         .type("object")
-                                                        .example("""
-                                                                {
-                                                                  "is_success": false,
-                                                                  "code": 401,
-                                                                  "message": "인증이 필요합니다."
-                                                                }
-                                                                """))
+                                                        .example(Map.of(
+                                                                "is_success", false,
+                                                                "code", 401,
+                                                                "message", "인증이 필요합니다."
+                                                        )))
                                         ))
                         );
                     }
