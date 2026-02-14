@@ -4,7 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import whoreads.backend.domain.readingsession.dto.ReadingSessionResponse;
+import whoreads.backend.domain.readingsession.enums.SessionStatus;
 import whoreads.backend.domain.readingsession.repository.ReadingSessionRepository;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -15,27 +19,29 @@ public class ReadingSessionStatsServiceImpl implements ReadingSessionStatsServic
 
     @Override
     public ReadingSessionResponse.TodayFocus getTodayFocus(Long memberId) {
-        // TODO: 실제 구현 시
-        // 1. memberId로 사용자의 모든 완료된 인터벌 조회
-        // 2. 오늘 날짜에 해당하는 시간만 합산 (날짜 경계 분할 계산)
-        // 3. 어제 날짜에 해당하는 시간도 합산
-        // 4. 차이 계산
+        LocalDate today = LocalDate.now();
+        LocalDateTime todayStart = today.atStartOfDay();
+        LocalDateTime tomorrowStart = today.plusDays(1).atStartOfDay();
+        LocalDateTime yesterdayStart = today.minusDays(1).atStartOfDay();
 
-        // Mock: 오늘 45분, 어제 30분 → 차이 +15분
+        Long todayMinutes = readingSessionRepository.sumTotalMinutesByMemberIdAndFinishedAtBetween(
+                memberId, todayStart, tomorrowStart);
+        Long yesterdayMinutes = readingSessionRepository.sumTotalMinutesByMemberIdAndFinishedAtBetween(
+                memberId, yesterdayStart, todayStart);
+
         return ReadingSessionResponse.TodayFocus.builder()
-                .todayMinutes(45L)
-                .differenceFromYesterday(15L)
+                .todayMinutes(todayMinutes)
+                .differenceFromYesterday(todayMinutes - yesterdayMinutes)
                 .build();
     }
 
     @Override
     public ReadingSessionResponse.TotalFocus getTotalFocus(Long memberId) {
-        // TODO: 실제 구현 시
-        // 1. memberId로 사용자의 모든 완료된 세션의 totalMinutes 합산
+        Long totalMinutes = readingSessionRepository.sumTotalMinutesByMemberIdAndStatus(
+                memberId, SessionStatus.COMPLETED);
 
-        // Mock: 총 1234분
         return ReadingSessionResponse.TotalFocus.builder()
-                .totalMinutes(1234L)
+                .totalMinutes(totalMinutes)
                 .build();
     }
 }
