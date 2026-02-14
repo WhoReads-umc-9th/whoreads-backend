@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import whoreads.backend.auth.dto.AuthReqDto;
 import whoreads.backend.auth.dto.AuthResDto;
 import whoreads.backend.auth.jwt.JwtTokenProvider;
+import whoreads.backend.auth.principal.CustomUserDetails;
 import whoreads.backend.domain.member.converter.MemberConverter;
 import whoreads.backend.domain.member.entity.Member;
 import whoreads.backend.domain.member.enums.Status;
@@ -82,7 +83,8 @@ public class AuthServiceImpl implements AuthService {
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
         // 3. 인증 결과에서 ID 추출 (Long 타입으로 변환)
-        Long memberId = Long.parseLong(authentication.getName());
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long memberId = userDetails.getMember().getId();
 
         AuthResDto.TokenData tokenData = jwtTokenProvider.generateTokenResponse(memberId);
 

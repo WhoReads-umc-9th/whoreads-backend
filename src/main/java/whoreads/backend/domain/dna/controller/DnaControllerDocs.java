@@ -4,8 +4,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import whoreads.backend.auth.principal.CustomUserDetails;
 import whoreads.backend.domain.dna.dto.DnaReqDto;
 import whoreads.backend.domain.dna.dto.DnaResDto;
 import whoreads.backend.domain.dna.enums.TrackCode;
@@ -37,5 +39,5 @@ public interface DnaControllerDocs {
                     "- **track_code**: 사용자가 Q1에서 선택한 트랙 코드\n\n" +
                     "- **selected_option_ids**: 사용자가 Q2~Q5에서 선택한 보기의 id 값들"
     )
-    ApiResponse<DnaResDto.Result> calculateResult(@RequestBody @Valid DnaReqDto.Submit request);
+    ApiResponse<DnaResDto.Result> calculateResult(@RequestBody @Valid DnaReqDto.Submit request, @AuthenticationPrincipal CustomUserDetails userDetails);
 }
