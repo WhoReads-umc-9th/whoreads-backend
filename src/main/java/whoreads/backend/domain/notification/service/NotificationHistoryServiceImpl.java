@@ -53,7 +53,6 @@ public class NotificationHistoryServiceImpl implements NotificationHistoryServic
                 .title(dto.getTitle())
                 .body(dto.getBody())
                 .type(NotificationType.valueOf(dto.getType()))
-                .link(dto.getLink())
                 .build();
         notificationHistoryRepository.save(history);
     }
