@@ -25,7 +25,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     // PK로 사용자 조회
-    public UserDetails loadUserById(java.lang.Long id) { // PK로 조회하는 메서드 추가
+    public UserDetails loadUserById(Long id) { // PK로 조회하는 메서드 추가
         return memberRepository.findById(id)
                 .map(CustomUserDetails::new)
                 .orElseThrow(() -> new UsernameNotFoundException("해당 ID의 사용자를 찾을 수 없습니다: " + id));

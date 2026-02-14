@@ -12,8 +12,6 @@ import whoreads.backend.domain.dna.dto.DnaResDto;
 import whoreads.backend.domain.dna.enums.TrackCode;
 import whoreads.backend.global.response.ApiResponse;
 
-import java.lang.Long;
-
 @Tag(name = "DNA Test", description = "사용자의 독서 목적과 성향을 분석하는 독서 DNA Test API")
 public interface DnaControllerDocs {
 
