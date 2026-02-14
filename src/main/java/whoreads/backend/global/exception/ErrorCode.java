@@ -27,6 +27,9 @@ public enum ErrorCode {
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다."),
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 올바르지 않습니다."),
 
+    // MemberCelebrity
+    ALREADY_FOLLOWING(HttpStatus.ALREADY_REPORTED, "이미 팔로우 중인 유명인 입니다."),
+
     // Book
     BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "책을 찾을 수 없습니다."),
 
