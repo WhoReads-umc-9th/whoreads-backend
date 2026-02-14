@@ -12,6 +12,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import whoreads.backend.auth.jwt.JwtAuthenticationFilter;
 import whoreads.backend.auth.jwt.JwtTokenProvider;
+import whoreads.backend.auth.service.CustomUserDetailsService;
 
 @Configuration
 @EnableWebSecurity
@@ -26,7 +27,7 @@ public class SecurityConfig {
     };
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, JwtTokenProvider jwtTokenProvider) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtTokenProvider jwtTokenProvider, CustomUserDetailsService customUserDetailsService) throws Exception {
         http
                 // 1. CSRF 및 세션 관리 설정 (REST API 및 JWT 환경 최적화)
                 .csrf(AbstractHttpConfigurer::disable)
@@ -45,7 +46,7 @@ public class SecurityConfig {
                 )
 
                 // 4. JWT 필터 배치
-                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService),
                         UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
