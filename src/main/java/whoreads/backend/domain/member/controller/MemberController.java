@@ -26,6 +26,7 @@ public class MemberController implements MemberControllerDocs {
     @GetMapping("/me")
     public ApiResponse<MemberResDto.MemberInfo> getMyInfo(@AuthenticationPrincipal CustomUserDetails userDetails) {
         // @AuthenticationPrincipal을 통해 JwtAuthenticationFilter에서 저장한 유저 정보를 바로 가져옵니다.
+
         return ApiResponse.success(memberService.getMemberInfo(userDetails.getMember().getId()));
     }
 
