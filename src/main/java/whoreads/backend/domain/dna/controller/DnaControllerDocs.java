@@ -7,11 +7,12 @@ import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import whoreads.backend.auth.principal.CustomUserDetails;
 import whoreads.backend.domain.dna.dto.DnaReqDto;
 import whoreads.backend.domain.dna.dto.DnaResDto;
 import whoreads.backend.domain.dna.enums.TrackCode;
 import whoreads.backend.global.response.ApiResponse;
+
+import java.lang.Long;
 
 @Tag(name = "DNA Test", description = "사용자의 독서 목적과 성향을 분석하는 독서 DNA Test API")
 public interface DnaControllerDocs {
@@ -39,5 +40,5 @@ public interface DnaControllerDocs {
                     "- **track_code**: 사용자가 Q1에서 선택한 트랙 코드\n\n" +
                     "- **selected_option_ids**: 사용자가 Q2~Q5에서 선택한 보기의 id 값들"
     )
-    ApiResponse<DnaResDto.Result> calculateResult(@RequestBody @Valid DnaReqDto.Submit request, @AuthenticationPrincipal CustomUserDetails userDetails);
+    ApiResponse<DnaResDto.Result> calculateResult(@RequestBody @Valid DnaReqDto.Submit request, @AuthenticationPrincipal Long memberId);
 }
