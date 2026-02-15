@@ -1,5 +1,6 @@
 package whoreads.backend.global.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,13 +17,10 @@ import whoreads.backend.auth.service.CustomUserDetailsService;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final SecurityErrorHandler securityErrorHandler;
-
-    public SecurityConfig(SecurityErrorHandler securityErrorHandler) {
-        this.securityErrorHandler = securityErrorHandler;
-    }
 
     private final String[] allowUris = {
             "/api/auth/**",
