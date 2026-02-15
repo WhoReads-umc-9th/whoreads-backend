@@ -16,6 +16,8 @@ import whoreads.backend.domain.dna.enums.TrackCode;
 import whoreads.backend.domain.dna.repository.DnaOptionRepository;
 import whoreads.backend.domain.dna.repository.DnaQuestionRepository;
 import whoreads.backend.domain.dna.repository.DnaResultRepository;
+import whoreads.backend.domain.member.entity.Member;
+import whoreads.backend.domain.member.repository.MemberRepository;
 import whoreads.backend.global.exception.CustomException;
 import whoreads.backend.global.exception.ErrorCode;
 
@@ -33,6 +35,7 @@ public class DnaService {
     private final DnaOptionRepository dnaOptionRepository;
     private final DnaResultRepository dnaResultRepository;
     private final CelebrityRepository celebrityRepository;
+    private final MemberRepository memberRepository;
 
     public DnaResDto.Question getRootQuestion() {
         // Q1 질문
@@ -67,7 +70,7 @@ public class DnaService {
      * [최종 목적지] 독서 DNA 테스트 제출 및 결과 반환
      */
     @Transactional
-    public DnaResDto.Result submitTest(DnaReqDto.Submit request) {
+    public DnaResDto.Result submitTest(DnaReqDto.Submit request, Long memberId) {
         // 1. 실시간으로 상위 5명 Pool 추출 (아래 메서드 참고)
         List<Long> poolIds = getTargetGenresForTrack(request.trackCode());
 
@@ -97,6 +100,13 @@ public class DnaService {
 
         if (winner == null)
             throw new RuntimeException("매칭된 인물이 없습니다.");
+
+        // 결과값을 DB의 Member 엔티티에 저장
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        member.setDnaType(request.trackCode().name()); // 트랙 코드 저장 (COMFORT)
+        member.setDnaTypeName(winner.getName());       // 인물 이름 저장
 
         // 하드코딩된 RESULT_COMMENTS 맵에서 이 인물+트랙에 맞는 문구 추출
         String finalCommentary = getCommentary(winner.getId(), request.trackCode());
