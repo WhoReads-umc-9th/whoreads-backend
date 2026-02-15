@@ -27,6 +27,10 @@ public class FirebaseConfig {
 
     @Bean
     public FirebaseApp firebaseApp() {
+        if (!FirebaseApp.getApps().isEmpty()) {
+            return FirebaseApp.getInstance();
+        }
+
         try {
             InputStream credentialsStream = getCredentialsStream();
             FirebaseOptions options = FirebaseOptions.builder()

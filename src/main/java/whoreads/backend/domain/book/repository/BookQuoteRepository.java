@@ -15,8 +15,8 @@ public interface BookQuoteRepository extends JpaRepository<BookQuote, Long> {
 
     // 1. 책 기준 - 이 책에 달린 인용들 가져오기 (N+1 방지: Quote, Celebrity, jobTags 함께 로딩)
     @EntityGraph(attributePaths = {"quote", "quote.celebrity", "quote.celebrity.jobTags"})
-    @Query("SELECT bq FROM BookQuote bq WHERE bq.book.id = :bookId ORDER BY bq.quote.contextScore DESC")
-    List<BookQuote> findByBookIdWithFetchJoin(@Param("bookId") Long bookId);
+    @Query("SELECT DISTINCT bq FROM BookQuote bq WHERE bq.book.id = :bookId ORDER BY bq.quote.contextScore DESC")
+    List<BookQuote> findByBookIdWithEntityGraph(@Param("bookId") Long bookId);
 
     // 2. 인물 기준 - 이 사람이 남긴 인용들 가져오기 (N+1 방지)
     @Query("SELECT bq FROM BookQuote bq JOIN FETCH bq.book WHERE bq.quote.celebrity.id = :celebrityId ORDER BY bq.quote.contextScore DESC")

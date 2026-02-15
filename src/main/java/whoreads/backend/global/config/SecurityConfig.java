@@ -1,5 +1,6 @@
 package whoreads.backend.global.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,7 +17,10 @@ import whoreads.backend.auth.service.CustomUserDetailsService;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final SecurityErrorHandler securityErrorHandler;
 
     private final String[] allowUris = {
             "/api/auth/**",
@@ -41,13 +45,19 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable) // 폼 로그인 기능 끄기
                 .httpBasic(AbstractHttpConfigurer::disable) // 기본 ID/PW 인증 끄기
 
-                // 3. 인가 설정
+                // 3. 인증/인가 실패 시 JSON 응답 반환
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(securityErrorHandler)
+                        .accessDeniedHandler(securityErrorHandler)
+                )
+
+                // 4. 인가 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(allowUris).permitAll()
                         .anyRequest().authenticated()
                 )
 
-                // 4. JWT 필터 배치
+                // 5. JWT 필터 배치
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService),
                         UsernamePasswordAuthenticationFilter.class);
 
