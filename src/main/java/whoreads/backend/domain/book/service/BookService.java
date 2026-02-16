@@ -72,7 +72,7 @@ public class BookService {
                 .orElseThrow(() -> new CustomException(ErrorCode.BOOK_NOT_FOUND));
 
         // 인용 + 유명인 JOIN FETCH (contextScore DESC 정렬)
-        List<BookQuote> bookQuotes = bookQuoteRepository.findByBookIdWithFetchJoin(bookId);
+        List<BookQuote> bookQuotes = bookQuoteRepository.findByBookIdWithEntityGraph(bookId);
 
         // 출처 배치 조회
         List<Long> quoteIds = bookQuotes.stream()

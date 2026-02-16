@@ -42,7 +42,7 @@ public class AuthServiceImpl implements AuthService {
 
         String email = dto.request().email();
         // 이메일 인증 체크 (테스트 시 주석)
-         if (!emailService.isVerified(email))
+        if (!emailService.isVerified(email))
             throw new CustomException(ErrorCode.UNAUTHORIZED);
 
         // 중복 체크

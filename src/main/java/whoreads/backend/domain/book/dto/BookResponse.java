@@ -10,6 +10,7 @@ public class BookResponse {
     private Long id;
     private String title;
     private String authorName;
+    private String genre;
     private String coverUrl;
     private Integer totalPage;
 
@@ -18,6 +19,7 @@ public class BookResponse {
                 .id(book.getId())
                 .title(book.getTitle())
                 .authorName(book.getAuthorName())
+                .genre(book.getGenre())
                 .coverUrl(book.getCoverUrl())
                 .totalPage(book.getTotalPage())
                 .build();
