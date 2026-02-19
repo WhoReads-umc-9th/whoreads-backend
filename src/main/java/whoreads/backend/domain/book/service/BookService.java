@@ -14,6 +14,8 @@ import whoreads.backend.domain.book.repository.BookRepository;
 import whoreads.backend.domain.library.repository.UserBookRepository;
 import whoreads.backend.domain.quote.entity.QuoteSource;
 import whoreads.backend.domain.quote.repository.QuoteSourceRepository;
+import whoreads.backend.domain.topic.entity.TopicTag;
+import whoreads.backend.domain.topic.repository.TopicBookRepository;
 import whoreads.backend.global.exception.CustomException;
 import whoreads.backend.global.exception.ErrorCode;
 
@@ -32,6 +34,7 @@ public class BookService {
     private final BookQuoteRepository bookQuoteRepository;
     private final QuoteSourceRepository quoteSourceRepository;
     private final UserBookRepository userBookRepository;
+    private final TopicBookRepository topicBookRepository;
 
     // 책 상세 조회
     public Book getBook(Long bookId) {
@@ -99,5 +102,16 @@ public class BookService {
         }
 
         return response;
+    }
+
+    // 주제별 책 조회 로직
+    public List<Book> getBooksByTheme(TopicTag theme, int limit) {
+        // 프론트에서 TOP_20을 요청했을 땐 기존 로직 재사용
+        if (theme == TopicTag.TOP_20) {
+            return getMostRecommendedBooks(limit);
+        }
+
+        // 그 외의 주제들은 TopicBook 매핑 테이블에서 조회
+        return topicBookRepository.findBooksByThemeName(theme, PageRequest.of(0, limit));
     }
 }

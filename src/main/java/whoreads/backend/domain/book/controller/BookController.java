@@ -13,6 +13,7 @@ import whoreads.backend.domain.book.dto.BookResponse;
 import whoreads.backend.domain.book.entity.Book;
 import whoreads.backend.domain.book.service.AladinBookService;
 import whoreads.backend.domain.book.service.BookService;
+import whoreads.backend.domain.topic.entity.TopicTag;
 import whoreads.backend.global.response.ApiResponse;
 
 import java.util.List;
@@ -81,5 +82,20 @@ public class BookController implements BookControllerDocs {
             return (Long) authentication.getPrincipal();
         }
         return null;
+    }
+
+    @Override
+    @GetMapping("/themes/{theme}")
+    public ResponseEntity<List<BookResponse>> getBooksByTheme(
+            @PathVariable TopicTag theme,
+            @RequestParam(defaultValue = "20") int limit
+    ) {
+        List<Book> books = bookService.getBooksByTheme(theme, limit);
+
+        List<BookResponse> response = books.stream()
+                .map(BookResponse::from)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
     }
 }
