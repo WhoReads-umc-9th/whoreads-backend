@@ -6,13 +6,13 @@ import whoreads.backend.domain.library.enums.ReadingStatus;
 
 public interface UserBookService {
 
-    UserBookResponse.Summary getLibrarySummary();
+    UserBookResponse.Summary getLibrarySummary(Long memberId);
 
-    UserBookResponse.BookList getBookList(ReadingStatus status, Long cursor, Integer size);
+    UserBookResponse.BookList getBookList(Long memberId, ReadingStatus status, Long cursor, Integer size);
 
-    UserBookResponse.AddResult addBookToLibrary(Long bookId);
+    UserBookResponse.AddResult addBookToLibrary(Long memberId, Long bookId);
 
-    void updateUserBook(Long userBookId, UserBookRequest.UpdateStatus request);
+    void updateUserBook(Long memberId, Long userBookId, UserBookRequest.UpdateStatus request);
 
-    void deleteBookFromLibrary(Long userBookId);
+    void deleteBookFromLibrary(Long memberId, Long userBookId);
 }

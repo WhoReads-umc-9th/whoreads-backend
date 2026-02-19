@@ -73,12 +73,12 @@ src/main/java/com/whoreads/
 ---
 ## 👥 Team Members
 
-| Profile | Name | Role | Domain | GitHub |
-| :---: | :--- | :--- | :--- | :---: |
-| <img src="https://github.com/7004hsh.png" width="100"> | **현/허성현** | 데이터 관리 | 책, 유명인 | [@7004hsh](https://github.com/7004hsh) |
-| <img src="https://github.com/0000yuyu.png" width="100"> | **로이/송유진** | 데이터 관리 | 인용 | [@0000yuyu](https://github.com/0000yuyu) |
+| Profile | Name | Role | Domain            | GitHub |
+| :---: | :--- | :--- |:------------------| :---: |
+| <img src="https://github.com/7004hsh.png" width="100"> | **현/허성현** | 데이터 관리 | 책, 유명인, 인용        | [@7004hsh](https://github.com/7004hsh) |
+| <img src="https://github.com/0000yuyu.png" width="100"> | **로이/송유진** | 데이터 관리 | 알림                | [@0000yuyu](https://github.com/0000yuyu) |
 | <img src="https://github.com/JUYun9.png" width="100"> | **우디/윤정우** | ERD 및 API | 사용자 및 로그인, 독서 DNA | [@JUYun9](https://github.com/JUYun9) |
-| <img src="https://github.com/seoyeoki.png" width="100"> | **쏘이/김서연** | 깃헙 관리 및 배포 | 독서 세션, 집중 모드 | [@seoyeoki](https://github.com/seoyeoki) |
+| <img src="https://github.com/seoyeoki.png" width="100"> | **쏘이/김서연** | 깃헙 관리 및 배포 | 독서 세션, 집중 모드      | [@seoyeoki](https://github.com/seoyeoki) |
 
 ---
 

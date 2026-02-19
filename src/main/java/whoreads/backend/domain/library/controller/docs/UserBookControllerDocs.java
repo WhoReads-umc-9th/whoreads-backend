@@ -39,9 +39,25 @@ public interface UserBookControllerDocs {
                                     }
                                     """)
                     )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "인증 필요",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": false,
+                                      "code": 401,
+                                      "message": "인증이 필요합니다."
+                                    }
+                                    """)
+                    )
             )
     })
-    ResponseEntity<ApiResponse<UserBookResponse.Summary>> getLibrarySummary();
+    ResponseEntity<ApiResponse<UserBookResponse.Summary>> getLibrarySummary(
+            @Parameter(hidden = true) Long memberId
+    );
 
     @Operation(
             summary = "서재 책 목록 조회",
@@ -94,9 +110,24 @@ public interface UserBookControllerDocs {
                                     }
                                     """)
                     )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "인증 필요",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": false,
+                                      "code": 401,
+                                      "message": "인증이 필요합니다."
+                                    }
+                                    """)
+                    )
             )
     })
     ResponseEntity<ApiResponse<UserBookResponse.BookList>> getBookList(
+            @Parameter(hidden = true) Long memberId,
             @Parameter(description = "읽기 상태 (WISH, READING, COMPLETE)", required = true)
             ReadingStatus status,
             @Parameter(description = "커서 (이전 응답의 nextCursor 값)")
@@ -142,6 +173,20 @@ public interface UserBookControllerDocs {
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "인증 필요",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": false,
+                                      "code": 401,
+                                      "message": "인증이 필요합니다."
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "409",
                     description = "이미 서재에 존재하는 책",
                     content = @Content(
@@ -157,6 +202,7 @@ public interface UserBookControllerDocs {
             )
     })
     ResponseEntity<ApiResponse<UserBookResponse.AddResult>> addBookToLibrary(
+            @Parameter(hidden = true) Long memberId,
             @Parameter(description = "책 ID", required = true)
             Long bookId
     );
@@ -201,6 +247,20 @@ public interface UserBookControllerDocs {
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "인증 필요",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": false,
+                                      "code": 401,
+                                      "message": "인증이 필요합니다."
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
                     description = "책 추가 기록을 찾을 수 없음",
                     content = @Content(
@@ -209,13 +269,14 @@ public interface UserBookControllerDocs {
                                     {
                                       "is_success": false,
                                       "code": 404,
-                                      "message": "책 추가 기록을 찾을 수 없습니다."
+                                      "message": "서재에서 책을 찾을 수 없습니다."
                                     }
                                     """)
                     )
             )
     })
     ResponseEntity<ApiResponse<Void>> updateUserBook(
+            @Parameter(hidden = true) Long memberId,
             @Parameter(description = "UserBook ID", required = true)
             Long userBookId,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -245,6 +306,20 @@ public interface UserBookControllerDocs {
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "인증 필요",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": false,
+                                      "code": 401,
+                                      "message": "인증이 필요합니다."
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
                     description = "책 추가 기록을 찾을 수 없음",
                     content = @Content(
@@ -253,13 +328,14 @@ public interface UserBookControllerDocs {
                                     {
                                       "is_success": false,
                                       "code": 404,
-                                      "message": "책 추가 기록을 찾을 수 없습니다."
+                                      "message": "서재에서 책을 찾을 수 없습니다."
                                     }
                                     """)
                     )
             )
     })
     ResponseEntity<ApiResponse<Void>> deleteBookFromLibrary(
+            @Parameter(hidden = true) Long memberId,
             @Parameter(description = "UserBook ID", required = true)
             Long userBookId
     );
