@@ -41,10 +41,14 @@ public interface DnaControllerDocs {
     )
     ApiResponse<DnaResDto.Result> calculateResult(@RequestBody @Valid DnaReqDto.Submit request, @AuthenticationPrincipal Long memberId);
 
-    @Operation(summary = "테스트 결과 API")
+    @Operation(
+            summary = "테스트 결과 조회",
+            description = "사용자의 DNA 테스트 결과를 조회합니다.\\n" +
+                    "테스트를 하지 않았을 경우 404가 반환됩니다."
+    )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "DNA 테스트 결과가 존재하지 않습니다.")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "회원 없음 / DNA 테스트 미완료 / 매칭 인물 정보 없음")
     })
     ApiResponse<DnaResDto.Result> getMyDnaResult(@AuthenticationPrincipal Long memberId);
 }

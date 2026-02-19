@@ -32,5 +32,6 @@ public interface CelebrityRepository extends JpaRepository<Celebrity, Long> {
             "WHERE c.id IN :ids")
     List<Celebrity> findAllByIdWithBooks(@Param("ids") List<Long> ids);
 
+    @EntityGraph(attributePaths = "jobTags")
     Optional<Celebrity> findByName(String celebrityName);
 }
