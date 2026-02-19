@@ -2,6 +2,7 @@ package whoreads.backend.domain.dna.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -39,4 +40,11 @@ public interface DnaControllerDocs {
                     "- **selected_option_ids**: 사용자가 Q2~Q5에서 선택한 보기의 id 값들"
     )
     ApiResponse<DnaResDto.Result> calculateResult(@RequestBody @Valid DnaReqDto.Submit request, @AuthenticationPrincipal Long memberId);
+
+    @Operation(summary = "테스트 결과 API")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "DNA 테스트 결과가 존재하지 않습니다.")
+    })
+    ApiResponse<DnaResDto.Result> getMyDnaResult(@AuthenticationPrincipal Long memberId);
 }

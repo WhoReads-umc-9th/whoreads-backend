@@ -70,6 +70,24 @@
             return new DnaResDto.TrackQuestion(trackCode, questionsDtos);
         }
 
+        public DnaResDto.Result getTestResult(Long memberId) {
+            Member member = memberRepository.findById(memberId)
+                    .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+            if (member.getDnaType() == null)
+                throw new CustomException(ErrorCode.DNA_TEST_NOT_COMPLETED);
+
+            TrackCode trackCode = TrackCode.valueOf(member.getDnaType());
+            String celebrityName = member.getDnaTypeName();
+
+            Celebrity celebrity = celebrityRepository.findByName(celebrityName)
+                    .orElseThrow(() -> new CustomException(ErrorCode.DNA_TEST_NOT_FOUND_RESULT_CELEBRITY));
+
+            String finalCommentary = getCommentary(celebrity.getId(), trackCode);
+
+            return DnaConverter.toResultDto(celebrity, trackCode, finalCommentary);
+        }
+
         /**
          * [최종 목적지] 독서 DNA 테스트 제출 및 결과 반환
          */
