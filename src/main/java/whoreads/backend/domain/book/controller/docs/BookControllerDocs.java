@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import whoreads.backend.domain.book.dto.BookDetailResponse;
 import whoreads.backend.domain.book.dto.BookRequest;
 import whoreads.backend.domain.book.dto.BookResponse;
+import whoreads.backend.domain.topic.entity.TopicTag;
 
 import java.util.List;
 
@@ -45,5 +46,11 @@ public interface BookControllerDocs {
     })
     whoreads.backend.global.response.ApiResponse<BookDetailResponse> getBookDetail(
             @Parameter(description = "책 ID") @PathVariable Long bookId
+    );
+
+    @Operation(summary = "주제별 추천 책 목록 조회", description = "특정 주제(SOCIETY, HUMAN_UNDERSTANDING 등)에 맞는 유명인 추천 책 목록을 조회합니다.")
+    ResponseEntity<List<BookResponse>> getBooksByTheme(
+            @Parameter(description = "주제 태그 (Enum 값)") @PathVariable TopicTag theme,
+            @Parameter(description = "가져올 책 개수 (기본값 20)") @RequestParam(defaultValue = "20") int limit
     );
 }
