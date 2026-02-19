@@ -43,7 +43,7 @@ public interface DnaControllerDocs {
 
     @Operation(
             summary = "테스트 결과 조회",
-            description = "사용자의 DNA 테스트 결과를 조회합니다.\\n" +
+            description = "사용자의 DNA 테스트 결과를 조회합니다.\n\n" +
                     "테스트를 하지 않았을 경우 404가 반환됩니다."
     )
     @ApiResponses({
