@@ -66,6 +66,7 @@ public class DnaConverter {
         return DnaResDto.Result.builder()
                 .resultHeaLine(String.format("지금 당신은 '%s'를 위해 독서를 하는 사람입니다.", headLine))
                 .description(descriptionList)
+                .celebrityId(celebrity.getId())
                 .celebrityName(celebrity.getName())
                 .imageUrl(celebrity.getImageUrl())
                 .jobTags(jobTags)

@@ -58,6 +58,7 @@ public class DnaResDto {
     public record Result(
             String resultHeaLine,  // "지금 당신은 000을 위해 독서를 하는 사람입니다."
             List<String> description, // 이거 배열에 문장별로 나눠서 넘겨줘야됨
+            Long celebrityId,
             String celebrityName,
             String imageUrl,
             List<String> jobTags
