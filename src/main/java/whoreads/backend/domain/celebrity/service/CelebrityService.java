@@ -1,6 +1,5 @@
 package whoreads.backend.domain.celebrity.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -8,6 +7,8 @@ import whoreads.backend.domain.celebrity.dto.CelebrityResponse;
 import whoreads.backend.domain.celebrity.entity.Celebrity;
 import whoreads.backend.domain.celebrity.entity.CelebrityTag;
 import whoreads.backend.domain.celebrity.repository.CelebrityRepository;
+import whoreads.backend.global.exception.CustomException;
+import whoreads.backend.global.exception.ErrorCode;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,8 +37,9 @@ public class CelebrityService {
 
     // 상세 조회 (ID)
     public CelebrityResponse getCelebrity(Long id) {
+        // 바꾼 이유: 기본 EntityNotFoundException 대신 프로젝트 공통 CustomException과 이미 정의된 CELEBRITY_NOT_FOUND 사용
         Celebrity celebrity = celebrityRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유명인입니다. ID=" + id));
+                .orElseThrow(() -> new CustomException(ErrorCode.CELEBRITY_NOT_FOUND));
 
         return CelebrityResponse.from(celebrity);
     }
