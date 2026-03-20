@@ -4,9 +4,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import whoreads.backend.domain.member.dto.MemberRequest;
+import whoreads.backend.domain.member.dto.MemberResDto;
 import whoreads.backend.global.response.ApiResponse;
+
+import java.util.List;
 
 @Tag(name = "Member (사용자)", description = "사용자 프로필 및 인증 관련 API")
 public interface MemberControllerDocs {
@@ -34,4 +38,21 @@ public interface MemberControllerDocs {
             {@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "토큰 삭제 성공"),
             })
     ApiResponse<Void> deleteFcmToken(@AuthenticationPrincipal Long memberId);
+
+    @Operation(
+            summary = "사용자 개인 정보 조회"
+    )
+    ApiResponse<MemberResDto.MemberInfo> getMyInfo(@AuthenticationPrincipal Long memberId);
+
+
+    @Operation(
+            summary = "사용자가 팔로우하는 유명인 리스트 조회"
+    )
+    ApiResponse<List<MemberResDto.CelebrityFollow>> getMyFollows(@AuthenticationPrincipal Long memberId);
+
+
+    @Operation(
+            summary = "사용자가 유명인을 팔로우할 때 사용하는 API"
+    )
+    ApiResponse<Void> followCelebrity(@PathVariable Long celebrityId, @AuthenticationPrincipal Long memberId);
 }

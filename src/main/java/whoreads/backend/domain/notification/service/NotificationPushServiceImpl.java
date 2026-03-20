@@ -13,7 +13,6 @@ import whoreads.backend.global.exception.CustomException;
 import whoreads.backend.global.exception.ErrorCode;
 
 import java.util.List;
-import java.util.Optional;
 
 
 @Service
@@ -69,7 +68,6 @@ public class NotificationPushServiceImpl implements NotificationPushService {
                 .putData("title", dto.getTitle())
                 .putData("body", dto.getBody())
                 .putData("type",dto.getType())
-                .putData("link", Optional.ofNullable(dto.getLink()).orElse(""))
                 .build();
     }
     
@@ -81,7 +79,7 @@ public class NotificationPushServiceImpl implements NotificationPushService {
         for (int i = 0; i < memberTokens.size(); i += FCM_BATCH_SIZE) {
             List<MemberTokenDTO> subList = memberTokens.subList(i, Math.min(i + FCM_BATCH_SIZE, memberTokens.size()));
 
-            MulticastMessage message = MulticastMessage.builder()
+            MulticastMessage.Builder builder = MulticastMessage.builder()
                     .addAllTokens(subList.stream()
                             .map(MemberTokenDTO::getFcmToken)
                             .toList())
@@ -98,9 +96,14 @@ public class NotificationPushServiceImpl implements NotificationPushService {
                             .build())
                     .putData("title", dto.getTitle())
                     .putData("body", dto.getBody())
-                    .putData("type", dto.getType())
-                    .putData("link", Optional.ofNullable(dto.getLink()).orElse(""))
-                    .build();
+                    .putData("type", dto.getType());
+            if (dto.getCelebrityId()!=null && dto.getBookId()!=null)
+            {
+                builder
+                        .putData("celebrity_id", String.valueOf(dto.getCelebrityId()))
+                        .putData("book_id", String.valueOf(dto.getBookId()));
+            }
+            MulticastMessage message = builder.build();
             try {
                 BatchResponse response = firebaseMessaging.sendEachForMulticast(message);
                 for (int j = 0; j< response.getResponses().size();j++)

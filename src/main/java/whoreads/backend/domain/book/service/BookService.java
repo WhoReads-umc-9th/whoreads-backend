@@ -47,7 +47,8 @@ public class BookService {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new CustomException(ErrorCode.BOOK_NOT_FOUND));
 
-        List<BookQuote> bookQuotes = bookQuoteRepository.findByBookIdWithFetchJoin(bookId);
+        // 인용 + 유명인 JOIN FETCH (contextScore DESC 정렬)
+        List<BookQuote> bookQuotes = bookQuoteRepository.findByBookIdWithEntityGraph(bookId);
 
         // 출처 배치 조회
         List<Long> quoteIds = bookQuotes.stream()
