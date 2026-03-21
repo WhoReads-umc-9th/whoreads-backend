@@ -33,7 +33,7 @@ public interface NotificationControllerDocs {
     );
     @Operation(summary = "알림 읽음 처리", description = "알림을 읽음 처리합니다.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "조회 성공")
+            @ApiResponse(responseCode = "200", description = "읽음 처리 성공")
     })
     whoreads.backend.global.response.ApiResponse<NotificationResDTO.HistoryDTO> readNotification(
             @AuthenticationPrincipal Long memberId,
@@ -41,13 +41,13 @@ public interface NotificationControllerDocs {
     );
     @Operation(summary = "모든 알림 읽음 처리", description = "모든 알림을 읽음 처리합니다.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "조회 성공")
+            @ApiResponse(responseCode = "200", description = "읽음 처리 성공")
     })
     whoreads.backend.global.response.ApiResponse<Void> readAllNotifications(
             @AuthenticationPrincipal Long memberId
     );
 
-    @Operation(summary = "알림 삭제", description = "사용자가 알림을 확인하면 해당 알림을 내역에서 즉시 삭제합니다.")
+    @Operation(summary = "알림 삭제", description = "사용자가 알림을 삭제합니다.")
     @Parameter(name = "notification_id", description = "삭제할 알림의 고유 ID", example = "1")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "삭제 성공"),

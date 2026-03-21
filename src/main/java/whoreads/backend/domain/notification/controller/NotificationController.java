@@ -55,7 +55,7 @@ public class NotificationController implements NotificationControllerDocs {
                 notificationHistoryService.readNotification(memberId,notificationId)
         );
     }
-    @PostMapping("/{notification_id}/read-all")
+    @PostMapping("/read-all")
     public ApiResponse<Void> readAllNotifications (
             @AuthenticationPrincipal Long memberId
     ){
