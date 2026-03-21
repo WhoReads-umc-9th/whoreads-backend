@@ -87,13 +87,6 @@ public class NotificationPushServiceImpl implements NotificationPushService {
                             .setTitle(dto.getTitle())
                             .setBody(dto.getBody())
                             .build())
-                    // ios 전용 설정 ( 알림 클릭 시 동작 및 소리 )
-                    .setApnsConfig(ApnsConfig.builder()
-                            .setAps(Aps.builder()
-                                    .setCategory("CLICK_ACTION")
-                                    .setSound("default")
-                                    .build())
-                            .build())
                     .putData("title", dto.getTitle())
                     .putData("body", dto.getBody())
                     .putData("type", dto.getType());

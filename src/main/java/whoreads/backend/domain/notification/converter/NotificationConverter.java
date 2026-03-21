@@ -1,12 +1,13 @@
 package whoreads.backend.domain.notification.converter;
 
 import whoreads.backend.domain.notification.dto.NotificationResDTO;
+import whoreads.backend.domain.notification.entity.FollowLink;
 import whoreads.backend.domain.notification.entity.NotificationHistory;
 import whoreads.backend.domain.notification.entity.NotificationSetting;
 import whoreads.backend.domain.notification.enums.NotificationType;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 public class NotificationConverter {
 
@@ -47,8 +48,14 @@ public class NotificationConverter {
                 .title(history.getTitle())
                 .body(history.getBody())
                 .type(history.getType().name())
+                .isRead(history.isRead())
                 .createdAt(history.getCreatedAt())
-                .link(history.getLink())
+                .link(Optional.ofNullable(history.getLink())
+                        .map(link -> FollowLink.builder()
+                                .celebrityId(link.getCelebrityId())
+                                .bookId(link.getBookId())
+                                .build())
+                        .orElse(null))
                 .build();
     }
 
