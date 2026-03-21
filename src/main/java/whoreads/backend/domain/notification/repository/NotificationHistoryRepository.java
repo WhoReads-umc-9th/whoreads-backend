@@ -22,7 +22,7 @@ public interface NotificationHistoryRepository extends JpaRepository<Notificatio
 
     void deleteByCreatedAtBefore(LocalDateTime cutoff);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying(flushAutomaticall=true,clearAutomatically = true)
     @Query("UPDATE NotificationHistory n SET n.isRead = true WHERE n.member.id = :memberId")
     void setReadAllNotifications(Long memberId);
 }
