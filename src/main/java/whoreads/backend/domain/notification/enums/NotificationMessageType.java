@@ -12,7 +12,7 @@ import java.util.concurrent.ThreadLocalRandom;
 @Getter
 @RequiredArgsConstructor
 public enum NotificationMessageType {
-    NEW_FOLLOW_BOOK("%s의 서재에 새 책이 추가됐어요!", "『%s』 %s") {
+    NEW_FOLLOW_BOOK("[%s]의 서재에 새 책이 추가됐어요!", "[%s-%s]") {
         @Override
         public String[] generate(NotificationEvent event) {
             if (event instanceof NotificationEvent.FollowEvent e) {

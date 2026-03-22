@@ -57,11 +57,13 @@ public class NotificationPushServiceImpl implements NotificationPushService {
                         .setTitle(dto.getTitle())
                         .setBody(dto.getBody())
                         .build())
-                // ios 전용 설정 ( 알림 클릭 시 동작 및 소리 )
-                .setApnsConfig(ApnsConfig.builder()
-                        .setAps(Aps.builder()
-                                .setCategory("CLICK_ACTION")
-                                .setSound("default")
+                // 안드로이드 설정 추가
+                .setAndroidConfig(AndroidConfig.builder()
+                        .setPriority(AndroidConfig.Priority.HIGH) // 즉시 발송
+                        .setNotification(AndroidNotification.builder()
+                                .setChannelId("high_importance_channel") // 프런트와 일치 필수
+                                .setIcon("app_logo") // 💡 사진에 올린 파일명 (확장자 제외)
+                                .setClickAction("FLUTTER_NOTIFICATION_CLICK") // 백그라운드 클릭 핸들링용
                                 .build())
                         .build())
                 // 커스텀 데이터 ( 프론트 확인용 )
@@ -86,6 +88,14 @@ public class NotificationPushServiceImpl implements NotificationPushService {
                     .setNotification(Notification.builder()
                             .setTitle(dto.getTitle())
                             .setBody(dto.getBody())
+                            .build())
+                    .setAndroidConfig(AndroidConfig.builder()
+                            .setPriority(AndroidConfig.Priority.HIGH)
+                            .setNotification(AndroidNotification.builder()
+                                    .setChannelId("high_importance_channel")
+                                    .setIcon("app_logo") // 💡 파일명 매칭
+                                    .setClickAction("FLUTTER_NOTIFICATION_CLICK")
+                                    .build())
                             .build())
                     .putData("title", dto.getTitle())
                     .putData("body", dto.getBody())
