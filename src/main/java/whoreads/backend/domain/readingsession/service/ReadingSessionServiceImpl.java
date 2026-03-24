@@ -90,6 +90,12 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
         session.complete();
     }
 
+    @Override
+    public void heartbeat(Long sessionId, Long memberId) {
+        ReadingSession session = findByIdAndValidateOwnership(sessionId, memberId);
+        session.heartbeat();
+    }
+
     private ReadingSession findByIdAndValidateOwnership(Long sessionId, Long memberId) {
         ReadingSession session = readingSessionRepository.findById(sessionId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SESSION_NOT_FOUND));
