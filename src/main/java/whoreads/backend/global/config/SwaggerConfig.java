@@ -1,8 +1,6 @@
 package whoreads.backend.global.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.swagger.v3.core.jackson.ModelResolver;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.Components;
@@ -17,7 +15,6 @@ import io.swagger.v3.oas.models.servers.Server;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 
 @Configuration
 public class SwaggerConfig {
@@ -46,14 +43,6 @@ public class SwaggerConfig {
                 .addServersItem(new Server().url("https://api.whoreads.kro.kr").description("Production"))
                 .addSecurityItem(securityRequirement)
                 .components(components);
-    }
-
-    @Bean
-    @Primary
-    public ObjectMapper objectMapper() {
-        return JsonMapper.builder()
-                .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
-                .build();
     }
 
     @Bean
