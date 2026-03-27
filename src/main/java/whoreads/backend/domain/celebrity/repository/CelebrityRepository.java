@@ -31,4 +31,7 @@ public interface CelebrityRepository extends JpaRepository<Celebrity, Long> {
             "LEFT JOIN FETCH cb.book " + // Book까지 한꺼번에 긁어와야 함!
             "WHERE c.id IN :ids")
     List<Celebrity> findAllByIdWithBooks(@Param("ids") List<Long> ids);
+
+    @EntityGraph(attributePaths = "jobTags")
+    Optional<Celebrity> findByName(String celebrityName);
 }

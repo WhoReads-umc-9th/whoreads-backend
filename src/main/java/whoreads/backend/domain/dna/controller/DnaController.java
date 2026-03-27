@@ -41,4 +41,11 @@ public class DnaController implements DnaControllerDocs {
         return ApiResponse.success("테스트 결과가 성공적으로 나왔습니다", result);
     }
 
+    @GetMapping("/results")
+    public ApiResponse<DnaResDto.Result> getMyDnaResult(@AuthenticationPrincipal Long memberId) {
+        DnaResDto.Result result = dnaService.getTestResult(memberId);
+
+        return ApiResponse.success("DNA 테스트 결과를 조회했습니다.", result);
+    }
+
 }
