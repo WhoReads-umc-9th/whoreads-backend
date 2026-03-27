@@ -97,22 +97,14 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "서버 내부 오류가 발생했습니다."));
     }
 
-    @ExceptionHandler({UsernameNotFoundException.class})
+    @ExceptionHandler({UsernameNotFoundException.class, BadCredentialsException.class})
     public ResponseEntity<ApiResponse<Void>> handleLoginException(Exception e) {
         log.error("Login Failure: {}", e.getMessage());
 
-        ErrorCode errorCode = ErrorCode.LOGIN_FAILED; // 위에서 만든 공통 에러 코드
+        ErrorCode errorCode = ErrorCode.LOGIN_FAILED;
 
         return ResponseEntity
                 .status(errorCode.getStatus())
                 .body(ApiResponse.error(errorCode.getStatus().value(), errorCode.getMessage()));
-    }
-
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ApiResponse<Void>> handleBadCredentialsException(BadCredentialsException e) {
-        log.error("BadCredentialsException: {}", e.getMessage());
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(HttpStatus.BAD_REQUEST.value(), "아이디 또는 비밀번호가 일치하지 않습니다."));
     }
 }
