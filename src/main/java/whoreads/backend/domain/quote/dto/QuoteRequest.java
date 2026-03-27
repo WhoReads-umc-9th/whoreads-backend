@@ -1,10 +1,7 @@
 package whoreads.backend.domain.quote.dto;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.*;
 import org.hibernate.validator.constraints.URL;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,6 +22,7 @@ public class QuoteRequest {
     private Long celebrityId;
 
     @NotBlank(message = "인용 문구는 필수입니다.")
+    @Size(max = 2000, message = "인용 문구는 2000자를 초과할 수 없습니다.") // 길이 제한 추가
     private String originalText;
 
     private Quote.Language language; // 없을 경우 로직에서 기본값 처리 가능
@@ -52,6 +50,7 @@ public class QuoteRequest {
     @Getter
     @NoArgsConstructor
     public static class ContextInfo {
+        @Size(max = 1000, message = "계기 설명은 1000자 이내여야 합니다.")
         private String how;  // 계기
         private String when; // 시기
         private String why;  // 이유

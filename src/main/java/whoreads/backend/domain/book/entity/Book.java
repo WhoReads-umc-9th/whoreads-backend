@@ -22,10 +22,10 @@ public class Book extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255) // 길이 명시
     private String title;
 
-    @Column(name = "author_name", nullable = false)
+    @Column(name = "author_name", nullable = false, length = 100) // DTO 사이즈와 동일하게 명시
     private String authorName;
 
     @Column(columnDefinition = "TEXT")
@@ -41,10 +41,10 @@ public class Book extends BaseEntity {
     private Integer totalPage;
 
     // 책을 조회하면, 이 책에 달린 인용들도 같이 가져올 수 있도록 연결
-    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true) // 고아 객체 해결
     private List<BookQuote> quotes = new ArrayList<>();
 
-    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<CelebrityBook> celebrityBookList = new ArrayList<>();
 

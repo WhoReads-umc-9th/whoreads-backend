@@ -3,6 +3,7 @@ package whoreads.backend.domain.book.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -18,7 +19,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AladinBookService {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    // 바꾼 이유: RestTemplateBuilder 임포트 에러 해결 및 @RequiredArgsConstructor 충돌 방지
+    private final RestTemplate restTemplate = createRestTemplate();
 
     @Value("${aladin.api.key}")
     private String ttbKey;
@@ -26,8 +28,15 @@ public class AladinBookService {
     @Value("${aladin.api.url}")
     private String aladinUrl;
 
-    public List<BookResponse> searchBooks(String keyword) {
-        // 바꾼 이유: 키워드가 없는데 API를 찌르면 알라딘 쪽 에러가 발생하므로 서버 단에서 조기 차단
+    // 타임아웃을 설정한 RestTemplate을 반환하는 메서드
+    private RestTemplate createRestTemplate() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(3000); // 3000ms = 3초 (연결 타임아웃)
+        factory.setReadTimeout(3000);    // 3000ms = 3초 (응답 타임아웃)
+        return new RestTemplate(factory);
+    }
+
+    public List<BookResponse> searchBooks(String keyword) {  // 바꾼 이유: 키워드가 없는데 API를 찌르면 알라딘 쪽 에러가 발생하므로 서버 단에서 조기 차단
         if (keyword == null || keyword.isBlank()) {
             return Collections.emptyList();
         }
