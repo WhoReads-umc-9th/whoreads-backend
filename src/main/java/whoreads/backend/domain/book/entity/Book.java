@@ -8,13 +8,12 @@ import whoreads.backend.global.entity.BaseEntity;
 import java.util.ArrayList;
 import java.util.List;
 
-@Builder
+// @Builder 삭제 (생성자에 있으므로 중복 제거)
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 @Table(name = "book", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"title", "author_name"}) // 제목+저자 중복 방지 (선택 사항이나 추천)
+        @UniqueConstraint(columnNames = {"title", "author_name"})
 })
 public class Book extends BaseEntity {
 
@@ -22,10 +21,10 @@ public class Book extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 255) // 길이 명시
+    @Column(nullable = false, length = 255)
     private String title;
 
-    @Column(name = "author_name", nullable = false, length = 100) // DTO 사이즈와 동일하게 명시
+    @Column(name = "author_name", nullable = false, length = 100)
     private String authorName;
 
     @Column(columnDefinition = "TEXT")
@@ -41,14 +40,13 @@ public class Book extends BaseEntity {
     private Integer totalPage;
 
     // 책을 조회하면, 이 책에 달린 인용들도 같이 가져올 수 있도록 연결
-    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true) // 고아 객체 해결
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BookQuote> quotes = new ArrayList<>();
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
     private List<CelebrityBook> celebrityBookList = new ArrayList<>();
 
-    @Builder
+    @Builder // 생성자 레벨 빌더만 유지
     public Book(String title, String authorName, String link, String genre, String coverUrl, Integer totalPage) {
         this.title = title;
         this.authorName = authorName;

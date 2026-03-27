@@ -1,7 +1,11 @@
 package whoreads.backend.domain.quote.dto;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import org.hibernate.validator.constraints.URL;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,20 +18,20 @@ public class QuoteRequest {
 
     // 1. 기본 정보
     @NotNull(message = "책 ID는 필수입니다.")
-    @Positive(message = "책 ID는 양수여야 합니다.") // 바꾼 이유: ID 값에 음수가 들어오는 것을 방지
+    @Positive(message = "책 ID는 양수여야 합니다.")
     private Long bookId;
 
     @NotNull(message = "유명인 ID는 필수입니다.")
-    @Positive(message = "유명인 ID는 양수여야 합니다.") // 바꾼 이유: ID 값에 음수가 들어오는 것을 방지
+    @Positive(message = "유명인 ID는 양수여야 합니다.")
     private Long celebrityId;
 
     @NotBlank(message = "인용 문구는 필수입니다.")
-    @Size(max = 2000, message = "인용 문구는 2000자를 초과할 수 없습니다.") // 길이 제한 추가
+    @Size(max = 2000, message = "인용 문구는 2000자를 초과할 수 없습니다.")
     private String originalText;
 
-    private Quote.Language language; // 없을 경우 로직에서 기본값 처리 가능
+    private Quote.Language language;
 
-    @Min(value = 0, message = "맥락 점수는 0 이상이어야 합니다.") // 바꾼 이유: 점수가 음수로 들어오는 논리적 오류 차단
+    @Min(value = 0, message = "맥락 점수는 0 이상이어야 합니다.")
     private int contextScore;
 
     // 2. 출처 정보 (선택)
@@ -35,12 +39,13 @@ public class QuoteRequest {
     private SourceInfo source;
 
     // 3. 맥락 정보 (선택)
+    @Valid // 누락되었던 검증 활성화
     private ContextInfo context;
 
     @Getter
     @NoArgsConstructor
     public static class SourceInfo {
-        @URL(message = "올바른 URL 형식이어야 합니다.") // 바꾼 이유: 잘못된 형식의 URL이 DB에 저장되는 것 방지
+        @URL(message = "올바른 URL 형식이어야 합니다.")
         private String url;
         private QuoteSourceType type;
         private String timestamp;
@@ -51,9 +56,15 @@ public class QuoteRequest {
     @NoArgsConstructor
     public static class ContextInfo {
         @Size(max = 1000, message = "계기 설명은 1000자 이내여야 합니다.")
-        private String how;  // 계기
-        private String when; // 시기
-        private String why;  // 이유
-        private String help; // 도움
+        private String how;
+
+        @Size(max = 500, message = "시기 설명은 500자 이내여야 합니다.")
+        private String when;
+
+        @Size(max = 1000, message = "이유 설명은 1000자 이내여야 합니다.")
+        private String why;
+
+        @Size(max = 1000, message = "도움 설명은 1000자 이내여야 합니다.")
+        private String help;
     }
 }

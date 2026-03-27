@@ -10,8 +10,8 @@ import whoreads.backend.domain.topic.entity.TopicBook;
 import whoreads.backend.domain.topic.repository.TopicBookRepository;
 import whoreads.backend.domain.topic.repository.TopicRepository;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,18 +24,18 @@ public class TopicService {
 
     public List<TopicResponse> getAllTopics() {
         List<Topic> topics = topicRepository.findAll();
-        List<TopicResponse> responses = new ArrayList<>();
 
-        for (Topic topic : topics) {
-            // 해당 주제에 연결된 책들 가져오기 (Fetch Join)
-            List<Book> books = topicBookRepository.findByTopicWithFetchJoin(topic).stream()
-                    .map(TopicBook::getBook)
-                    .collect(Collectors.toList());
+        // N+1 문제 해결: IN 쿼리로 한 번에 가져와서 Map으로 그룹화
+        Map<Topic, List<Book>> booksByTopic = topicBookRepository
+                .findAllByTopicInWithFetchJoin(topics)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        TopicBook::getTopic,
+                        Collectors.mapping(TopicBook::getBook, Collectors.toList())
+                ));
 
-            // DTO 변환
-            responses.add(TopicResponse.of(topic, books));
-        }
-
-        return responses;
+        return topics.stream()
+                .map(topic -> TopicResponse.of(topic, booksByTopic.getOrDefault(topic, List.of())))
+                .collect(Collectors.toList());
     }
 }
