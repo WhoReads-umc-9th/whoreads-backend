@@ -4,11 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import whoreads.backend.domain.celebrity.entity.CelebrityBook;
 import whoreads.backend.global.entity.BaseEntity;
-
 import java.util.ArrayList;
 import java.util.List;
 
-// @Builder 삭제 (생성자에 있으므로 중복 제거)
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

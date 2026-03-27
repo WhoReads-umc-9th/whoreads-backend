@@ -31,8 +31,10 @@ public class QuoteRequest {
 
     private Quote.Language language;
 
+    // 바꾼 이유: primitive int는 누락 시 0으로 바인딩되어 검증을 우회하므로 Integer + @NotNull로 변경
+    @NotNull(message = "맥락 점수는 필수입니다.")
     @Min(value = 0, message = "맥락 점수는 0 이상이어야 합니다.")
-    private int contextScore;
+    private Integer contextScore;
 
     // 2. 출처 정보 (선택)
     @Valid // 바꾼 이유: 중첩된 객체(SourceInfo) 내부의 필드 검증(@URL 등)을 활성화하기 위해 추가

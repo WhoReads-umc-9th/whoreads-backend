@@ -25,6 +25,10 @@ public class TopicService {
     public List<TopicResponse> getAllTopics() {
         List<Topic> topics = topicRepository.findAll();
 
+        // 바꾼 이유: topics가 비어있을 때 빈 컬렉션으로 IN 쿼리를 날려 발생하는 에러(또는 불필요한 쿼리) 방지
+        if (topics.isEmpty()) {
+            return List.of();
+        }
         // N+1 문제 해결: IN 쿼리로 한 번에 가져와서 Map으로 그룹화
         Map<Topic, List<Book>> booksByTopic = topicBookRepository
                 .findAllByTopicInWithFetchJoin(topics)
