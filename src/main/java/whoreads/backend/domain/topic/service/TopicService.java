@@ -30,16 +30,17 @@ public class TopicService {
             return List.of();
         }
         // N+1 문제 해결: IN 쿼리로 한 번에 가져와서 Map으로 그룹화
-        Map<Topic, List<Book>> booksByTopic = topicBookRepository
+        // 바꾼 이유: Topic 객체 자체를 Key로 쓰면 1차 캐시 이탈 시 매핑이 깨지므로 고유한 ID(Long)를 Key로 사용
+        Map<Long, List<Book>> booksByTopicId = topicBookRepository
                 .findAllByTopicInWithFetchJoin(topics)
                 .stream()
                 .collect(Collectors.groupingBy(
-                        TopicBook::getTopic,
+                        tb -> tb.getTopic().getId(),
                         Collectors.mapping(TopicBook::getBook, Collectors.toList())
                 ));
 
         return topics.stream()
-                .map(topic -> TopicResponse.of(topic, booksByTopic.getOrDefault(topic, List.of())))
+                .map(topic -> TopicResponse.of(topic, booksByTopicId.getOrDefault(topic.getId(), List.of())))
                 .collect(Collectors.toList());
     }
 }

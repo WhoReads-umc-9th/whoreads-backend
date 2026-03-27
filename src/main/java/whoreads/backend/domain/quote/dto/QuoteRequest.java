@@ -29,6 +29,7 @@ public class QuoteRequest {
     @Size(max = 2000, message = "인용 문구는 2000자를 초과할 수 없습니다.")
     private String originalText;
 
+    @NotNull(message = "언어 설정은 필수입니다.")
     private Quote.Language language;
 
     // 바꾼 이유: primitive int는 누락 시 0으로 바인딩되어 검증을 우회하므로 Integer + @NotNull로 변경
