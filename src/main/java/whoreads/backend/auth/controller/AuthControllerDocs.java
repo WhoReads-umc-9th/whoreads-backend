@@ -14,7 +14,7 @@ import whoreads.backend.global.response.ApiResponse;
 @Tag(name = "Auth (인증)", description = "사용자 인증 API")
 public interface AuthControllerDocs {
 
-    @Operation(summary = "회원가입 (완료)")
+    @Operation(summary = "회원가입")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "아이디 또는 이메일 중복")
@@ -22,7 +22,7 @@ public interface AuthControllerDocs {
     ApiResponse<AuthResDto.JoinData> signUp(@RequestBody AuthReqDto.SignUpRequest request);
 
 
-    @Operation(summary = "로그인 (완료)")
+    @Operation(summary = "로그인")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공")})
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "아이디 또는 비밀번호 불일치")
@@ -38,7 +38,7 @@ public interface AuthControllerDocs {
     ApiResponse<Void> logout(@AuthenticationPrincipal Long memberId);
 
 
-    @Operation(summary = "아이디 중복 확인 (완료)", description = "사용자가 입력한 아이디가 이미 존재하는지 확인합니다.")
+    @Operation(summary = "아이디 중복 확인", description = "사용자가 입력한 아이디가 이미 존재하는지 확인합니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "사용 가능한 아이디"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "이미 사용 중인 아이디")
@@ -46,13 +46,13 @@ public interface AuthControllerDocs {
     ApiResponse<Void> checkLoginId(@RequestBody @Valid AuthReqDto.CheckIdRequest request);
 
 
-    @Operation(summary = "토큰 재발급 (완료)")
+    @Operation(summary = "토큰 재발급")
     @ApiResponses
     ApiResponse<AuthResDto.TokenData> refresh(@RequestBody @Valid AuthReqDto.RefreshRequest request);
 
 
     @Operation(
-            summary = "회원 탈퇴 API (완료)",
+            summary = "회원 탈퇴",
             description = "현재 로그인한 사용자의 계정을 즉시 탈퇴하지 않습니다. 비활성화 상태로 변경하고 7일이 지나면 토큰을 삭제하고 계정을 탈퇴합니다."
     )
     @ApiResponses({
@@ -62,7 +62,7 @@ public interface AuthControllerDocs {
     ApiResponse<Void> delete(@AuthenticationPrincipal Long memberId);
 
 
-    @Operation(summary = "이메일 인증번호 발송 (완료)",
+    @Operation(summary = "이메일 인증번호 발송",
             description = "회원가입을 위해 입력한 이메일로 6자리 인증 코드를 발송합니다. \n\n" +
                     "- 발송된 코드는 **Redis에 5분간 저장**됩니다. \n\n" +
                     "- 네이버/구글 SMTP 서버를 통해 실제 메일이 발송됩니다.")
@@ -73,12 +73,22 @@ public interface AuthControllerDocs {
     ApiResponse<Void> sendEmail(@RequestBody @Valid AuthReqDto.EmailRequest request);
 
 
-    @Operation(summary = "이메일 인증번호 검증 (완료)",
+    @Operation(summary = "이메일 인증번호 검증",
             description = "사용자가 입력한 인증번호가 유효한지 확인합니다. \n\n" +
                     "Redis에 저장된 코드와 일치하는지 대조합니다. \n\n")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "이메일 인증 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "인증번호 불일치 혹은 만료")
     })
-            ApiResponse<Void> verifyEmail(@RequestBody @Valid AuthReqDto.VerificationRequest request);
+    ApiResponse<Void> verifyEmail(@RequestBody @Valid AuthReqDto.VerificationRequest request);
+
+    @Operation(summary = "비밀번호 변경",
+                description = "현재 비밀번호, 변경할 비밀번호, 확인용 비밀번호를 입력합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "비밀번호 변경 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 요청입니다.<br>"
+                    + "1. 현재 비밀버호가 일치하지 않는 경우<br>"
+                    + "2. 새 비밀번호와 확인용 비밀번호가 일치하지 않는 경우")
+    })
+    ApiResponse<Void> updatePassword(@AuthenticationPrincipal Long memberId, @RequestBody @Valid AuthReqDto.PasswordChangeRequest request);
 }

@@ -74,4 +74,14 @@ public class AuthReqDto {
             @NotNull
             AgeGroup ageGroup
     ){}
+
+    // 비밀번호 재설정
+    public record PasswordChangeRequest(
+            @NotBlank
+            String currentPassword,
+            @NotBlank
+            String newPassword,
+            @NotBlank
+            String confirmPassword
+    ){}
 }
