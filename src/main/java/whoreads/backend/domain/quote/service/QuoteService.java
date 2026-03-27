@@ -94,7 +94,7 @@ public class QuoteService {
 
     // 조회 메서드들 (기존 유지, EntityNotFoundException 처리는 Repository 단계에서 안전하거나 Optional 처리됨)
     public List<QuoteResponse> getQuotesByBook(Long bookId) {
-        return bookQuoteRepository.findByBookIdWithFetchJoin(bookId).stream() // (Book Repository 수정사항 반영: FetchJoin 메서드 사용 권장)
+        return bookQuoteRepository.findByBookIdWithEntityGraph(bookId).stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }

@@ -8,7 +8,6 @@ public class AuthResDto {
 
     @Builder
     public record JoinData(
-//            @Schema(description = "액세스 토큰", example = "eyJhbGciOiJIUzI1...")
             String accessToken,
             MemberInfo member
     ){}
