@@ -2,6 +2,8 @@ package whoreads.backend.domain.celebrity.repository;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import whoreads.backend.domain.celebrity.entity.Celebrity;
 import whoreads.backend.domain.celebrity.entity.CelebrityTag;
 
@@ -23,4 +25,13 @@ public interface CelebrityRepository extends JpaRepository<Celebrity, Long> {
     @Override
     @EntityGraph(attributePaths = "jobTags")
     Optional<Celebrity> findById(Long id);
+
+    @Query("SELECT c FROM Celebrity c " +
+            "LEFT JOIN FETCH c.celebrityBookList cb " +
+            "LEFT JOIN FETCH cb.book " + // Book까지 한꺼번에 긁어와야 함!
+            "WHERE c.id IN :ids")
+    List<Celebrity> findAllByIdWithBooks(@Param("ids") List<Long> ids);
+
+    @EntityGraph(attributePaths = "jobTags")
+    Optional<Celebrity> findByName(String celebrityName);
 }
