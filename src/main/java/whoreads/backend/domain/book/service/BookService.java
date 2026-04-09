@@ -75,7 +75,7 @@ public class BookService {
                 .orElseThrow(() -> new CustomException(ErrorCode.BOOK_NOT_FOUND));
 
         // 인용 + 유명인 JOIN FETCH (contextScore DESC 정렬)
-        List<BookQuote> bookQuotes = bookQuoteRepository.findByBookIdWithFetchJoin(bookId);
+        List<BookQuote> bookQuotes = bookQuoteRepository.findByBookIdWithEntityGraph(bookId);
 
         // 출처 배치 조회
         List<Long> quoteIds = bookQuotes.stream()
@@ -106,6 +106,10 @@ public class BookService {
 
     // 주제별 책 조회 로직
     public List<Book> getBooksByTheme(TopicTag theme, int limit) {
+        if (limit <= 0) {
+            throw new IllegalArgumentException("limit must be positive");
+        }
+
         // 프론트에서 TOP_20을 요청했을 땐 기존 로직 재사용
         if (theme == TopicTag.TOP_20) {
             return getMostRecommendedBooks(limit);

@@ -2,6 +2,8 @@ package whoreads.backend.domain.member.converter;
 
 import whoreads.backend.auth.dto.AuthReqDto;
 import whoreads.backend.auth.dto.AuthResDto;
+import whoreads.backend.domain.dna.enums.TrackCode;
+import whoreads.backend.domain.member.dto.MemberResDto;
 import whoreads.backend.domain.member.entity.Member;
 
 public class MemberConverter {
@@ -31,6 +33,21 @@ public class MemberConverter {
         return AuthResDto.JoinData.builder()
                 .accessToken(accessToken)
                 .member(memberInfo)
+                .build();
+    }
+
+    public static MemberResDto.MemberInfo toMemberInfo(Member member) {
+        return MemberResDto.MemberInfo.builder()
+                .id(member.getId())
+                .nickname(member.getNickname())
+                .gender(member.getGender())
+                .ageGroup(member.getAgeGroup())
+                .email(member.getEmail())
+                .loginId(member.getLoginId())
+                .createdAt(member.getCreatedAt())
+                .status(member.getStatus())
+                .trackCode(member.getDnaType() != null ? TrackCode.valueOf(member.getDnaType()) : null)
+                .fcmToken(member.getFcmToken())
                 .build();
     }
 }

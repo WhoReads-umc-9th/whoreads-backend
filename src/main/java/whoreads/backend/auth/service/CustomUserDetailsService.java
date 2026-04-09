@@ -1,11 +1,11 @@
 package whoreads.backend.auth.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import whoreads.backend.auth.principal.CustomUserDetails;
 import whoreads.backend.domain.member.repository.MemberRepository;
 
 // 사용자 정보를 불러오고 검증하는 서비스
@@ -16,13 +16,18 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     private final MemberRepository memberRepository;
 
+    // 로그인 아이디로 사용자 조회
     @Override
     public UserDetails loadUserByUsername(String loginId) throws UsernameNotFoundException {
         return memberRepository.findByLoginId(loginId)
-                .map(member -> User.builder()
-                        .username(String.valueOf(member.getId()))
-                        .password(member.getPassword())
-                        .build())
+                .map(CustomUserDetails::new)
                 .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + loginId));
+    }
+
+    // PK로 사용자 조회
+    public UserDetails loadUserById(Long id) { // PK로 조회하는 메서드 추가
+        return memberRepository.findById(id)
+                .map(CustomUserDetails::new)
+                .orElseThrow(() -> new UsernameNotFoundException("해당 ID의 사용자를 찾을 수 없습니다: " + id));
     }
 }

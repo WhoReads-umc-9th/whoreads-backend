@@ -33,6 +33,7 @@ public class UserBookResponse {
     @Getter
     @Builder
     public static class SimpleBook {
+        private Long userBookId;
         private BookResponse book;
         private Integer readingPage;
         private Integer celebritiesCount;
@@ -40,6 +41,7 @@ public class UserBookResponse {
 
         public static SimpleBook from(UserBook userBook, List<CelebritySummary> celebrities) {
             return SimpleBook.builder()
+                    .userBookId(userBook.getId())
                     .book(BookResponse.from(userBook.getBook()))
                     .readingPage(userBook.getReadingPage())
                     .celebritiesCount(celebrities.size())

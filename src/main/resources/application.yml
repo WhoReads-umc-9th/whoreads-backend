@@ -3,18 +3,23 @@ spring:
     name: whoreads
 
   datasource:
+#      url: jdbc:mysql://whoreads-database.cxuuky28ujjb.ap-northeast-2.rds.amazonaws.com:3306/whoreads_dev?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
+#      username: dev
+#      password: whoreadsDev
+#      driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
     username: ${USER_NAME}
     password: ${USER_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
   # JPA (공통 설정)
   jpa:
     hibernate:
-      ddl-auto: update
+#      ddl-auto: update
+      ddl-auto: none
     properties:
       hibernate:
         format_sql: true
         default_batch_fetch_size: 100
+#        dialect: org.hibernate.dialect.MySQLDialect
     show-sql: true
     open-in-view: false
 
