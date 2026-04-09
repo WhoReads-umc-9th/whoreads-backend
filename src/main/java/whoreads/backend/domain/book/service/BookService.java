@@ -106,6 +106,10 @@ public class BookService {
 
     // 주제별 책 조회 로직
     public List<Book> getBooksByTheme(TopicTag theme, int limit) {
+        if (limit <= 0) {
+            throw new IllegalArgumentException("limit must be positive");
+        }
+
         // 프론트에서 TOP_20을 요청했을 땐 기존 로직 재사용
         if (theme == TopicTag.TOP_20) {
             return getMostRecommendedBooks(limit);

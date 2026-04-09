@@ -34,13 +34,6 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Setup Firebase secret key
-        run: |
-          mkdir -p ./src/main/resources/firebase
-          echo "$FIREBASE_SECRET_JSON_BASE64" | base64 -d > ./src/main/resources/firebase/secret-key.json
-        env:
-          FIREBASE_SECRET_JSON_BASE64: ${{ secrets.FIREBASE_SECRET_JSON_BASE64 }}
-
       - name: Build with Gradle
         run: ./gradlew build -x test
 
@@ -92,7 +85,7 @@ jobs:
       - name: Deploy to EC2 (Blue/Green)
         uses: appleboy/ssh-action@v1.0.3
         env:
-          DOCKER_IMAGE: ${{ vars.DOCKER_USERNAME }}/whoreads:${{ inputs.docker_tag }}
+          DOCKER_IMAGE: ${{ vars.DOCKER_USERNAME }}/whoreads:${{ inputs.environment }}-${{ github.sha }}
           SPRING_PROFILE: ${{ inputs.spring_profile }}
           DB_HOST: ${{ vars.DB_HOST }}
           DB_PORT: ${{ vars.DB_PORT }}
