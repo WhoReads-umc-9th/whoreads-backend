@@ -137,15 +137,9 @@ jobs:
               fi
             fi
 
-            # Redis, Nginx 컨테이너 확인 및 기동
-            # 실행 중이지 않은 동일 이름 컨테이너(compose 외부 생성 포함)를 정리 후 기동
-            for container in whoreads-redis whoreads-nginx; do
-              if docker ps --format "{{.Names}}" | grep -q "^${container}$"; then
-                echo "$container is already running, skipping"
-              else
-                docker rm -f "$container" 2>/dev/null || true
-              fi
-            done
+            # Redis, Nginx 컨테이너 정리 후 기동 (Exited 상태 포함 모든 충돌 컨테이너 제거)
+            echo "Cleaning up infra containers..."
+            docker rm -f whoreads-redis whoreads-nginx 2>/dev/null || true
             docker compose up -d whoreads-redis whoreads-nginx
 
             # ========================================
