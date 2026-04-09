@@ -229,7 +229,8 @@ jobs:
               fi
 
               cp "$NGINX_CONF" "$NGINX_CONF.bak"
-              sed -i "s/${CONTAINER_PREFIX}-\(blue\|green\)/${CONTAINER_PREFIX}-$NEW/g" "$NGINX_CONF"
+              sed -i "s/${CONTAINER_PREFIX}-blue/${CONTAINER_PREFIX}-$NEW/g" "$NGINX_CONF"
+              sed -i "s/${CONTAINER_PREFIX}-green/${CONTAINER_PREFIX}-$NEW/g" "$NGINX_CONF"
 
               if ! grep -q "${CONTAINER_PREFIX}-$NEW" "$NGINX_CONF"; then
                 echo "ERROR: Failed to update Nginx config"
