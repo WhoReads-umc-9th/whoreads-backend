@@ -138,8 +138,10 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    `@Override`
     public void changePassword(Long memberId, AuthReqDto.PasswordChangeRequest request) {
-        String currentPassword = request.currentPassword();
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
