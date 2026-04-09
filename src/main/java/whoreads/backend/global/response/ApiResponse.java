@@ -26,8 +26,8 @@ public class ApiResponse<T> {
     @JsonProperty("message")
     private final String message;
 
-    `@JsonProperty`("server_time")
-    `@JsonFormat`(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXXX", timezone = "Asia/Seoul")
+    @JsonProperty("server_time")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXXX", timezone = "Asia/Seoul")
     private final ZonedDateTime serverTime;
 
     @JsonProperty("result")
