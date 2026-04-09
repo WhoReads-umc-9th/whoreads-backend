@@ -1,7 +1,5 @@
 package whoreads.backend.global.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.v3.core.jackson.ModelResolver;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -43,11 +41,6 @@ public class SwaggerConfig {
                 .addServersItem(new Server().url("https://api.whoreads.kro.kr").description("Production"))
                 .addSecurityItem(securityRequirement)
                 .components(components);
-    }
-
-    @Bean
-    public ModelResolver modelResolver(ObjectMapper objectMapper) {
-        return new ModelResolver(objectMapper);
     }
 
     @Bean
