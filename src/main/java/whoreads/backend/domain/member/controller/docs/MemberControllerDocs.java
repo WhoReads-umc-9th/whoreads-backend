@@ -42,17 +42,33 @@ public interface MemberControllerDocs {
     @Operation(
             summary = "사용자 개인 정보 조회"
     )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "회원 없음"),
+    })
     ApiResponse<MemberResDto.MemberInfo> getMyInfo(@AuthenticationPrincipal Long memberId);
 
 
     @Operation(
             summary = "사용자가 팔로우하는 유명인 리스트 조회"
     )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "회원 없음"),
+    })
     ApiResponse<List<MemberResDto.CelebrityFollow>> getMyFollows(@AuthenticationPrincipal Long memberId);
 
 
     @Operation(
             summary = "사용자가 유명인을 팔로우할 때 사용하는 API"
     )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "팔로우 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "회원 없음 / 유명인 없음"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "이미 팔로우 중인 유명인"),
+    })
     ApiResponse<Void> followCelebrity(@PathVariable Long celebrityId, @AuthenticationPrincipal Long memberId);
 }

@@ -27,11 +27,15 @@
     import java.util.List;
     import java.util.Map;
     import java.util.stream.Collectors;
+    import org.slf4j.Logger;
+    import org.slf4j.LoggerFactory;
 
     @Service
     @RequiredArgsConstructor
     @Transactional(readOnly = true)
     public class DnaService {
+
+        private static final Logger log = LoggerFactory.getLogger(DnaService.class);
 
         private final CelebrityBookRepository celebrityBookRepository;
 
@@ -77,7 +81,7 @@
             if (member.getDnaType() == null)
                 throw new CustomException(ErrorCode.DNA_TEST_NOT_COMPLETED);
 
-            TrackCode trackCode = TrackCode.valueOf(member.getDnaType());
+            TrackCode trackCode = TrackCode.fromName(member.getDnaType());
             String celebrityName = member.getDnaTypeName();
 
             Celebrity celebrity = celebrityRepository.findByName(celebrityName)
@@ -111,7 +115,7 @@
 
             // [중요 로그] 사용자의 점수가 어떻게 나왔는지 확인
             userScores.forEach((genre, score) ->
-                    System.out.println("사용자 점수 -> 장르: " + genre + ", 점수: " + score));
+                    log.debug("사용자 점수 -> 장르: {}, 점수: {}", genre, score));
 
             // 3. Pool 5명 중 최종 승자(1명) 계산
             Celebrity winner = null;
@@ -122,7 +126,7 @@
                 List<CelebrityBook> books = booksByCelebrity.getOrDefault(celebrity.getId(), new ArrayList<>());
 
                 // 로그로 확인 (이제 절대 0이 나올 수 없습니다)
-                System.out.println("ID: " + celebrity.getId() + " | 이름: " + celebrity.getName() + " | 실제 책 권수: " + books.size());
+                log.debug("ID: {} | 이름: {} | 실제 책 권수: {}", celebrity.getId(), celebrity.getName(), books.size());
 
                 double currentScore = calculateFitScore(books, userScores);
 
@@ -131,14 +135,14 @@
                     winner = celebrity;
                 } else if (currentScore == maxScore) {
                     // 적합도 점수가 같으면 책을 더 많이 추천한 사람 우선
-                    if (winner == null || celebrity.getCelebrityBookList().size() > winner.getCelebrityBookList().size()) {
+                    if (winner == null || booksByCelebrity.getOrDefault(celebrity.getId(), new ArrayList<>()).size() > booksByCelebrity.getOrDefault(winner.getId(), new ArrayList<>()).size()) {
                         winner = celebrity;
                     }
                 }
             }
 
             if (winner == null)
-                throw new RuntimeException("매칭된 인물이 없습니다.");
+                throw new CustomException(ErrorCode.DNA_TEST_NOT_FOUND_RESULT_CELEBRITY);
 
             // 결과값을 DB의 Member 엔티티에 저장
             Member member = memberRepository.findById(memberId)
@@ -180,7 +184,7 @@
                     }
                 }
                 // 여기에 로그 삽입!
-                System.out.println(code.getDescription() + " | 일치 개수: " + count + " (전체: " + totalCount + ")");
+                log.debug("{} | 일치 개수: {} (전체: {})", code.getDescription(), count, totalCount);
 
                 ratios.put(code, totalCount > 0 ? (double) count / totalCount : 0.0);
             }

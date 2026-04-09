@@ -28,7 +28,7 @@ public class FcmMessageDTO {
                 .body(generated[1])
                 .type(type.name()); // DB 저장용 타입 이름 (FOLLOW, ROUTINE 등)
 
-        if (event != null && type.equals(NotificationType.FOLLOW) &&
+        if (event != null && type == NotificationType.FOLLOW &&
                 event instanceof NotificationEvent.FollowEvent followEvent)
         {
             builder.celebrityId(followEvent.celebId());
