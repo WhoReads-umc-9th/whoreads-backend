@@ -41,9 +41,11 @@ server {
     ssl_session_cache shared:SSL:10m;
     ssl_session_timeout 1d;
 
-    # Proxy to Production (Blue/Green)
+    # Proxy to Production (Blue/Green) - Docker DNS로 런타임 resolve
     location / {
-        proxy_pass http://whoreads-prod-blue:8080;
+        resolver 127.0.0.11 valid=30s;
+        set $upstream whoreads-prod-blue;
+        proxy_pass http://$upstream:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -64,9 +66,11 @@ server {
     listen 80 default_server;
     server_name _;  # 모든 호스트명 (IP 직접 접근 포함)
 
-    # Proxy to Staging (Blue/Green)
+    # Proxy to Staging (Blue/Green) - Docker DNS로 런타임 resolve
     location / {
-        proxy_pass http://whoreads-staging-blue:8080;
+        resolver 127.0.0.11 valid=30s;
+        set $upstream whoreads-staging-blue;
+        proxy_pass http://$upstream:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
