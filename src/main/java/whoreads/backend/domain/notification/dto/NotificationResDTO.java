@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
+import whoreads.backend.domain.notification.entity.FollowLink;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
@@ -46,7 +47,8 @@ public class NotificationResDTO {
             String type,
             String title,
             String body,
-            String link,
+            FollowLink link,
+            boolean isRead,
             @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
             LocalDateTime createdAt
     ){}

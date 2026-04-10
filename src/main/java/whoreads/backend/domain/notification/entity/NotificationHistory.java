@@ -30,6 +30,14 @@ public class NotificationHistory extends BaseEntity {
     @Column(nullable = false)
     private String body;
 
-    @Column()
-    private String link;
+    @Embedded
+    private FollowLink link;
+    
+    @Builder.Default
+    private boolean isRead = false;
+
+    public void setRead()
+    {
+        this.isRead = true;
+    }
 }

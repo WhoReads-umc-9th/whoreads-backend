@@ -59,7 +59,13 @@ public interface BookControllerDocs {
             @PathVariable @Positive(message = "올바른 책 ID를 입력해주세요.") Long bookId
     );
 
-    @Operation(summary = "주제별 책 조회", description = "특정 주제(테마)에 맞는 책 목록을 가져옵니다. limit은 1 이상이어야 합니다.")
+    @Operation(summary = "주제별 추천 책 목록 조회", description = "특정 주제(SOCIETY, HUMAN_UNDERSTANDING 등)에 맞는 유명인 추천 책 목록을 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "400", description = "유효하지 않은 TopicTag 또는 limit 값", content = @Content),
+            @ApiResponse(responseCode = "404", description = "해당 주제의 책 없음", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
     ResponseEntity<List<BookResponse>> getBooksByTheme(
             @Parameter(description = "주제 태그", required = true) @PathVariable TopicTag theme,
             @Parameter(description = "가져올 개수 (1 이상)") @RequestParam(defaultValue = "20") @Positive int limit

@@ -2,6 +2,7 @@ package whoreads.backend.domain.notification.repository;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import whoreads.backend.domain.notification.entity.NotificationHistory;
 
@@ -20,4 +21,8 @@ public interface NotificationHistoryRepository extends JpaRepository<Notificatio
             Pageable pageable);
 
     void deleteByCreatedAtBefore(LocalDateTime cutoff);
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE NotificationHistory n SET n.isRead = true WHERE n.member.id = :memberId")
+    void setReadAllNotifications(Long memberId);
 }

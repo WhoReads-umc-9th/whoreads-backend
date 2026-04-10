@@ -9,6 +9,7 @@ import whoreads.backend.domain.member.repository.MemberRepository;
 import whoreads.backend.domain.notification.converter.NotificationConverter;
 import whoreads.backend.domain.notification.dto.FcmMessageDTO;
 import whoreads.backend.domain.notification.dto.NotificationResDTO;
+import whoreads.backend.domain.notification.entity.FollowLink;
 import whoreads.backend.domain.notification.entity.NotificationHistory;
 import whoreads.backend.domain.notification.enums.NotificationType;
 import whoreads.backend.domain.notification.repository.NotificationHistoryRepository;
@@ -38,14 +39,34 @@ public class NotificationHistoryServiceImpl implements NotificationHistoryServic
 
     @Override
     @Transactional
-    public void readNotification(Long memberId, Long notificationId) {
+    public NotificationResDTO.HistoryDTO readNotification(Long memberId, Long notificationId) {
         // 이 알림의 권한이 사용자인지 확인
+        NotificationHistory history = notificationHistoryRepository.findById(notificationId).orElseThrow(()->
+                new CustomException(ErrorCode.RESOURCE_NOT_FOUND,"알림이 존재하지 않습니다."));
+        if (!Objects.equals(history.getMember().getId(), memberId))
+            throw new CustomException(ErrorCode.ACCESS_DENIED,"사용자의 알림이 아닙니다.");
+        history.setRead();
+        notificationHistoryRepository.save(history);
+        return NotificationConverter.toHistoryDTO(history);
+    }
+
+    @Transactional
+    @Override
+    public void deleteNotification(Long memberId,Long notificationId) {
         NotificationHistory history = notificationHistoryRepository.findById(notificationId).orElseThrow(()->
                 new CustomException(ErrorCode.RESOURCE_NOT_FOUND,"알림이 존재하지 않습니다."));
         if (!Objects.equals(history.getMember().getId(), memberId))
             throw new CustomException(ErrorCode.ACCESS_DENIED,"사용자의 알림이 아닙니다.");
         notificationHistoryRepository.delete(history);
     }
+
+    @Transactional
+    @Override
+    public Void readAllNotifications(Long memberId) {
+        notificationHistoryRepository.setReadAllNotifications(memberId);
+        return null;
+    }
+
     @Transactional
     public void saveHistory(Long memberId, FcmMessageDTO dto) {
         NotificationHistory history = NotificationHistory.builder()
@@ -53,6 +74,7 @@ public class NotificationHistoryServiceImpl implements NotificationHistoryServic
                 .title(dto.getTitle())
                 .body(dto.getBody())
                 .type(NotificationType.valueOf(dto.getType()))
+                .link(FollowLink.builder().celebrityId(dto.getCelebrityId()).bookId(dto.getBookId()).build())
                 .build();
         notificationHistoryRepository.save(history);
     }
