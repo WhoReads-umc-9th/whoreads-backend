@@ -53,7 +53,7 @@ public class NotificationScheduler {
     @Transactional
     @Scheduled(cron = "0 0 0 * * *",zone = "Asia/Seoul") // 매일 자정 실행
     public void deleteOldNotifications() {
-        LocalDateTime cutoff = LocalDateTime.now().minusDays(30);
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(7);
         notificationHistoryRepository.deleteByCreatedAtBefore(cutoff);
     }
     /*

@@ -25,7 +25,11 @@ public interface MemberCelebrityRepository extends JpaRepository<MemberCelebrity
 
     @Query("SELECT DISTINCT mc.member.id AS memberId, mc.member.fcmToken AS fcmToken " +
             "FROM MemberCelebrity mc " +
-            "WHERE mc.celebrity.id = :celebId " +
+            "JOIN mc.member m " +
+            "LEFT JOIN NotificationSetting ns ON ns.member = m " +
+            "AND ns.type = 'FOLLOW' " +
+            "Where mc.celebrity.id = :celebId " +
+            "AND (ns.id IS NULL OR ns.isEnabled = true) " +
             "AND mc.member.fcmToken IS NOT NULL " +
             "AND mc.member.fcmToken <> ''")
     List<MemberTokenDTO> findMemberTokensByCelebrityId(Long celebId);
