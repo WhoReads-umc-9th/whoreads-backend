@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -85,6 +87,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(ApiResponse.error(HttpStatus.METHOD_NOT_ALLOWED.value(), "허용되지 않은 메서드입니다."));
+    }
+
+    @ExceptionHandler({UsernameNotFoundException.class, BadCredentialsException.class})
+    public ResponseEntity<ApiResponse<Void>> handleLoginException(Exception e) {
+        log.error("Login Failure: {}", e.getMessage());
+
+        ErrorCode errorCode = ErrorCode.LOGIN_FAILED; // 위에서 만든 공통 에러 코드
+
+        return ResponseEntity
+                .status(errorCode.getStatus())
+                .body(ApiResponse.error(errorCode.getStatus().value(), errorCode.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

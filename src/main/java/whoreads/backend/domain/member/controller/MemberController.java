@@ -1,16 +1,22 @@
 package whoreads.backend.domain.member.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import whoreads.backend.domain.member.controller.docs.MemberControllerDocs;
 import whoreads.backend.domain.member.dto.MemberRequest;
+import whoreads.backend.domain.member.dto.MemberResDto;
 import whoreads.backend.domain.member.service.MemberService;
 import whoreads.backend.domain.notification.service.NotificationTokenService;
 import whoreads.backend.global.response.ApiResponse;
 
+import java.util.List;
 
+
+@Validated
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/members")
@@ -19,7 +25,31 @@ public class MemberController implements MemberControllerDocs {
     private final MemberService memberService;
     private final NotificationTokenService notificationTokenService;
 
-    @PostMapping ("me/fcm-tokens")
+    @GetMapping("/me")
+    @Override
+    public ApiResponse<MemberResDto.MemberInfo> getMyInfo(@AuthenticationPrincipal Long memberId) {
+        // @AuthenticationPrincipal을 통해 JwtAuthenticationFilter에서 저장한 유저 정보를 바로 가져옵니다.
+
+        return ApiResponse.success(memberService.getMemberInfo(memberId));
+    }
+
+    // 내가 팔로우한 유명인 리스트 조회
+    @GetMapping("/me/follows")
+    @Override
+    public ApiResponse<List<MemberResDto.CelebrityFollow>> getMyFollows(@AuthenticationPrincipal Long memberId) {
+        List<MemberResDto.CelebrityFollow> followList = memberService.getFollowList(memberId);
+
+        return ApiResponse.success(followList);
+    }
+
+    @PostMapping("/follow/{celebrityId}")
+    @Override
+    public ApiResponse<Void> followCelebrity(@PathVariable @Positive Long celebrityId, @AuthenticationPrincipal Long memberId) {
+        memberService.followCelebrity(memberId, celebrityId);
+        return ApiResponse.success("팔로우가 완료됐습니다.");
+    }
+
+    @PostMapping ("/me/fcm-tokens")
     @Override
     public ApiResponse<Void> updateFcmToken(
             @AuthenticationPrincipal Long memberId,
@@ -28,7 +58,7 @@ public class MemberController implements MemberControllerDocs {
         notificationTokenService.updateToken(memberId,fcmRequest.fcmToken());
         return ApiResponse.success("토큰이 성공적으로 등록되었습니다.");
     }
-    @DeleteMapping("me/fcm-tokens")
+    @DeleteMapping("/me/fcm-tokens")
     @Override
     public ApiResponse<Void> deleteFcmToken(
             @AuthenticationPrincipal Long memberId) {

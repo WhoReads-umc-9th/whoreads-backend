@@ -12,4 +12,7 @@ public interface CelebrityBookRepository extends JpaRepository<CelebrityBook, Lo
     @Query("SELECT cb FROM CelebrityBook cb JOIN FETCH cb.celebrity " +
             "WHERE cb.book.id IN :bookIds")
     List<CelebrityBook> findByBookIdInWithCelebrity(@Param("bookIds") List<Long> bookIds);
+
+    @Query("SELECT cb FROM CelebrityBook cb JOIN FETCH cb.book WHERE cb.celebrity.id IN :celebIds")
+    List<CelebrityBook> findAllByCelebrityIdsWithBook(@Param("celebIds") List<Long> celebIds);
 }

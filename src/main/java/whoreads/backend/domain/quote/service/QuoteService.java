@@ -1,6 +1,5 @@
 package whoreads.backend.domain.quote.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -20,6 +19,8 @@ import whoreads.backend.domain.quote.entity.QuoteSource;
 import whoreads.backend.domain.quote.repository.QuoteContextRepository;
 import whoreads.backend.domain.quote.repository.QuoteRepository;
 import whoreads.backend.domain.quote.repository.QuoteSourceRepository;
+import whoreads.backend.global.exception.CustomException;
+import whoreads.backend.global.exception.ErrorCode;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,14 +39,13 @@ public class QuoteService {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
-    public Long registerQuote(QuoteRequest request) { // Void -> Long (ID 반환)
-
+    public Long registerQuote(QuoteRequest request) {
+        // 바꾼 이유: EntityNotFoundException 대신 프로젝트 공통 예외인 CustomException과 정의된 ErrorCode 사용
         Book book = bookRepository.findById(request.getBookId())
-                .orElseThrow(() -> new EntityNotFoundException("책이 없습니다. ID=" + request.getBookId()));
+                .orElseThrow(() -> new CustomException(ErrorCode.BOOK_NOT_FOUND));
         Celebrity celebrity = celebrityRepository.findById(request.getCelebrityId())
-                .orElseThrow(() -> new EntityNotFoundException("유명인이 없습니다. ID=" + request.getCelebrityId()));
+                .orElseThrow(() -> new CustomException(ErrorCode.CELEBRITY_NOT_FOUND));
 
-        // 1. Quote 저장
         Quote quote = Quote.builder()
                 .originalText(request.getOriginalText())
                 .language(request.getLanguage())
@@ -55,14 +55,12 @@ public class QuoteService {
 
         quoteRepository.save(quote);
 
-        // 2. BookQuote 연결
         BookQuote bookQuote = BookQuote.builder()
                 .book(book)
                 .quote(quote)
                 .build();
         bookQuoteRepository.save(bookQuote);
 
-        // 3. QuoteSource 저장
         if (request.getSource() != null) {
             QuoteSource source = QuoteSource.builder()
                     .quote(quote)
@@ -73,7 +71,6 @@ public class QuoteService {
             quoteSourceRepository.save(source);
         }
 
-        // 4. QuoteContext 저장
         if (request.getContext() != null) {
             QuoteContext context = QuoteContext.builder()
                     .quote(quote)
@@ -84,17 +81,20 @@ public class QuoteService {
                     .build();
             quoteContextRepository.save(context);
         }
+
         applicationEventPublisher.publishEvent(
-                new NotificationEvent.FollowEvent
-                        (celebrity.getId(), celebrity.getName(),
-                                book.getId(), book.getTitle(),book.getAuthorName()));
+                new NotificationEvent.FollowEvent(
+                        celebrity.getId(), celebrity.getName(),
+                        book.getId(), book.getTitle(), book.getAuthorName()
+                )
+        );
 
         return quote.getId();
     }
 
     // 조회 메서드들 (기존 유지, EntityNotFoundException 처리는 Repository 단계에서 안전하거나 Optional 처리됨)
     public List<QuoteResponse> getQuotesByBook(Long bookId) {
-        return bookQuoteRepository.findByBookIdWithFetchJoin(bookId).stream() // (Book Repository 수정사항 반영: FetchJoin 메서드 사용 권장)
+        return bookQuoteRepository.findByBookIdWithEntityGraph(bookId).stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
