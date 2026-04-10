@@ -43,7 +43,7 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
+          username: ${{ vars.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push Docker image
@@ -52,8 +52,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/whoreads:${{ inputs.environment }}-${{ github.sha }}
-            ${{ secrets.DOCKER_USERNAME }}/whoreads:${{ inputs.docker_tag }}
+            ${{ vars.DOCKER_USERNAME }}/whoreads:${{ inputs.environment }}-${{ github.sha }}
+            ${{ vars.DOCKER_USERNAME }}/whoreads:${{ inputs.docker_tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -69,8 +69,8 @@ jobs:
       - name: Copy Nginx template to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
+          host: ${{ vars.EC2_HOST }}
+          username: ${{ vars.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "nginx/default.conf.template"
           target: "~/whoreads/"
@@ -79,8 +79,8 @@ jobs:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
+          host: ${{ vars.EC2_HOST }}
+          username: ${{ vars.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
@@ -93,7 +93,7 @@ jobs:
             NETWORK_NAME="whoreads-network"
             NGINX_CONTAINER="whoreads-nginx"
             NGINX_CONF="$DEPLOY_DIR/nginx/conf.d/default.conf"
-            DOCKER_IMAGE="${{ secrets.DOCKER_USERNAME }}/whoreads:${{ inputs.docker_tag }}"
+            DOCKER_IMAGE="${{ vars.DOCKER_USERNAME }}/whoreads:${{ inputs.docker_tag }}"
             CONTAINER_PREFIX="whoreads-${ENVIRONMENT}"
 
             # ========================================
@@ -172,10 +172,10 @@ jobs:
               --name "${CONTAINER_PREFIX}-$NEW" \
               --network "$NETWORK_NAME" \
               -e SPRING_PROFILES_ACTIVE=${{ inputs.spring_profile }} \
-              -e DB_HOST="${{ secrets.RDS_HOST }}" \
-              -e DB_PORT="${{ secrets.DB_PORT }}" \
-              -e DB_NAME="${{ secrets.DB_NAME }}" \
-              -e DB_USERNAME="${{ secrets.DB_USER }}" \
+              -e DB_HOST="${{ vars.DB_HOST }}" \
+              -e DB_PORT="${{ vars.DB_PORT }}" \
+              -e DB_NAME="${{ vars.DB_NAME }}" \
+              -e DB_USERNAME="${{ vars.DB_USER }}" \
               -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
               -e REDIS_HOST="whoreads-redis" \
               -e MAIL_ID="${{ secrets.MAIL_ID }}" \
