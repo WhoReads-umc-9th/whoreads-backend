@@ -11,7 +11,7 @@ import whoreads.backend.global.entity.BaseEntity;
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Table
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"member_id", "celebrity_id"}))
 public class MemberCelebrity extends BaseEntity {
 
     @Id

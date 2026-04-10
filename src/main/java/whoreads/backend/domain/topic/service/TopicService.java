@@ -10,8 +10,8 @@ import whoreads.backend.domain.topic.entity.TopicBook;
 import whoreads.backend.domain.topic.repository.TopicBookRepository;
 import whoreads.backend.domain.topic.repository.TopicRepository;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,18 +24,23 @@ public class TopicService {
 
     public List<TopicResponse> getAllTopics() {
         List<Topic> topics = topicRepository.findAll();
-        List<TopicResponse> responses = new ArrayList<>();
 
-        for (Topic topic : topics) {
-            // 해당 주제에 연결된 책들 가져오기 (Fetch Join)
-            List<Book> books = topicBookRepository.findByTopicWithFetchJoin(topic).stream()
-                    .map(TopicBook::getBook)
-                    .collect(Collectors.toList());
-
-            // DTO 변환
-            responses.add(TopicResponse.of(topic, books));
+        // 바꾼 이유: topics가 비어있을 때 빈 컬렉션으로 IN 쿼리를 날려 발생하는 에러(또는 불필요한 쿼리) 방지
+        if (topics.isEmpty()) {
+            return List.of();
         }
+        // N+1 문제 해결: IN 쿼리로 한 번에 가져와서 Map으로 그룹화
+        // 바꾼 이유: Topic 객체 자체를 Key로 쓰면 1차 캐시 이탈 시 매핑이 깨지므로 고유한 ID(Long)를 Key로 사용
+        Map<Long, List<Book>> booksByTopicId = topicBookRepository
+                .findAllByTopicInWithFetchJoin(topics)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        tb -> tb.getTopic().getId(),
+                        Collectors.mapping(TopicBook::getBook, Collectors.toList())
+                ));
 
-        return responses;
+        return topics.stream()
+                .map(topic -> TopicResponse.of(topic, booksByTopicId.getOrDefault(topic.getId(), List.of())))
+                .collect(Collectors.toList());
     }
 }
