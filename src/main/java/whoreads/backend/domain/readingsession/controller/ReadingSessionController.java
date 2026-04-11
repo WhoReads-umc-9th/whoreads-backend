@@ -71,7 +71,7 @@ public class ReadingSessionController implements ReadingSessionControllerDocs {
     ) {
         validateAuthentication(memberId);
         readingSessionService.heartbeat(sessionId, memberId);
-        return ResponseEntity.ok(ApiResponse.success("세션 heartbeat 정보를 전송했습니다."));
+        return ResponseEntity.ok(ApiResponse.success("세션 heartbeat 정보를 전송했습니다.").withServerTime());
     }
 
     private void validateAuthentication(Long memberId) {
