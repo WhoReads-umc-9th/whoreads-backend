@@ -203,4 +203,30 @@ public interface ReadingSessionControllerDocs {
             Long sessionId,
             @AuthenticationPrincipal Long memberId
     );
+
+    @Operation(
+            summary = "독서 세션 heartbeat",
+            description = "앱이 살아있음을 서버에 알립니다. 5분마다 호출하세요. 일정 시간 heartbeat가 없으면 서버가 세션을 자동 완료 처리합니다."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "heartbeat 갱신 성공",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": true,
+                                      "code": 200,
+                                      "message": "세션 heartbeat 정보를 전송했습니다."
+                                    }
+                                    """)
+                    )
+            )
+    })
+    ResponseEntity<ApiResponse<Void>> heartbeat(
+            @Parameter(description = "세션 ID", required = true)
+            Long sessionId,
+            @AuthenticationPrincipal Long memberId
+    );
 }
