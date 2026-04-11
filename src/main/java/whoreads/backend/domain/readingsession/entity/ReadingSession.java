@@ -72,6 +72,9 @@ public class ReadingSession extends BaseEntity {
     }
 
     public void suspend() {
+        if (this.status != SessionStatus.IN_PROGRESS && this.status != SessionStatus.PAUSED) {
+            throw new IllegalStateException("IN_PROGRESS 또는 PAUSED 상태의 세션만 중단할 수 있습니다. 현재 상태: " + this.status);
+        }
         this.status = SessionStatus.SUSPENDED;
     }
 
