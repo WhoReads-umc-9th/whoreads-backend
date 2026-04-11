@@ -37,6 +37,9 @@ public class ReadingSession extends BaseEntity {
     @Column(name = "finished_at")
     private LocalDateTime finishedAt;
 
+    @Column(name = "last_heartbeat_at")
+    private LocalDateTime lastHeartbeatAt;
+
     @OneToMany(mappedBy = "readingSession", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReadingInterval> intervals = new ArrayList<>();
 
@@ -59,6 +62,14 @@ public class ReadingSession extends BaseEntity {
             throw new IllegalStateException("일시정지된 세션만 재개할 수 있습니다. 현재 상태: " + this.status);
         }
         this.status = SessionStatus.IN_PROGRESS;
+    }
+
+    public void updateHeartbeat(LocalDateTime heartbeatAt) {
+        this.lastHeartbeatAt = heartbeatAt;
+    }
+
+    public void suspend() {
+        this.status = SessionStatus.SUSPENDED;
     }
 
     public void complete() {
