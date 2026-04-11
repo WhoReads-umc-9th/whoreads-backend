@@ -94,7 +94,7 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
     @Override
     public void heartbeat(Long sessionId, Long memberId) {
         ReadingSession session = findByIdAndValidateOwnership(sessionId, memberId);
-        session.heartbeat();
+        session.updateHeartbeat(LocalDateTime.now());
     }
 
     private ReadingSession findByIdAndValidateOwnership(Long sessionId, Long memberId) {
