@@ -12,6 +12,7 @@ import whoreads.backend.global.entity.BaseEntity;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Getter
@@ -65,6 +66,7 @@ public class ReadingSession extends BaseEntity {
     }
 
     public void updateHeartbeat(LocalDateTime heartbeatAt) {
+        Objects.requireNonNull(heartbeatAt, "heartbeatAt must not be null");
         this.lastHeartbeatAt = heartbeatAt;
     }
 
