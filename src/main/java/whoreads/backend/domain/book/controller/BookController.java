@@ -1,11 +1,15 @@
 package whoreads.backend.domain.book.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import whoreads.backend.auth.principal.CustomUserDetails;
 import whoreads.backend.domain.book.controller.docs.BookControllerDocs;
 import whoreads.backend.domain.book.dto.BookDetailResponse;
 import whoreads.backend.domain.book.dto.BookRequest;
@@ -22,6 +26,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/books")
 @RequiredArgsConstructor
+@Validated // 바꾼 이유: @RequestParam, @PathVariable에 설정한 제약조건을 활성화
 public class BookController implements BookControllerDocs {
 
     private final AladinBookService aladinBookService;
@@ -36,50 +41,42 @@ public class BookController implements BookControllerDocs {
     }
 
     @Override
-    @GetMapping("/{bookId}")
-    public BookResponse getBook(@PathVariable Long bookId) {
-        Book book = bookService.getBook(bookId);
-        return BookResponse.from(book);
-    }
-
-    @Override
-    @GetMapping("/search")
-    public List<BookResponse> aladinSearchBooks(@RequestParam String keyword) {
+    @GetMapping("/aladin")
+    public List<BookResponse> aladinSearchBooks(
+            @RequestParam @NotBlank(message = "알라딘 검색어는 필수입니다.") String keyword) { // 바꾼 이유: 빈 문자열 요청 차단
         return aladinBookService.searchBooks(keyword);
     }
 
     @Override
     @PostMapping
-    public ResponseEntity<BookResponse> registerBook(@RequestBody @Valid BookRequest request) {
-        Book savedBook = bookService.registerBook(request.toEntity());
-        return ResponseEntity.ok(BookResponse.from(savedBook));
+    public ResponseEntity<BookResponse> registerBook(@RequestBody @Valid BookRequest request) { // 바꾼 이유: @Valid 추가
+        Book book = bookService.registerBook(request);
+        return ResponseEntity.ok(BookResponse.from(book));
     }
 
     @Override
-    @GetMapping("/ranks")
-    public ResponseEntity<List<BookResponse>> getMostRecommendedBooks(@RequestParam(defaultValue = "20") int limit) {
+    @GetMapping("/most-recommended")
+    public ResponseEntity<List<BookResponse>> getMostRecommendedBooks(
+            @RequestParam(defaultValue = "20") @Positive(message = "가져올 개수는 1 이상이어야 합니다.") int limit) { // 바꾼 이유: limit에 음수나 0이 들어오면 에러가 나므로 @Positive 추가
         List<Book> books = bookService.getMostRecommendedBooks(limit);
-
         List<BookResponse> response = books.stream()
                 .map(BookResponse::from)
                 .collect(Collectors.toList());
-
         return ResponseEntity.ok(response);
     }
 
     @Override
     @GetMapping("/{bookId}/detail")
     public ApiResponse<BookDetailResponse> getBookDetail(
-            @PathVariable Long bookId
-    ) {
+            @PathVariable @Positive(message = "올바른 책 ID를 입력해주세요.") Long bookId) { // 바꾼 이유: ID값 검증
         Long memberId = resolveCurrentMemberId();
         return ApiResponse.success(bookService.getBookDetail(bookId, memberId));
     }
 
     private Long resolveCurrentMemberId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof Long) {
-            return (Long) authentication.getPrincipal();
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+            return userDetails.getMember().getId();
         }
         return null;
     }
@@ -88,14 +85,12 @@ public class BookController implements BookControllerDocs {
     @GetMapping("/themes/{theme}")
     public ResponseEntity<List<BookResponse>> getBooksByTheme(
             @PathVariable TopicTag theme,
-            @RequestParam(defaultValue = "20") int limit
+            @RequestParam(defaultValue = "20") @Positive int limit // 바꾼 이유: 음수 리밋 방지
     ) {
         List<Book> books = bookService.getBooksByTheme(theme, limit);
-
         List<BookResponse> response = books.stream()
                 .map(BookResponse::from)
                 .collect(Collectors.toList());
-
         return ResponseEntity.ok(response);
     }
 }

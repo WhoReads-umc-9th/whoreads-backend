@@ -12,6 +12,7 @@ import whoreads.backend.global.entity.BaseEntity;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Getter
@@ -48,6 +49,7 @@ public class ReadingSession extends BaseEntity {
         this.member = member;
         this.status = SessionStatus.IN_PROGRESS;
         this.totalMinutes = 0L;
+        this.lastHeartbeatAt = LocalDateTime.now(); // 세션 시작 시 초기화
     }
 
     public void pause() {
@@ -64,8 +66,16 @@ public class ReadingSession extends BaseEntity {
         this.status = SessionStatus.IN_PROGRESS;
     }
 
-    public void heartbeat() {
-        this.lastHeartbeatAt = LocalDateTime.now();
+    public void updateHeartbeat(LocalDateTime heartbeatAt) {
+        Objects.requireNonNull(heartbeatAt, "heartbeatAt must not be null");
+        this.lastHeartbeatAt = heartbeatAt;
+    }
+
+    public void suspend() {
+        if (this.status != SessionStatus.IN_PROGRESS && this.status != SessionStatus.PAUSED) {
+            throw new IllegalStateException("IN_PROGRESS 또는 PAUSED 상태의 세션만 중단할 수 있습니다. 현재 상태: " + this.status);
+        }
+        this.status = SessionStatus.SUSPENDED;
     }
 
     public void complete() {
