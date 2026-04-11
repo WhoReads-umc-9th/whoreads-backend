@@ -49,6 +49,7 @@ public class ReadingSession extends BaseEntity {
         this.member = member;
         this.status = SessionStatus.IN_PROGRESS;
         this.totalMinutes = 0L;
+        this.lastHeartbeatAt = LocalDateTime.now(); // 세션 시작 시 초기화
     }
 
     public void pause() {
