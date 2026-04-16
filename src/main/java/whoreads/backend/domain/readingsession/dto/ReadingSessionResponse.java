@@ -90,4 +90,12 @@ public class ReadingSessionResponse {
     public static class BlockedApps {
         private List<BlockedAppItem> blockedApps;
     }
+
+    @Getter
+    @Builder
+    public static class SessionSettings { // 추가 - 현
+        private Long timerMinutes;
+        private Boolean focusBlockEnabled;
+        private Boolean whiteNoiseEnabled;
+    }
 }

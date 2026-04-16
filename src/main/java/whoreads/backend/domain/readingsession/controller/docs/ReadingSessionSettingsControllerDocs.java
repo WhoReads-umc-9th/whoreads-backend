@@ -340,4 +340,33 @@ public interface ReadingSessionSettingsControllerDocs {
             )
             ReadingSessionRequest.UpdateBlockedApps request
     );
+
+    @Operation( // 추가 - 현
+            summary = "사용자 독서 세션 전체 설정 반환",
+            description = "클라이언트 로컬 스토리지 유실 등을 대비해 사용자의 독서 타이머, 집중 모드, 백색소음 등 모든 설정을 한 번에 반환합니다."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                {
+                                  "is_success": true,
+                                  "code": 200,
+                                  "message": "독서 세션 설정을 성공적으로 불러왔습니다.",
+                                  "result": {
+                                    "timer_minutes": 30,
+                                    "focus_block_enabled": true,
+                                    "white_noise_enabled": false
+                                  }
+                                }
+                                """)
+                    )
+            )
+    })
+    ResponseEntity<ApiResponse<ReadingSessionResponse.SessionSettings>> getSessionSettings(
+            Long memberId
+    );
 }
