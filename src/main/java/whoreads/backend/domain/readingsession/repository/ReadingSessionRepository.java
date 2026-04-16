@@ -34,4 +34,8 @@ public interface ReadingSessionRepository extends JpaRepository<ReadingSession, 
             @Param("memberId") Long memberId,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
+
+    @Query("SELECT rs FROM ReadingSession rs JOIN FETCH rs.intervals " +
+            "WHERE rs.status = 'IN_PROGRESS' AND rs.lastHeartbeatAt < :threshold")
+    List<ReadingSession> findStaleInProgressSessions(@Param("threshold") LocalDateTime threshold);
 }

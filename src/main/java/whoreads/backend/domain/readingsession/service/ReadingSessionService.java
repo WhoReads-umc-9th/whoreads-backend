@@ -11,4 +11,6 @@ public interface ReadingSessionService {
     void resumeSession(Long sessionId, Long memberId);
 
     void completeSession(Long sessionId, Long memberId);
+
+    void heartbeat(Long sessionId, Long memberId);
 }

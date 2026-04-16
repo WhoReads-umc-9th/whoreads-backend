@@ -63,6 +63,17 @@ public class ReadingSessionController implements ReadingSessionControllerDocs {
         return ResponseEntity.ok(ApiResponse.success("독서 세션을 완료했습니다.").withServerTime());
     }
 
+    @Override
+    @PatchMapping("/{sessionId}/heartbeat")
+    public ResponseEntity<ApiResponse<Void>> heartbeat(
+            @PathVariable Long sessionId,
+            @AuthenticationPrincipal Long memberId
+    ) {
+        validateAuthentication(memberId);
+        readingSessionService.heartbeat(sessionId, memberId);
+        return ResponseEntity.ok(ApiResponse.success("세션 heartbeat 정보를 전송했습니다.").withServerTime());
+    }
+
     private void validateAuthentication(Long memberId) {
         if (memberId == null) {
             throw new CustomException(ErrorCode.UNAUTHORIZED);

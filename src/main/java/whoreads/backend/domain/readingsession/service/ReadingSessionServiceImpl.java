@@ -30,6 +30,7 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         // 이미 진행 중이거나 일시정지된 세션이 있는지 확인
+        // SUSPENDED 세션은 의도적으로 제외: 자동 중단된 세션이 새 세션 시작을 막지 않도록 함
         readingSessionRepository.findByMemberIdAndStatusIn(
                 memberId, List.of(SessionStatus.IN_PROGRESS, SessionStatus.PAUSED)
         ).ifPresent(s -> {
@@ -88,6 +89,12 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
 
         // 세션 완료 (엔티티 도메인 로직에서 totalMinutes 계산, finishedAt 설정)
         session.complete();
+    }
+
+    @Override
+    public void heartbeat(Long sessionId, Long memberId) {
+        ReadingSession session = findByIdAndValidateOwnership(sessionId, memberId);
+        session.updateHeartbeat(LocalDateTime.now());
     }
 
     private ReadingSession findByIdAndValidateOwnership(Long sessionId, Long memberId) {
