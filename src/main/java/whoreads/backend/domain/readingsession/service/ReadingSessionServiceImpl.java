@@ -3,6 +3,8 @@ package whoreads.backend.domain.readingsession.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import whoreads.backend.domain.focusmode.entity.FocusTimerSetting;
+import whoreads.backend.domain.focusmode.repository.FocusModeRepository;
 import whoreads.backend.domain.member.entity.Member;
 import whoreads.backend.domain.member.repository.MemberRepository;
 import whoreads.backend.domain.readingsession.dto.ReadingSessionResponse;
@@ -23,6 +25,7 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
 
     private final ReadingSessionRepository readingSessionRepository;
     private final MemberRepository memberRepository;
+    private final FocusModeRepository focusModeRepository;
 
     @Override
     public ReadingSessionResponse.StartResult startSession(Long memberId) {
@@ -113,5 +116,61 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
                 .filter(interval -> interval.getEndTime() == null)
                 .findFirst()
                 .ifPresent(interval -> interval.end(LocalDateTime.now()));
+    }
+
+    public ReadingSessionResponse.IncompleteResult getIncompleteSession(Long memberId) {
+        ReadingSession session = readingSessionRepository.findByMemberIdAndStatusIn(memberId,
+                List.of(SessionStatus.IN_PROGRESS, SessionStatus.PAUSED, SessionStatus.SUSPENDED)).orElse(null);
+
+        if (session == null)
+            throw new CustomException(ErrorCode.INCOMPLETE_SESSION_NOT_FOUND);
+
+        FocusTimerSetting focusSetting = focusModeRepository.findByMemberId(memberId)
+                .orElseGet(() -> FocusTimerSetting.builder()
+                        .timerMinutes(10000L) // (선택사항) 타이머 기본값 세팅
+                        .build());
+
+        long totalReadMinutes = session.calculateTotalMinutes();
+
+        if (session.getStatus() == SessionStatus.IN_PROGRESS) {
+            for (ReadingInterval interval : session.getIntervals()) {
+                if (interval.getEndTime() == null) {
+                    long currentDiff = java.time.temporal.ChronoUnit.MINUTES.between(
+                            interval.getStartTime(),
+                            java.time.LocalDateTime.now()
+                    );
+                    totalReadMinutes += currentDiff;
+                    break;
+                }
+            }
+        }
+
+        // 목표 시간(임시 60분) 기반 남은 시간 계산
+        long targetMinutes = 60L;   // 이 부분 사용자가 실제로 설정한 시간으로 받아와야됨. FocusTimerSetting 부분
+        long remainingMinutes = Math.max(0, targetMinutes - totalReadMinutes);
+
+        // 4. 공통 반환 필드 세팅 (status에 실제 DB 상태값 반영)
+        ReadingSessionResponse.IncompleteResult.IncompleteResultBuilder builder =
+                ReadingSessionResponse.IncompleteResult.builder()
+                        .sessionId(session.getId())
+                        .status(session.getStatus().name()) // 오타 수정: 실제 상태값 반환
+                        .totalReadMinutes(totalReadMinutes)
+                        .focusBlockEnabled(focusSetting.getFocusBlockEnabled())
+                        .whiteNoiseEnabled(focusSetting.getWhiteNoiseEnabled());
+
+        // 5. 실제 상태에 따른 추가 필드 조립
+        if (session.getStatus() == SessionStatus.IN_PROGRESS) {
+            long idleMinutes = java.time.temporal.ChronoUnit.MINUTES.between(
+                    session.getUpdatedAt(),
+                    java.time.LocalDateTime.now()
+            );
+            builder.idleMinutes(idleMinutes)
+                    .remainingMinutes(remainingMinutes);
+
+        } else if (session.getStatus() == SessionStatus.PAUSED) {
+            builder.remainingMinutes(remainingMinutes);
+        }
+
+        return builder.build();
     }
 }

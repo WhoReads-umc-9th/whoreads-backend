@@ -79,4 +79,11 @@ public class ReadingSessionController implements ReadingSessionControllerDocs {
             throw new CustomException(ErrorCode.UNAUTHORIZED);
         }
     }
+
+    @GetMapping("/incomplete")
+    public ApiResponse<ReadingSessionResponse.IncompleteResult> incompleteSession(@AuthenticationPrincipal Long memberId) {
+        ReadingSessionResponse.IncompleteResult result = readingSessionService.getIncompleteSession(memberId);
+
+        return ApiResponse.success(result);
+    }
 }

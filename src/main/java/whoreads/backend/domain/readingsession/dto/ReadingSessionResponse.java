@@ -98,4 +98,19 @@ public class ReadingSessionResponse {
         private Boolean focusBlockEnabled;
         private Boolean whiteNoiseEnabled;
     }
+
+    // 위에 SessionSettings 사용해도 될듯. 저기 있는 timerMinutes가 사용자가 설정한 시간인건가?
+    @Getter
+    @Builder
+    public static class IncompleteResult {
+        private Long sessionId;
+        private String status;   // IN_PROGRESS, PAUSED, SUSPENDED
+        private Long totalReadMinutes;
+        private Long idleMinutes;   // IN_PROGRESS인 경우 마지막 세션 이후 경과 시간
+        private Long remainingMinutes;
+
+        // 집중 모드 설정 정보
+        private Boolean focusBlockEnabled;
+        private Boolean whiteNoiseEnabled;
+    }
 }

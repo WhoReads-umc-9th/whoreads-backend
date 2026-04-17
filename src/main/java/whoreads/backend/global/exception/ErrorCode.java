@@ -51,6 +51,7 @@ public enum ErrorCode {
     // Reading Session
     SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "독서 세션을 찾을 수 없습니다."),
     SESSION_ALREADY_ACTIVE(HttpStatus.CONFLICT, "이미 진행 중인 독서 세션이 있습니다."),
+    INCOMPLETE_SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "미완료 독서 세션을 찾을 수 없습니다."),
 
     // Focus Mode
     FOCUS_MODE_NOT_FOUND(HttpStatus.NOT_FOUND, "집중 모드 설정을 찾을 수 없습니다."),
