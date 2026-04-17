@@ -153,4 +153,19 @@ public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettings
                 .whiteNoiseEnabled(setting.getWhiteNoiseEnabled())
                 .build();
     }
+
+    @Override
+    @Transactional
+    public ReadingSessionResponse.SessionSettings updateSessionSettings(Long memberId, Long time) {
+        FocusTimerSetting setting = getOrCreateSetting(memberId);
+
+        setting.updateTimerMinutes(time);
+        focusModeRepository.save(setting);
+
+        return ReadingSessionResponse.SessionSettings.builder()
+                .timerMinutes(setting.getTimerMinutes())
+                .focusBlockEnabled(setting.getFocusBlockEnabled())
+                .whiteNoiseEnabled(setting.getWhiteNoiseEnabled())
+                .build();
+    }
 }
