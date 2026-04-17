@@ -21,7 +21,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = false)
+@Transactional(readOnly = true)
 public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettingsService {
 
     private final FocusModeRepository focusModeRepository;
@@ -154,11 +154,19 @@ public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettings
                 .build();
     }
 
-    public void updateSessionSettings(Long memberId, Long time) {
+    @Override
+    @Transactional
+    public ReadingSessionResponse.SessionSettings updateSessionSettings(Long memberId, Long time) {
         FocusTimerSetting setting = getOrCreateSetting(memberId);
 
         setting.updateTimerMinutes(time);
 
         focusModeRepository.save(setting);
+
+        return ReadingSessionResponse.SessionSettings.builder()
+                .timerMinutes(setting.getTimerMinutes())
+                .focusBlockEnabled(setting.getFocusBlockEnabled())
+                .whiteNoiseEnabled(setting.getWhiteNoiseEnabled())
+                .build();
     }
 }

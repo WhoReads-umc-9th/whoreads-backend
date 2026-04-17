@@ -369,4 +369,9 @@ public interface ReadingSessionSettingsControllerDocs {
     ResponseEntity<ApiResponse<ReadingSessionResponse.SessionSettings>> getSessionSettings(
             Long memberId
     );
+
+    @Operation(
+            summary = "사용자 독서 세션 시간 설정"
+    )
+    ApiResponse<ReadingSessionResponse.SessionSettings> updateTimerSetting(Long memberId, ReadingSessionRequest.TimerUpdate request);
 }
