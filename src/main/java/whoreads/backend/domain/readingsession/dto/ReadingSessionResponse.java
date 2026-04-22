@@ -1,6 +1,7 @@
 package whoreads.backend.domain.readingsession.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Builder;
 import lombok.Getter;
 import whoreads.backend.domain.readingsession.enums.SessionStatus;
@@ -99,9 +100,17 @@ public class ReadingSessionResponse {
         private Boolean whiteNoiseEnabled;
     }
 
-    // 위에 SessionSettings 사용해도 될듯. 저기 있는 timerMinutes가 사용자가 설정한 시간인건가?
     @Getter
     @Builder
+    @JsonPropertyOrder({
+            "sessionId",
+            "status",
+            "totalReadMinutes",
+            "remainingMinutes",
+            "idleMinutes",
+            "focusBlockEnabled",
+            "whiteNoiseEnabled"
+    })
     public static class IncompleteResult {
         private Long sessionId;
         private String status;   // IN_PROGRESS, PAUSED, SUSPENDED
