@@ -3,6 +3,8 @@ package whoreads.backend.domain.member.controller.docs;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,7 +29,7 @@ public interface MemberControllerDocs {
             })
     ApiResponse<Void> updateFcmToken(
             @AuthenticationPrincipal Long memberId,
-            @RequestBody MemberRequest.FcmTokenRequest request
+            @RequestBody @Valid MemberRequest.FcmTokenRequest request
     );
 
     @Operation(
@@ -70,5 +72,5 @@ public interface MemberControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "회원 없음 / 유명인 없음"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "이미 팔로우 중인 유명인"),
     })
-    ApiResponse<Void> followCelebrity(@PathVariable Long celebrityId, @AuthenticationPrincipal Long memberId);
+    ApiResponse<Void> followCelebrity(@PathVariable @Positive Long celebrityId, @AuthenticationPrincipal Long memberId);
 }
