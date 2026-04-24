@@ -16,7 +16,8 @@ public interface ReadingSessionRepository extends JpaRepository<ReadingSession, 
             "WHERE rs.member.id = :memberId AND rs.status = :status")
     Long sumTotalMinutesByMemberIdAndStatus(@Param("memberId") Long memberId, @Param("status") SessionStatus status);
 
-    Optional<ReadingSession> findByMemberIdAndStatusIn(Long memberId, List<SessionStatus> statuses);
+//    Optional<ReadingSession> findByMemberIdAndStatusIn(Long memberId, List<SessionStatus> statuses);
+    Optional<ReadingSession> findFirstByMemberIdAndStatusInOrderByCreatedAtDesc(Long memberId, List<SessionStatus> statuses);
 
     @Query("SELECT COALESCE(SUM(rs.totalMinutes), 0) FROM ReadingSession rs " +
             "WHERE rs.member.id = :memberId AND rs.status = 'COMPLETED' " +
@@ -34,4 +35,8 @@ public interface ReadingSessionRepository extends JpaRepository<ReadingSession, 
             @Param("memberId") Long memberId,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
+
+    @Query("SELECT rs FROM ReadingSession rs JOIN FETCH rs.intervals " +
+            "WHERE rs.status = 'IN_PROGRESS' AND rs.lastHeartbeatAt < :threshold")
+    List<ReadingSession> findStaleInProgressSessions(@Param("threshold") LocalDateTime threshold);
 }

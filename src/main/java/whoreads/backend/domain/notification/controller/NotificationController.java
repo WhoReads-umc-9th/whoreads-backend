@@ -33,8 +33,8 @@ public class NotificationController implements NotificationControllerDocs {
                 (fcmToken,FcmMessageDTO.of(NotificationType.ROUTINE,null));
         return ApiResponse.success("알림이 전송되었습니다.");
     }
-    // 미수신 알림 조회
-    @GetMapping("/inbox")
+    // 전체 알림 조회
+    @GetMapping()
     public ApiResponse<NotificationResDTO.TotalInboxDTO> getNotifications (
             @AuthenticationPrincipal Long memberId,
             @RequestParam(required = false) Long cursor,
@@ -45,13 +45,32 @@ public class NotificationController implements NotificationControllerDocs {
                 notificationHistoryService.getNotificationHistory(memberId,cursor,size)
        );
     }
-    // 알림 수신 처리 ( 삭제 )
-    @DeleteMapping("/inbox/{notification_id}")
+    @PatchMapping("/{notification_id}/read")
+    public ApiResponse<NotificationResDTO.HistoryDTO> readNotification (
+            @AuthenticationPrincipal Long memberId,
+            @PathVariable(value = "notification_id") Long notificationId
+    ){
+        return ApiResponse.success(
+                "사용자의 알림을 읽음 처리 하였습니다.",
+                notificationHistoryService.readNotification(memberId,notificationId)
+        );
+    }
+    @PostMapping("/read-all")
+    public ApiResponse<Void> readAllNotifications (
+            @AuthenticationPrincipal Long memberId
+    ){
+        return ApiResponse.success(
+                "사용자의 알림을 읽음 처리 하였습니다.",
+                notificationHistoryService.readAllNotifications(memberId)
+        );
+    }
+    // 알림 삭제 처리
+    @DeleteMapping("/{notification_id}")
     public ApiResponse<Void> deleteNotification(
             @AuthenticationPrincipal Long memberId,
             @PathVariable(value = "notification_id") Long notificationId
     ){
-        notificationHistoryService.readNotification(memberId,notificationId);
+        notificationHistoryService.deleteNotification(memberId,notificationId);
         return ApiResponse.success("알림을 성공적으로 삭제하였습니다.");
     }
 }

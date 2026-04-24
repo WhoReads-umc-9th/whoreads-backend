@@ -95,4 +95,24 @@ public class ReadingSessionSettingsController implements ReadingSessionSettingsC
             throw new CustomException(ErrorCode.UNAUTHORIZED);
         }
     }
+
+    @Override
+    @GetMapping("") // 추가 - 현
+    public ResponseEntity<ApiResponse<ReadingSessionResponse.SessionSettings>> getSessionSettings(
+            @AuthenticationPrincipal Long memberId
+    ) {
+        validateAuthentication(memberId);
+        ReadingSessionResponse.SessionSettings result = readingSessionSettingsService.getSessionSettings(memberId);
+        return ResponseEntity.ok(ApiResponse.success("독서 세션 설정을 성공적으로 불러왔습니다.", result));
+    }
+
+    @Override
+    @PatchMapping("/time")
+    public ApiResponse<ReadingSessionResponse.SessionSettings> updateTimerSetting(@AuthenticationPrincipal Long memberId, @RequestBody ReadingSessionRequest.TimerUpdate request) {
+        validateAuthentication(memberId);
+
+        ReadingSessionResponse.SessionSettings updatedSettings = readingSessionSettingsService.updateSessionSettings(memberId, request.getTime());
+
+        return ApiResponse.success(updatedSettings);
+    }
 }
