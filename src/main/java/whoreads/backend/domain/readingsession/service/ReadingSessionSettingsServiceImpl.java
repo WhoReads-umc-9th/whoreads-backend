@@ -160,6 +160,7 @@ public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettings
         FocusTimerSetting setting = getOrCreateSetting(memberId);
 
         setting.updateTimerMinutes(time);
+
         focusModeRepository.save(setting);
 
         return ReadingSessionResponse.SessionSettings.builder()

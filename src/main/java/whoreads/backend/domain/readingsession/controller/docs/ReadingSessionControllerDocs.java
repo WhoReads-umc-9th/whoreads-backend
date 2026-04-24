@@ -229,4 +229,11 @@ public interface ReadingSessionControllerDocs {
             Long sessionId,
             @AuthenticationPrincipal Long memberId
     );
+
+    @Operation(summary = "미완료 독서 세션 조회", description = "사용자가 이전에 종료하지 않은 독서 세션(IN_PROGRESS, PAUSED, SUSPENDED)이 있는지 조회합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "미완료 세션 조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "미완료된 독서 세션이 존재하지 않습니다.")
+    })
+    ApiResponse<ReadingSessionResponse.IncompleteResult> incompleteSession(Long memberId);
 }
