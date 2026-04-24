@@ -80,6 +80,9 @@ public class AuthReqDto {
             @NotBlank
             String currentPassword,
             @NotBlank
+            @Size(min = 8, message = "비밀번호는 8자 이상이어야 합니다.")
+            @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=\\S+$).+$",
+                    message = "비밀번호는 영문, 숫자를 포함해야 하며 공백을 사용할 수 없습니다.")
             String newPassword,
             @NotBlank
             String confirmPassword
