@@ -1,6 +1,6 @@
 package whoreads.backend.domain.member.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import tools.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 
 public class MemberRequest {

@@ -1,7 +1,7 @@
 package whoreads.backend.domain.book.dto;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import tools.jackson.annotation.JsonInclude;
+import tools.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

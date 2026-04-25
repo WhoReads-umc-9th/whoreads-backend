@@ -1,6 +1,6 @@
 package whoreads.backend.domain.member.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import tools.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import whoreads.backend.domain.dna.enums.TrackCode;
 import whoreads.backend.domain.member.enums.AgeGroup;

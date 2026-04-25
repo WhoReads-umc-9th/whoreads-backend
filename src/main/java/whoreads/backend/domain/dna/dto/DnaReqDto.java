@@ -1,6 +1,6 @@
 package whoreads.backend.domain.dna.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import tools.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;
 import whoreads.backend.domain.dna.enums.TrackCode;
