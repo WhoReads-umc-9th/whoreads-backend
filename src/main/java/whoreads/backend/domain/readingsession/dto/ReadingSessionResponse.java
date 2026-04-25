@@ -2,6 +2,7 @@ package whoreads.backend.domain.readingsession.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Builder;
 import lombok.Getter;
 import whoreads.backend.domain.readingsession.enums.SessionStatus;
@@ -88,5 +89,18 @@ public class ReadingSessionResponse {
     @Builder
     public static class BlockedApps {
         @JsonProperty("blocked_apps") private List<BlockedAppItem> blockedApps;
+    }
+
+    @Getter
+    @Builder
+    @JsonPropertyOrder({"session_id", "status", "total_read_minutes", "remaining_minutes", "idle_minutes", "focus_block_enabled", "white_noise_enabled"})
+    public static class IncompleteResult {
+        @JsonProperty("session_id") private Long sessionId;
+        private String status;
+        @JsonProperty("total_read_minutes") private Long totalReadMinutes;
+        @JsonProperty("remaining_minutes") private Long remainingMinutes;
+        @JsonProperty("idle_minutes") private Long idleMinutes;
+        @JsonProperty("focus_block_enabled") private Boolean focusBlockEnabled;
+        @JsonProperty("white_noise_enabled") private Boolean whiteNoiseEnabled;
     }
 }
