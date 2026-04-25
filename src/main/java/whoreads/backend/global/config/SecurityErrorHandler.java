@@ -2,7 +2,6 @@ package whoreads.backend.global.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
@@ -10,16 +9,11 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.ObjectMapper;
-import whoreads.backend.global.response.ApiResponse;
 
 import java.io.IOException;
 
 @Component
-@RequiredArgsConstructor
 public class SecurityErrorHandler implements AuthenticationEntryPoint, AccessDeniedHandler {
-
-    private final ObjectMapper objectMapper;
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
@@ -39,7 +33,7 @@ public class SecurityErrorHandler implements AuthenticationEntryPoint, AccessDen
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
-        ApiResponse<Void> body = ApiResponse.error(status.value(), message);
-        response.getWriter().write(objectMapper.writeValueAsString(body));
+        String body = "{\"is_success\":false,\"code\":" + status.value() + ",\"message\":\"" + message + "\"}";
+        response.getWriter().write(body);
     }
 }

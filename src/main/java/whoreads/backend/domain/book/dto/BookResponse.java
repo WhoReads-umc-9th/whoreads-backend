@@ -1,5 +1,6 @@
 package whoreads.backend.domain.book.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 import whoreads.backend.domain.book.entity.Book;
@@ -9,10 +10,10 @@ import whoreads.backend.domain.book.entity.Book;
 public class BookResponse {
     private Long id;
     private String title;
-    private String authorName;
+    @JsonProperty("author_name") private String authorName;
     private String genre;
-    private String coverUrl;
-    private Integer totalPage;
+    @JsonProperty("cover_url") private String coverUrl;
+    @JsonProperty("total_page") private Integer totalPage;
 
     public static BookResponse from(Book book) {
         return BookResponse.builder()

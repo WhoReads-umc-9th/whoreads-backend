@@ -75,5 +75,9 @@ public class Member extends BaseEntity {
         this.status = Status.INACTIVE;
         this.deletedAt = LocalDateTime.now();
     }
+
+    public void updatePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
 }
 
