@@ -1,5 +1,6 @@
 package whoreads.backend.auth.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -25,6 +26,7 @@ public class AuthReqDto {
 
     // 아이디 중복 확인 요청
     public record CheckIdRequest(
+            @JsonProperty("login_id")
             @Schema(description = "중복 확인할 아이디", example = "woody123")
             @NotBlank String loginId
     ){}
@@ -32,11 +34,12 @@ public class AuthReqDto {
     // JSON 최상위 {} 역할
     public record SignUpRequest(
             @Valid JoinRequest request,
-            @Valid MemberInfo memberInfo
+            @JsonProperty("member_info") @Valid MemberInfo memberInfo
     ) {}
 
     // 회원가입시 사용
     public record JoinRequest(
+            @JsonProperty("login_id")
             @Schema(description = "로그인 아이디", example = "woody123")
             @NotBlank
             String loginId,
@@ -54,6 +57,7 @@ public class AuthReqDto {
     ){}
 
     public record LoginRequest(
+            @JsonProperty("login_id")
             @Schema(description = "로그인 아이디", example = "woody123")
             @NotBlank String loginId,
             @Schema(description = "비밀번호", example = "password1234!")
@@ -61,6 +65,7 @@ public class AuthReqDto {
     ){}
 
     public record RefreshRequest(
+        @JsonProperty("refresh_token")
         @Schema(description = "리프레시 토큰", example = "eyJhbGciOiJIUzI1NiJ...")
         @NotBlank
         String refreshToken
@@ -71,6 +76,7 @@ public class AuthReqDto {
             String nickname,
             @NotNull
             Gender gender,
+            @JsonProperty("age_group")
             @NotNull
             AgeGroup ageGroup
     ){}

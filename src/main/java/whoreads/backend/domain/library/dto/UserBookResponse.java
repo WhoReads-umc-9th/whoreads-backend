@@ -1,5 +1,6 @@
 package whoreads.backend.domain.library.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 import whoreads.backend.domain.book.dto.BookResponse;
@@ -12,31 +13,31 @@ public class UserBookResponse {
     @Getter
     @Builder
     public static class Summary {
-        private Integer completedCount;
-        private Integer readingCount;
-        private Long totalReadMinutes;
+        @JsonProperty("completed_count") private Integer completedCount;
+        @JsonProperty("reading_count") private Integer readingCount;
+        @JsonProperty("total_read_minutes") private Long totalReadMinutes;
     }
 
     @Getter
     @Builder
     public static class AddResult {
-        private Long userBookId;
+        @JsonProperty("user_book_id") private Long userBookId;
     }
 
     @Getter
     @Builder
     public static class CelebritySummary {
         private Long id;
-        private String profileUrl;
+        @JsonProperty("profile_url") private String profileUrl;
     }
 
     @Getter
     @Builder
     public static class SimpleBook {
-        private Long userBookId;
+        @JsonProperty("user_book_id") private Long userBookId;
         private BookResponse book;
-        private Integer readingPage;
-        private Integer celebritiesCount;
+        @JsonProperty("reading_page") private Integer readingPage;
+        @JsonProperty("celebrities_count") private Integer celebritiesCount;
         private List<CelebritySummary> celebrities;
 
         public static SimpleBook from(UserBook userBook, List<CelebritySummary> celebrities) {
@@ -54,8 +55,7 @@ public class UserBookResponse {
     @Builder
     public static class BookList {
         private List<SimpleBook> books;
-        private Long nextCursor;
-        private Boolean hasNext;
+        @JsonProperty("next_cursor") private Long nextCursor;
+        @JsonProperty("has_next") private Boolean hasNext;
     }
-
 }

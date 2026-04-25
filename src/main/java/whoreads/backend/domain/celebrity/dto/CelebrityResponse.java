@@ -1,5 +1,6 @@
 package whoreads.backend.domain.celebrity.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 import whoreads.backend.domain.celebrity.entity.Celebrity;
@@ -13,9 +14,9 @@ import java.util.stream.Collectors;
 public class CelebrityResponse {
     private Long id;
     private String name;
-    private String imageUrl;
-    private String shortBio;    // 한줄 소개
-    private List<String> jobTags;
+    @JsonProperty("image_url") private String imageUrl;
+    @JsonProperty("short_bio") private String shortBio;
+    @JsonProperty("job_tags") private List<String> jobTags;
 
     public static CelebrityResponse from(Celebrity celebrity) {
         return CelebrityResponse.builder()

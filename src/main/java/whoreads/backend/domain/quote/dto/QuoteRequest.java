@@ -1,5 +1,6 @@
 package whoreads.backend.domain.quote.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -16,15 +17,17 @@ import whoreads.backend.domain.quote.entity.QuoteSourceType;
 @NoArgsConstructor
 public class QuoteRequest {
 
-    // 1. 기본 정보
+    @JsonProperty("book_id")
     @NotNull(message = "책 ID는 필수입니다.")
     @Positive(message = "책 ID는 양수여야 합니다.")
     private Long bookId;
 
+    @JsonProperty("celebrity_id")
     @NotNull(message = "유명인 ID는 필수입니다.")
     @Positive(message = "유명인 ID는 양수여야 합니다.")
     private Long celebrityId;
 
+    @JsonProperty("original_text")
     @NotBlank(message = "인용 문구는 필수입니다.")
     @Size(max = 2000, message = "인용 문구는 2000자를 초과할 수 없습니다.")
     private String originalText;
@@ -32,17 +35,15 @@ public class QuoteRequest {
     @NotNull(message = "언어 설정은 필수입니다.")
     private Quote.Language language;
 
-    // 바꾼 이유: primitive int는 누락 시 0으로 바인딩되어 검증을 우회하므로 Integer + @NotNull로 변경
+    @JsonProperty("context_score")
     @NotNull(message = "맥락 점수는 필수입니다.")
     @Min(value = 0, message = "맥락 점수는 0 이상이어야 합니다.")
     private Integer contextScore;
 
-    // 2. 출처 정보 (선택)
-    @Valid // 바꾼 이유: 중첩된 객체(SourceInfo) 내부의 필드 검증(@URL 등)을 활성화하기 위해 추가
+    @Valid
     private SourceInfo source;
 
-    // 3. 맥락 정보 (선택)
-    @Valid // 누락되었던 검증 활성화
+    @Valid
     private ContextInfo context;
 
     @Getter
@@ -52,7 +53,7 @@ public class QuoteRequest {
         private String url;
         private QuoteSourceType type;
         private String timestamp;
-        private boolean isDirect; // 직접 인용 여부 (true: 직접, false: 간접/추천사 아님 등)
+        @JsonProperty("is_direct") private boolean isDirect;
     }
 
     @Getter
@@ -60,13 +61,10 @@ public class QuoteRequest {
     public static class ContextInfo {
         @Size(max = 1000, message = "계기 설명은 1000자 이내여야 합니다.")
         private String how;
-
         @Size(max = 500, message = "시기 설명은 500자 이내여야 합니다.")
         private String when;
-
         @Size(max = 1000, message = "이유 설명은 1000자 이내여야 합니다.")
         private String why;
-
         @Size(max = 1000, message = "도움 설명은 1000자 이내여야 합니다.")
         private String help;
     }

@@ -1,6 +1,7 @@
 package whoreads.backend.domain.readingsession.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,40 +16,40 @@ public class ReadingSessionResponse {
     @Getter
     @Builder
     public static class StartResult {
-        private Long sessionId;
+        @JsonProperty("session_id") private Long sessionId;
     }
 
     @Getter
     @Builder
     public static class SessionDetail {
-        private Long sessionId;
+        @JsonProperty("session_id") private Long sessionId;
         private SessionStatus status;
-        private Long totalMinutes;
-        private LocalDateTime createdAt;
-        private LocalDateTime finishedAt;
+        @JsonProperty("total_minutes") private Long totalMinutes;
+        @JsonProperty("created_at") private LocalDateTime createdAt;
+        @JsonProperty("finished_at") private LocalDateTime finishedAt;
         private List<IntervalInfo> intervals;
     }
 
     @Getter
     @Builder
     public static class IntervalInfo {
-        private Long intervalId;
-        private LocalDateTime startTime;
-        private LocalDateTime endTime;
-        private Long durationMinutes;
+        @JsonProperty("interval_id") private Long intervalId;
+        @JsonProperty("start_time") private LocalDateTime startTime;
+        @JsonProperty("end_time") private LocalDateTime endTime;
+        @JsonProperty("duration_minutes") private Long durationMinutes;
     }
 
     @Getter
     @Builder
     public static class TodayFocus {
-        private Long todayMinutes;
-        private Long differenceFromYesterday;
+        @JsonProperty("today_minutes") private Long todayMinutes;
+        @JsonProperty("difference_from_yesterday") private Long differenceFromYesterday;
     }
 
     @Getter
     @Builder
     public static class TotalFocus {
-        private Long totalMinutes;
+        @JsonProperty("total_minutes") private Long totalMinutes;
     }
 
     @Getter
@@ -61,23 +62,21 @@ public class ReadingSessionResponse {
     @Builder
     public static class DailyRecord {
         private Integer day;
-        @JsonFormat(pattern = "HH:mm")
-        private LocalTime startTime;
-        @JsonFormat(pattern = "HH:mm")
-        private LocalTime endTime;
-        private Long totalMinutes;
+        @JsonProperty("start_time") @JsonFormat(pattern = "HH:mm") private LocalTime startTime;
+        @JsonProperty("end_time") @JsonFormat(pattern = "HH:mm") private LocalTime endTime;
+        @JsonProperty("total_minutes") private Long totalMinutes;
     }
 
     @Getter
     @Builder
     public static class FocusBlockSetting {
-        private Boolean focusBlockEnabled;
+        @JsonProperty("focus_block_enabled") private Boolean focusBlockEnabled;
     }
 
     @Getter
     @Builder
     public static class WhiteNoiseSetting {
-        private Boolean whiteNoiseEnabled;
+        @JsonProperty("white_noise_enabled") private Boolean whiteNoiseEnabled;
     }
 
     @Getter
@@ -89,37 +88,27 @@ public class ReadingSessionResponse {
     @Getter
     @Builder
     public static class BlockedApps {
-        private List<BlockedAppItem> blockedApps;
+        @JsonProperty("blocked_apps") private List<BlockedAppItem> blockedApps;
     }
 
     @Getter
     @Builder
-    public static class SessionSettings { // 추가 - 현
-        private Long timerMinutes;
-        private Boolean focusBlockEnabled;
-        private Boolean whiteNoiseEnabled;
+    public static class SessionSettings {
+        @JsonProperty("timer_minutes") private Long timerMinutes;
+        @JsonProperty("focus_block_enabled") private Boolean focusBlockEnabled;
+        @JsonProperty("white_noise_enabled") private Boolean whiteNoiseEnabled;
     }
 
     @Getter
     @Builder
-    @JsonPropertyOrder({
-            "sessionId",
-            "status",
-            "totalReadMinutes",
-            "remainingMinutes",
-            "idleMinutes",
-            "focusBlockEnabled",
-            "whiteNoiseEnabled"
-    })
+    @JsonPropertyOrder({"session_id", "status", "total_read_minutes", "remaining_minutes", "idle_minutes", "focus_block_enabled", "white_noise_enabled"})
     public static class IncompleteResult {
-        private Long sessionId;
-        private String status;   // IN_PROGRESS, PAUSED, SUSPENDED
-        private Long totalReadMinutes;
-        private Long idleMinutes;   // IN_PROGRESS인 경우 마지막 세션 이후 경과 시간
-        private Long remainingMinutes;
-
-        // 집중 모드 설정 정보
-        private Boolean focusBlockEnabled;
-        private Boolean whiteNoiseEnabled;
+        @JsonProperty("session_id") private Long sessionId;
+        private String status;
+        @JsonProperty("total_read_minutes") private Long totalReadMinutes;
+        @JsonProperty("remaining_minutes") private Long remainingMinutes;
+        @JsonProperty("idle_minutes") private Long idleMinutes;
+        @JsonProperty("focus_block_enabled") private Boolean focusBlockEnabled;
+        @JsonProperty("white_noise_enabled") private Boolean whiteNoiseEnabled;
     }
 }
