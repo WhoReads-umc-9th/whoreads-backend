@@ -15,7 +15,7 @@ public class ReadingSessionRequest {
     @NoArgsConstructor
     public static class Start {
         @JsonProperty("member_id")
-        @NotNull(message = "memberId는 필수입니다.")
+        @NotNull(message = "member_id는 필수입니다.")
         private Long memberId;
     }
 
