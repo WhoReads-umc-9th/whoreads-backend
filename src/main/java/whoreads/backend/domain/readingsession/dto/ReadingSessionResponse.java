@@ -1,6 +1,7 @@
 package whoreads.backend.domain.readingsession.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 import whoreads.backend.domain.readingsession.enums.SessionStatus;
@@ -14,40 +15,40 @@ public class ReadingSessionResponse {
     @Getter
     @Builder
     public static class StartResult {
-        private Long sessionId;
+        @JsonProperty("session_id") private Long sessionId;
     }
 
     @Getter
     @Builder
     public static class SessionDetail {
-        private Long sessionId;
+        @JsonProperty("session_id") private Long sessionId;
         private SessionStatus status;
-        private Long totalMinutes;
-        private LocalDateTime createdAt;
-        private LocalDateTime finishedAt;
+        @JsonProperty("total_minutes") private Long totalMinutes;
+        @JsonProperty("created_at") private LocalDateTime createdAt;
+        @JsonProperty("finished_at") private LocalDateTime finishedAt;
         private List<IntervalInfo> intervals;
     }
 
     @Getter
     @Builder
     public static class IntervalInfo {
-        private Long intervalId;
-        private LocalDateTime startTime;
-        private LocalDateTime endTime;
-        private Long durationMinutes;
+        @JsonProperty("interval_id") private Long intervalId;
+        @JsonProperty("start_time") private LocalDateTime startTime;
+        @JsonProperty("end_time") private LocalDateTime endTime;
+        @JsonProperty("duration_minutes") private Long durationMinutes;
     }
 
     @Getter
     @Builder
     public static class TodayFocus {
-        private Long todayMinutes;
-        private Long differenceFromYesterday;
+        @JsonProperty("today_minutes") private Long todayMinutes;
+        @JsonProperty("difference_from_yesterday") private Long differenceFromYesterday;
     }
 
     @Getter
     @Builder
     public static class TotalFocus {
-        private Long totalMinutes;
+        @JsonProperty("total_minutes") private Long totalMinutes;
     }
 
     @Getter
@@ -60,23 +61,21 @@ public class ReadingSessionResponse {
     @Builder
     public static class DailyRecord {
         private Integer day;
-        @JsonFormat(pattern = "HH:mm")
-        private LocalTime startTime;
-        @JsonFormat(pattern = "HH:mm")
-        private LocalTime endTime;
-        private Long totalMinutes;
+        @JsonProperty("start_time") @JsonFormat(pattern = "HH:mm") private LocalTime startTime;
+        @JsonProperty("end_time") @JsonFormat(pattern = "HH:mm") private LocalTime endTime;
+        @JsonProperty("total_minutes") private Long totalMinutes;
     }
 
     @Getter
     @Builder
     public static class FocusBlockSetting {
-        private Boolean focusBlockEnabled;
+        @JsonProperty("focus_block_enabled") private Boolean focusBlockEnabled;
     }
 
     @Getter
     @Builder
     public static class WhiteNoiseSetting {
-        private Boolean whiteNoiseEnabled;
+        @JsonProperty("white_noise_enabled") private Boolean whiteNoiseEnabled;
     }
 
     @Getter
@@ -88,6 +87,6 @@ public class ReadingSessionResponse {
     @Getter
     @Builder
     public static class BlockedApps {
-        private List<BlockedAppItem> blockedApps;
+        @JsonProperty("blocked_apps") private List<BlockedAppItem> blockedApps;
     }
 }
