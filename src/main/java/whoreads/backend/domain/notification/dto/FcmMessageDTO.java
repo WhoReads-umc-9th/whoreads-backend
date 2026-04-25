@@ -1,6 +1,5 @@
 package whoreads.backend.domain.notification.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 import whoreads.backend.domain.notification.enums.NotificationType;
@@ -13,8 +12,8 @@ import java.util.Map;
 public class FcmMessageDTO {
     private final String title;
     private final String body;
-    @JsonProperty("celebrity_id") private final Long celebrityId;
-    @JsonProperty("book_id") private final Long bookId;
+    private final Long celebrityId;
+    private final Long bookId;
     private final String type;
     private final Map<String, String> data;
 
