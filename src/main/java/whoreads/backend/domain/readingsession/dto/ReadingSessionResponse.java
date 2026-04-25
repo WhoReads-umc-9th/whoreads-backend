@@ -103,4 +103,35 @@ public class ReadingSessionResponse {
         @JsonProperty("focus_block_enabled") private Boolean focusBlockEnabled;
         @JsonProperty("white_noise_enabled") private Boolean whiteNoiseEnabled;
     }
+
+    @Getter
+    @Builder
+    public static class SessionSettings { // 추가 - 현
+        private Long timerMinutes;
+        private Boolean focusBlockEnabled;
+        private Boolean whiteNoiseEnabled;
+    }
+
+    @Getter
+    @Builder
+    @JsonPropertyOrder({
+            "sessionId",
+            "status",
+            "totalReadMinutes",
+            "remainingMinutes",
+            "idleMinutes",
+            "focusBlockEnabled",
+            "whiteNoiseEnabled"
+    })
+    public static class IncompleteResult {
+        private Long sessionId;
+        private String status;   // IN_PROGRESS, PAUSED, SUSPENDED
+        private Long totalReadMinutes;
+        private Long idleMinutes;   // IN_PROGRESS인 경우 마지막 세션 이후 경과 시간
+        private Long remainingMinutes;
+
+        // 집중 모드 설정 정보
+        private Boolean focusBlockEnabled;
+        private Boolean whiteNoiseEnabled;
+    }
 }

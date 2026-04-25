@@ -136,4 +136,22 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("{}번 사용자 회원 탈퇴(Patch) 접수 - 유예 기간 시작", memberId);
     }
+
+    @Override
+    public void changePassword(Long memberId, AuthReqDto.PasswordChangeRequest request) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        // 현재 비밀번호가 데이터베이스에 저장된 비밀번호와 맞는지 확인
+        if (!passwordEncoder.matches(request.currentPassword(), member.getPassword()))
+            throw new CustomException(ErrorCode.PASSWORD_MISMATCH);
+
+        // 새 비밀번호와 확인용 비밀번호 일치하는지 확인
+        if (!request.newPassword().equals(request.confirmPassword()))
+            throw new CustomException(ErrorCode.PASSWORD_MISMATCH);
+
+        // 새 비밀번호 암호화 및 업데이트
+        String newPassword = passwordEncoder.encode(request.newPassword());
+        member.updatePassword(newPassword);
+    }
 }

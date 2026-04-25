@@ -28,18 +28,26 @@ public class FocusTimerSetting extends BaseEntity {
     @Column(name = "white_noise_enabled", nullable = false)
     private Boolean whiteNoiseEnabled = false;
 
+    // 새로 추가한 필드 - 현
+    @Column(name = "timer_minutes", nullable = false)
+    private Long timerMinutes = 0L;
+
     @Builder
-    public FocusTimerSetting(Member member) {
+    public FocusTimerSetting(Member member, Long timerMinutes) {
         this.member = member;
         this.focusBlockEnabled = false;
         this.whiteNoiseEnabled = false;
+        this.timerMinutes = (timerMinutes != null) ? timerMinutes : 0L;
     }
-
     public void updateFocusBlockEnabled(Boolean enabled) {
         this.focusBlockEnabled = Boolean.TRUE.equals(enabled);
     }
 
     public void updateWhiteNoiseEnabled(Boolean enabled) {
         this.whiteNoiseEnabled = Boolean.TRUE.equals(enabled);
+    }
+
+    public void updateTimerMinutes(Long minutes) { // 추가 - 현
+        this.timerMinutes = minutes;
     }
 }

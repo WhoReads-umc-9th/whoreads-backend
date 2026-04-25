@@ -21,6 +21,7 @@ public enum ErrorCode {
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "만료된 토큰입니다."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
+    PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "새 비밀번호와 비밀번호 확인이 일치하지 않습니다."),
 
     // Member
     DUPLICATE_ID(HttpStatus.CONFLICT, "이미 사용 중인 아이디입니다. 다른 아이디를 사용하세요."),
@@ -51,6 +52,7 @@ public enum ErrorCode {
     // Reading Session
     SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "독서 세션을 찾을 수 없습니다."),
     SESSION_ALREADY_ACTIVE(HttpStatus.CONFLICT, "이미 진행 중인 독서 세션이 있습니다."),
+    INCOMPLETE_SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "미완료 독서 세션을 찾을 수 없습니다."),
 
     // Focus Mode
     FOCUS_MODE_NOT_FOUND(HttpStatus.NOT_FOUND, "집중 모드 설정을 찾을 수 없습니다."),

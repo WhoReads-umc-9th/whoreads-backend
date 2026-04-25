@@ -44,4 +44,10 @@ public class ReadingSessionRequest {
         @Valid
         private List<BlockedAppItem> blockedApps;
     }
+
+    @Getter
+    @NoArgsConstructor
+    public static class TimerUpdate {
+        private Long time;
+    }
 }
