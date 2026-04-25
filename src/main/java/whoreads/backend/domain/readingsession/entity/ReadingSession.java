@@ -41,6 +41,9 @@ public class ReadingSession extends BaseEntity {
     @Column(name = "last_heartbeat_at")
     private LocalDateTime lastHeartbeatAt;
 
+    @Column(name = "remaining_minutes")
+    private Long remainingMinutes;
+
     @OneToMany(mappedBy = "readingSession", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReadingInterval> intervals = new ArrayList<>();
 
@@ -71,11 +74,19 @@ public class ReadingSession extends BaseEntity {
         this.lastHeartbeatAt = heartbeatAt;
     }
 
-    public void suspend() {
+    public void suspend(Long goalMinutes) {
         if (this.status != SessionStatus.IN_PROGRESS && this.status != SessionStatus.PAUSED) {
-            throw new IllegalStateException("IN_PROGRESS 또는 PAUSED 상태의 세션만 중단할 수 있습니다. 현재 상태: " + this.status);
+            throw new IllegalStateException("진행 중인 세션만 중단할 수 있습니다.");
         }
+
         this.status = SessionStatus.SUSPENDED;
+        this.finishedAt = this.lastHeartbeatAt;
+
+        // 지금까지 읽은 총 시간 계산 (total_read_times)
+        this.totalMinutes = calculateTotalMinutes();
+
+        // 남은 시간 계산 (remaining_times)
+        this.remainingMinutes = goalMinutes - this.totalMinutes;
     }
 
     public void complete() {

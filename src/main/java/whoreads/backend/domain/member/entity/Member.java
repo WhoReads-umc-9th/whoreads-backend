@@ -2,12 +2,16 @@ package whoreads.backend.domain.member.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import whoreads.backend.domain.focusmode.entity.FocusTimerSetting;
 import whoreads.backend.domain.member.enums.AgeGroup;
 import whoreads.backend.domain.member.enums.Gender;
 import whoreads.backend.domain.member.enums.Status;
+import whoreads.backend.domain.readingsession.entity.ReadingSession;
 import whoreads.backend.global.entity.BaseEntity;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Builder
 @Entity
@@ -59,6 +63,14 @@ public class Member extends BaseEntity {
     private LocalDateTime fcmTokenUpdatedAt;
 
     private LocalDateTime deletedAt;
+
+    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private FocusTimerSetting focusTimerSetting;
+
+    // 2. ReadingSession과의 1:N 양방향 관계 설정
+    @Builder.Default
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ReadingSession> readingSessions = new ArrayList<>();
 
     public Status setStatus(Status status) {
         this.status = status;

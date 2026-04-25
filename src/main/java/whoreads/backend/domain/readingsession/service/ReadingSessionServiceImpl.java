@@ -159,6 +159,7 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
                         .sessionId(session.getId())
                         .status(session.getStatus().name())
                         .totalReadMinutes(totalReadMinutes)
+                        .remainingMinutes(remainingMinutes)
                         .focusBlockEnabled(focusSetting.getFocusBlockEnabled())
                         .whiteNoiseEnabled(focusSetting.getWhiteNoiseEnabled());
 

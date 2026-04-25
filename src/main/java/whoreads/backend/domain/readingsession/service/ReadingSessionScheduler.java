@@ -22,10 +22,10 @@ public class ReadingSessionScheduler {
     @Scheduled(fixedDelay = 60_000, zone = "Asia/Seoul")
     public void expireStaleSessions() {
         // 5 -> 2로 수정
-        LocalDateTime threshold = LocalDateTime.now().minusHours(2);
+        // LocalDateTime threshold = LocalDateTime.now().minusHours(2);
 
         // 테스트용
-        // LocalDateTime threshold = LocalDateTime.now().minusMinutes(1);
+        LocalDateTime threshold = LocalDateTime.now().minusMinutes(10);
         List<ReadingSession> staleSessions = readingSessionRepository.findStaleInProgressSessions(threshold);
 
         if (staleSessions.isEmpty()) {
@@ -51,7 +51,14 @@ public class ReadingSessionScheduler {
                         interval.end(endTime);
                     });
 
-            session.suspend();
+            // 사용자의 타이머 설정값(timerMinutes) 가져오기
+            Long userGoalTime = 0L;
+            if (session.getMember().getFocusTimerSetting() != null) {
+                userGoalTime = session.getMember().getFocusTimerSetting().getTimerMinutes();
+            }
+
+            // 3. 중단 처리 및 시간 계산 실행
+            session.suspend(userGoalTime);
         }
 
         log.info("[ReadingSessionScheduler] stale 세션 {}건 자동 완료 처리", staleSessions.size());

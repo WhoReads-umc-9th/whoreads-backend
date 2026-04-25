@@ -104,10 +104,10 @@ public class ReadingSessionResponse {
     @JsonPropertyOrder({"session_id", "status", "total_read_minutes", "remaining_minutes", "idle_minutes", "focus_block_enabled", "white_noise_enabled"})
     public static class IncompleteResult {
         @JsonProperty("session_id") private Long sessionId;
-        private String status;
+        private String status;   // IN_PROGRESS, PAUSED, SUSPENDED
         @JsonProperty("total_read_minutes") private Long totalReadMinutes;
         @JsonProperty("remaining_minutes") private Long remainingMinutes;
-        @JsonProperty("idle_minutes") private Long idleMinutes;
+        @JsonProperty("idle_minutes") private Long idleMinutes;   // IN_PROGRESS인 경우 마지막 세션 이후 경과 시간
         @JsonProperty("focus_block_enabled") private Boolean focusBlockEnabled;
         @JsonProperty("white_noise_enabled") private Boolean whiteNoiseEnabled;
     }

@@ -1,5 +1,6 @@
 package whoreads.backend.domain.readingsession.repository;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,6 +18,7 @@ public interface ReadingSessionRepository extends JpaRepository<ReadingSession, 
     Long sumTotalMinutesByMemberIdAndStatus(@Param("memberId") Long memberId, @Param("status") SessionStatus status);
 
 //    Optional<ReadingSession> findByMemberIdAndStatusIn(Long memberId, List<SessionStatus> statuses);
+    @EntityGraph(attributePaths = {"intervals"})
     Optional<ReadingSession> findFirstByMemberIdAndStatusInOrderByCreatedAtDesc(Long memberId, List<SessionStatus> statuses);
 
     @Query("SELECT COALESCE(SUM(rs.totalMinutes), 0) FROM ReadingSession rs " +
