@@ -37,7 +37,7 @@ public class DnaResDto {
 
     @Builder
     public record Result(
-            @JsonProperty("result_hea_line") String resultHeaLine,
+            @JsonProperty("result_headline") String resultHeadLine,
             List<String> description,
             @JsonProperty("celebrity_id") Long celebrityId,
             @JsonProperty("celebrity_name") String celebrityName,
