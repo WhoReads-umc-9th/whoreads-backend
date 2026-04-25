@@ -1,6 +1,6 @@
 package whoreads.backend.domain.library.dto;
 
-import tools.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import whoreads.backend.domain.library.enums.ReadingStatus;
 

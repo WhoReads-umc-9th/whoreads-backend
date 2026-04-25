@@ -1,6 +1,6 @@
 package whoreads.backend.domain.celebrity.dto;
 
-import tools.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 import whoreads.backend.domain.celebrity.entity.Celebrity;

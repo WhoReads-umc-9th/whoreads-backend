@@ -1,8 +1,8 @@
 package whoreads.backend.domain.readingsession.dto;
 
-import tools.jackson.annotation.JsonFormat;
-import tools.jackson.annotation.JsonProperty;
-import tools.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Builder;
 import lombok.Getter;
 import whoreads.backend.domain.readingsession.enums.SessionStatus;

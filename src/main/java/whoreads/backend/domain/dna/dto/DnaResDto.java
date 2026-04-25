@@ -1,6 +1,6 @@
 package whoreads.backend.domain.dna.dto;
 
-import tools.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import whoreads.backend.domain.dna.enums.TrackCode;
 

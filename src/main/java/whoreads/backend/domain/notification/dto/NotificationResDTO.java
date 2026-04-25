@@ -1,8 +1,8 @@
 package whoreads.backend.domain.notification.dto;
 
-import tools.jackson.annotation.JsonFormat;
-import tools.jackson.annotation.JsonInclude;
-import tools.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import whoreads.backend.domain.notification.entity.FollowLink;
