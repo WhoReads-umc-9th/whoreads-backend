@@ -179,4 +179,55 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
 
         return builder.build();
     }
+
+    @Override
+    public ReadingSessionResponse.ResumeResult resumeIncompleteSession(Long sessionId, Long memberId) {
+        ReadingSession session = findByIdAndValidateOwnership(sessionId, memberId);
+        LocalDateTime now = LocalDateTime.now();
+
+        // 마지막 하트비트 시간 확인
+        LocalDateTime lastHeartbeat = session.getLastHeartbeatAt();
+
+        // 마지막 하트비트로부터 2시간을 초과했는지 확인
+        long minutesSinceLastHeartbeat = java.time.Duration.between(lastHeartbeat, now).toMinutes();
+        if (minutesSinceLastHeartbeat >= 120) {
+            FocusTimerSetting focusSetting = focusModeRepository.findByMemberId(memberId)
+                    .orElseGet(() -> FocusTimerSetting.builder().build());
+            session.suspend(focusSetting.getTimerMinutes());
+
+            throw new CustomException(ErrorCode.SESSION_EXPIRED);
+        }
+
+        // 지금까지의 세션 시간 및 남은 세션 시간 계산
+        FocusTimerSetting focusSetting = focusModeRepository.findByMemberId(memberId)
+                .orElseGet(() -> FocusTimerSetting.builder().build());
+
+        // 상태와 상관없이 일단 기존 인터벌들을 마지막 하트비트 시점에 다 닫아버림
+        // 이앱이 꺼져있던 공백 시간이 독서 시간으로 잡히지 않는다.
+        if (session.getStatus() != SessionStatus.SUSPENDED) {
+            session.suspend(focusSetting.getTimerMinutes());
+        }
+
+        long totalReadMinutes = session.calculateTotalMinutes();
+        long remainingMinutes = focusSetting.getTimerMinutes() - totalReadMinutes;
+
+        // 남은 시간이 있는 경우 '지금 시각'에 시작하는 새로운 ReadingInterval 생성
+        if (remainingMinutes > 0) {
+            session.recover();
+
+            ReadingInterval newInterval = ReadingInterval.builder()
+                    .readingSession(session)
+                    .startTime(now)
+                    .build();
+            session.addInterval(newInterval);
+
+            // 하트비트 현재 시간으로 수정
+            session.updateHeartbeat(now);
+        } else
+            session.complete();
+
+        return ReadingSessionResponse.ResumeResult.builder()
+                .remainingMinutes(remainingMinutes)
+                .build();
+    }
 }

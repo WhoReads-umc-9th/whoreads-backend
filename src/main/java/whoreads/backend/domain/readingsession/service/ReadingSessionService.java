@@ -15,4 +15,6 @@ public interface ReadingSessionService {
     void heartbeat(Long sessionId, Long memberId);
 
     ReadingSessionResponse.IncompleteResult getIncompleteSession(Long memberId);
+
+    ReadingSessionResponse.ResumeResult resumeIncompleteSession(Long sessionId, Long memberId);
 }

@@ -86,4 +86,11 @@ public class ReadingSessionController implements ReadingSessionControllerDocs {
 
         return ApiResponse.success(result);
     }
+
+    @GetMapping("{sessionId}/recover/")
+    public ApiResponse<ReadingSessionResponse.ResumeResult> recoverSession(@PathVariable Long sessionId, @AuthenticationPrincipal Long memberId) {
+        ReadingSessionResponse.ResumeResult result = readingSessionService.resumeIncompleteSession(sessionId, memberId);
+
+        return ApiResponse.success(result);
+    }
 }
