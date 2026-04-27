@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PathVariable;
 import whoreads.backend.domain.readingsession.dto.ReadingSessionResponse;
 import whoreads.backend.global.response.ApiResponse;
 
@@ -236,4 +237,11 @@ public interface ReadingSessionControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "미완료된 독서 세션이 존재하지 않습니다.")
     })
     ApiResponse<ReadingSessionResponse.IncompleteResult> incompleteSession(Long memberId);
+
+    @Operation(summary = "중단된 독서 세션 재개", description = "중단된 독서 세션의 남은 타이머 시간을 반환합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청이 성공했습니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "독서세션을 찾을 수 없습니다.")
+    })
+    ApiResponse<ReadingSessionResponse.ResumeResult> recoverSession(Long sessionId, Long memberId);
 }

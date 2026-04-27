@@ -69,6 +69,13 @@ public class ReadingSession extends BaseEntity {
         this.status = SessionStatus.IN_PROGRESS;
     }
 
+    public void recover() {
+        if (this.status != SessionStatus.SUSPENDED) {
+            throw new IllegalStateException("SUSPENDED 상태인 세션만 재개할 수 있습니다. 현재 상태: " + this.status);
+        }
+        this.status = SessionStatus.IN_PROGRESS;
+    }
+
     public void updateHeartbeat(LocalDateTime heartbeatAt) {
         Objects.requireNonNull(heartbeatAt, "heartbeatAt must not be null");
         this.lastHeartbeatAt = heartbeatAt;
@@ -77,6 +84,17 @@ public class ReadingSession extends BaseEntity {
     public void suspend(Long goalMinutes) {
         if (this.status != SessionStatus.IN_PROGRESS && this.status != SessionStatus.PAUSED) {
             throw new IllegalStateException("진행 중인 세션만 중단할 수 있습니다.");
+        }
+
+        // 아직 닫히지 않은 모든 인터벌을 마지막 하트비트 시점으로 닫아버림
+        for (ReadingInterval interval : this.intervals) {
+            if (interval.getEndTime() == null) {
+                LocalDateTime endTime = this.lastHeartbeatAt != null ? this.lastHeartbeatAt : interval.getStartTime().plusSeconds(1);
+                if (!endTime.isAfter(interval.getStartTime())) {
+                    endTime = interval.getStartTime().plusSeconds(1);
+                }
+                interval.end(endTime);
+            }
         }
 
         this.status = SessionStatus.SUSPENDED;

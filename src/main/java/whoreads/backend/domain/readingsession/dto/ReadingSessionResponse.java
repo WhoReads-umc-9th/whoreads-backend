@@ -111,4 +111,10 @@ public class ReadingSessionResponse {
         @JsonProperty("focus_block_enabled") private Boolean focusBlockEnabled;
         @JsonProperty("white_noise_enabled") private Boolean whiteNoiseEnabled;
     }
+
+    @Getter
+    @Builder
+    public static class ResumeResult {
+        private Long remainingMinutes;
+    }
 }
