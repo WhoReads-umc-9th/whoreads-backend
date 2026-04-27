@@ -163,18 +163,19 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
                         .focusBlockEnabled(focusSetting.getFocusBlockEnabled())
                         .whiteNoiseEnabled(focusSetting.getWhiteNoiseEnabled());
 
-        // 5. 실제 상태에 따른 추가 필드 조립
-        if (session.getStatus() == SessionStatus.IN_PROGRESS) {
-            long idleMinutes = java.time.temporal.ChronoUnit.MINUTES.between(
-                    session.getUpdatedAt(),
-                    java.time.LocalDateTime.now()
-            );
-            builder.idleMinutes(idleMinutes)
-                    .remainingMinutes(remainingMinutes);
+        // 모든 상태에서 idle_minutes 계산
+        // 마지막 하트비트 시간을 기준으로 하되, 한 번도 하트비트가 없었다면 updatedAt이나 createdAt 사용 (Null 에러 방지)
+        LocalDateTime lastActivityTime = session.getLastHeartbeatAt();
+        if (lastActivityTime == null)
+            lastActivityTime = session.getUpdatedAt() != null ? session.getUpdatedAt() : session.getCreatedAt();
 
-        } else if (session.getStatus() == SessionStatus.PAUSED) {
-            builder.remainingMinutes(remainingMinutes);
-        }
+        long idleMinutes = java.time.temporal.ChronoUnit.MINUTES.between(
+                lastActivityTime,
+                java.time.LocalDateTime.now()
+        );
+
+        // 계산된 idleMinutes를 무조건 builder에 포함
+        builder.idleMinutes(idleMinutes);
 
         return builder.build();
     }
