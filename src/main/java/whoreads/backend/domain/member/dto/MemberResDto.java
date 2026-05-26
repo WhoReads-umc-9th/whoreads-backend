@@ -1,5 +1,6 @@
 package whoreads.backend.domain.member.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import whoreads.backend.domain.dna.enums.TrackCode;
 import whoreads.backend.domain.member.enums.AgeGroup;
@@ -15,22 +16,22 @@ public class MemberResDto {
             Long id,
             String nickname,
             Gender gender,
-            AgeGroup ageGroup,
+            @JsonProperty("age_group") AgeGroup ageGroup,
             String email,
-            String loginId,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt,
-            LocalDateTime deletedAt,
+            @JsonProperty("login_id") String loginId,
+            @JsonProperty("created_at") LocalDateTime createdAt,
+            @JsonProperty("updated_at") LocalDateTime updatedAt,
+            @JsonProperty("deleted_at") LocalDateTime deletedAt,
             Status status,
-            TrackCode trackCode,
-            String fcmToken
+            @JsonProperty("track_code") TrackCode trackCode,
+            @JsonProperty("fcm_token") String fcmToken
     ){}
 
     @Builder
     public record CelebrityFollow(
             Long id,
             String name,
-            String imageUrl,
-            String shortBio
+            @JsonProperty("image_url") String imageUrl,
+            @JsonProperty("short_bio") String shortBio
     ) {}
 }

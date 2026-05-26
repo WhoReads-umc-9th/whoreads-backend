@@ -35,4 +35,6 @@ public interface AuthService {
     AuthResDto.TokenData refresh(AuthReqDto.RefreshRequest dto);
 
     void delete(Long memberId);
+
+    void changePassword(Long memberId, AuthReqDto.PasswordChangeRequest request);
 }

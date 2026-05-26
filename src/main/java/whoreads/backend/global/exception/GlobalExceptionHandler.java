@@ -93,7 +93,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleLoginException(Exception e) {
         log.error("Login Failure: {}", e.getMessage());
 
-        ErrorCode errorCode = ErrorCode.LOGIN_FAILED; // 위에서 만든 공통 에러 코드
+        ErrorCode errorCode = ErrorCode.LOGIN_FAILED;
 
         return ResponseEntity
                 .status(errorCode.getStatus())

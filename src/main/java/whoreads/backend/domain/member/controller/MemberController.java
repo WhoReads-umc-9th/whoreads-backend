@@ -44,7 +44,7 @@ public class MemberController implements MemberControllerDocs {
 
     @PostMapping("/follow/{celebrityId}")
     @Override
-    public ApiResponse<Void> followCelebrity(@PathVariable @Positive Long celebrityId, @AuthenticationPrincipal Long memberId) {
+    public ApiResponse<Void> followCelebrity(@PathVariable Long celebrityId, @AuthenticationPrincipal Long memberId) {
         memberService.followCelebrity(memberId, celebrityId);
         return ApiResponse.success("팔로우가 완료됐습니다.");
     }
@@ -53,7 +53,7 @@ public class MemberController implements MemberControllerDocs {
     @Override
     public ApiResponse<Void> updateFcmToken(
             @AuthenticationPrincipal Long memberId,
-            @RequestBody @Valid MemberRequest.FcmTokenRequest fcmRequest) {
+            @RequestBody MemberRequest.FcmTokenRequest fcmRequest) {
 
         notificationTokenService.updateToken(memberId,fcmRequest.fcmToken());
         return ApiResponse.success("토큰이 성공적으로 등록되었습니다.");

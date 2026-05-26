@@ -63,9 +63,44 @@ public class ReadingSessionController implements ReadingSessionControllerDocs {
         return ResponseEntity.ok(ApiResponse.success("독서 세션을 완료했습니다.").withServerTime());
     }
 
+    @Override
+    @PatchMapping("/{sessionId}/heartbeat")
+    public ResponseEntity<ApiResponse<Void>> heartbeat(
+            @PathVariable Long sessionId,
+            @AuthenticationPrincipal Long memberId
+    ) {
+        validateAuthentication(memberId);
+        readingSessionService.heartbeat(sessionId, memberId);
+        return ResponseEntity.ok(ApiResponse.success("세션 heartbeat 정보를 전송했습니다.").withServerTime());
+    }
+
     private void validateAuthentication(Long memberId) {
         if (memberId == null) {
             throw new CustomException(ErrorCode.UNAUTHORIZED);
         }
+    }
+
+    @GetMapping("/incomplete")
+    public ApiResponse<ReadingSessionResponse.IncompleteResult> incompleteSession(@AuthenticationPrincipal Long memberId) {
+        ReadingSessionResponse.IncompleteResult result = readingSessionService.getIncompleteSession(memberId);
+
+        return ApiResponse.success(result);
+    }
+
+    @GetMapping("{sessionId}/recover/")
+    public ApiResponse<ReadingSessionResponse.ResumeResult> recoverSession(@PathVariable Long sessionId, @AuthenticationPrincipal Long memberId) {
+        ReadingSessionResponse.ResumeResult result = readingSessionService.resumeIncompleteSession(sessionId, memberId);
+
+        return ApiResponse.success(result);
+    }
+
+    @PatchMapping("/{sessionId}/complete-idle-time")
+    public ApiResponse<Void> resolveIdleTime(@PathVariable Long sessionId, @AuthenticationPrincipal Long memberId) {
+
+        validateAuthentication(memberId);
+
+        readingSessionService.resolveIdleTime(sessionId, memberId);
+
+        return ApiResponse.success(null);
     }
 }

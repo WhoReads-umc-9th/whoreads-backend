@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,7 +25,7 @@ public interface QuoteControllerDocs {
             @ApiResponse(responseCode = "404", description = "존재하지 않는 책/유명인"),
             @ApiResponse(responseCode = "500", description = "서버 에러")
     })
-    ResponseEntity<Void> registerQuote(@RequestBody QuoteRequest request);
+    ResponseEntity<Void> registerQuote(@RequestBody @Valid QuoteRequest request);
 
     @Operation(summary = "책별 인용 조회", description = "특정 책에 달린 유명인들의 인용 목록을 조회합니다. (맥락 점수 높은 순)")
     @ApiResponses(value = {

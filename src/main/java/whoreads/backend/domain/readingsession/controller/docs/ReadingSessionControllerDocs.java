@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PathVariable;
 import whoreads.backend.domain.readingsession.dto.ReadingSessionResponse;
 import whoreads.backend.global.response.ApiResponse;
 
@@ -203,4 +204,50 @@ public interface ReadingSessionControllerDocs {
             Long sessionId,
             @AuthenticationPrincipal Long memberId
     );
+
+    @Operation(
+            summary = "독서 세션 heartbeat",
+            description = "앱이 살아있음을 서버에 알립니다. 5분마다 호출하세요. 일정 시간 heartbeat가 없으면 서버가 세션을 자동 완료 처리합니다."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "heartbeat 갱신 성공",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": true,
+                                      "code": 200,
+                                      "message": "세션 heartbeat 정보를 전송했습니다."
+                                    }
+                                    """)
+                    )
+            )
+    })
+    ResponseEntity<ApiResponse<Void>> heartbeat(
+            @Parameter(description = "세션 ID", required = true)
+            Long sessionId,
+            @AuthenticationPrincipal Long memberId
+    );
+
+    @Operation(summary = "미완료 독서 세션 조회", description = "사용자가 이전에 종료하지 않은 독서 세션(IN_PROGRESS, PAUSED, SUSPENDED)이 있는지 조회합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "미완료 세션 조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "미완료된 독서 세션이 존재하지 않습니다.")
+    })
+    ApiResponse<ReadingSessionResponse.IncompleteResult> incompleteSession(Long memberId);
+
+    @Operation(summary = "중단된 독서 세션 재개", description = "중단된 독서 세션의 남은 타이머 시간을 반환합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청이 성공했습니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "독서세션을 찾을 수 없습니다.")
+    })
+    ApiResponse<ReadingSessionResponse.ResumeResult> recoverSession(Long sessionId, Long memberId);
+
+    @Operation(
+            summary = "중단된 시간 자동 정산 및 세션 완료",
+            description = "마지막 하트비트 이후부터 현재까지의 중단된 시간을 독서 시간으로  인정하고 세션을 종료합니다."
+    )
+    public ApiResponse<Void> resolveIdleTime(Long sessionId, Long memberId);
 }

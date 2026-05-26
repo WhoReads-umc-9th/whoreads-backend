@@ -20,4 +20,8 @@ public interface ReadingSessionSettingsService {
     ReadingSessionResponse.BlockedApps getBlockedApps(Long memberId);
 
     ReadingSessionResponse.BlockedApps updateBlockedApps(Long memberId, List<BlockedAppItem> blockedApps);
+
+    ReadingSessionResponse.SessionSettings getSessionSettings(Long memberId); // 추가 - 현
+
+    ReadingSessionResponse.SessionSettings updateSessionSettings(Long memberId, Long time);
 }
