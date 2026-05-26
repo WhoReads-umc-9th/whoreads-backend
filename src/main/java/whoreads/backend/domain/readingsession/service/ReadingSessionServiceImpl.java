@@ -8,6 +8,7 @@ import whoreads.backend.domain.focusmode.entity.FocusTimerSetting;
 import whoreads.backend.domain.focusmode.repository.FocusModeRepository;
 import whoreads.backend.domain.member.entity.Member;
 import whoreads.backend.domain.member.repository.MemberRepository;
+import whoreads.backend.domain.readingsession.dto.ReadingSessionRequest;
 import whoreads.backend.domain.readingsession.dto.ReadingSessionResponse;
 import whoreads.backend.domain.readingsession.entity.ReadingInterval;
 import whoreads.backend.domain.readingsession.entity.ReadingSession;
@@ -16,6 +17,7 @@ import whoreads.backend.domain.readingsession.repository.ReadingSessionRepositor
 import whoreads.backend.global.exception.CustomException;
 import whoreads.backend.global.exception.ErrorCode;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -229,5 +231,32 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
         return ReadingSessionResponse.ResumeResult.builder()
                 .remainingMinutes(remainingMinutes)
                 .build();
+    }
+
+    public void resolveIdleTime(Long sessionId, Long memberId) {
+        ReadingSession session = readingSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SESSION_NOT_FOUND));
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime lastHeartbeat = session.getLastHeartbeatAt();
+
+        // 마지막 하트비트 시점부터 현재 사이에 공백이 있다면 자동으로 메워줌
+        if (lastHeartbeat != null && lastHeartbeat.isBefore(now)) {
+
+            // 분 단위 차이 계산
+            long idleMinutes = Duration.between(lastHeartbeat, now).toMinutes();
+
+            if (idleMinutes > 0) {
+                ReadingInterval idleInterval = ReadingInterval.builder()
+                        .startTime(lastHeartbeat)
+                        .readingSession(session)
+                        .build();
+
+                idleInterval.end(now);
+                session.addInterval(idleInterval);
+            }
+        }
+
+        session.complete();
     }
 }

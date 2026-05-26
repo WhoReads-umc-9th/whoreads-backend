@@ -1,5 +1,6 @@
 package whoreads.backend.domain.readingsession.service;
 
+import whoreads.backend.domain.readingsession.dto.ReadingSessionRequest;
 import whoreads.backend.domain.readingsession.dto.ReadingSessionResponse;
 
 public interface ReadingSessionService {
@@ -17,4 +18,6 @@ public interface ReadingSessionService {
     ReadingSessionResponse.IncompleteResult getIncompleteSession(Long memberId);
 
     ReadingSessionResponse.ResumeResult resumeIncompleteSession(Long sessionId, Long memberId);
+
+    void resolveIdleTime(Long sessionId, Long memberId);
 }

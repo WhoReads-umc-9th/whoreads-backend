@@ -244,4 +244,10 @@ public interface ReadingSessionControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "독서세션을 찾을 수 없습니다.")
     })
     ApiResponse<ReadingSessionResponse.ResumeResult> recoverSession(Long sessionId, Long memberId);
+
+    @Operation(
+            summary = "중단된 시간 자동 정산 및 세션 완료",
+            description = "마지막 하트비트 이후부터 현재까지의 중단된 시간을 독서 시간으로  인정하고 세션을 종료합니다."
+    )
+    public ApiResponse<Void> resolveIdleTime(Long sessionId, Long memberId);
 }

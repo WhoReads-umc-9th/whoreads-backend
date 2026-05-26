@@ -93,4 +93,14 @@ public class ReadingSessionController implements ReadingSessionControllerDocs {
 
         return ApiResponse.success(result);
     }
+
+    @PatchMapping("/{sessionId}/complete-idle-time")
+    public ApiResponse<Void> resolveIdleTime(@PathVariable Long sessionId, @AuthenticationPrincipal Long memberId) {
+
+        validateAuthentication(memberId);
+
+        readingSessionService.resolveIdleTime(sessionId, memberId);
+
+        return ApiResponse.success(null);
+    }
 }
