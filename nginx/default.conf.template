@@ -45,7 +45,7 @@ server {
     location / {
         resolver 127.0.0.11 valid=30s;
         include /etc/nginx/conf.d/service-prod.inc;
-        proxy_pass http://$prod_upstream:8080;
+        proxy_pass http://$prod_upstream:8081;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -70,7 +70,7 @@ server {
     location / {
         resolver 127.0.0.11 valid=30s;
         include /etc/nginx/conf.d/service-staging.inc;
-        proxy_pass http://$staging_upstream:8080;
+        proxy_pass http://$staging_upstream:8081;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
