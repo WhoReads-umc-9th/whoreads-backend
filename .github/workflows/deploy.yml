@@ -108,6 +108,16 @@ jobs:
             set -e
 
             # ========================================
+            # ENVIRONMENT 변수 검증 및 정규화
+            # ========================================
+            ENVIRONMENT_LOWER=$(echo "$ENVIRONMENT" | tr '[:upper:]' '[:lower:]')
+            if [ "$ENVIRONMENT_LOWER" != "prod" ] && [ "$ENVIRONMENT_LOWER" != "staging" ]; then
+              echo "ERROR: ENVIRONMENT must be strictly 'prod' or 'staging'. Got: '$ENVIRONMENT'"
+              exit 1
+            fi
+            ENVIRONMENT="$ENVIRONMENT_LOWER"
+
+            # ========================================
             # 변수 설정
             # ========================================
             DEPLOY_DIR="$HOME/whoreads"
@@ -123,6 +133,14 @@ jobs:
 
             mkdir -p "$DEPLOY_DIR/nginx/conf.d"
             cd "$DEPLOY_DIR"
+
+            # 최초 배포 시, 또는 다른 환경 파일이 없을 때 기본값(blue)으로 생성하여 Nginx syntax 에러 방지
+            if [ ! -f "$DEPLOY_DIR/nginx/conf.d/service-prod.inc" ]; then
+              echo "set \$prod_upstream whoreads-prod-blue;" > "$DEPLOY_DIR/nginx/conf.d/service-prod.inc"
+            fi
+            if [ ! -f "$DEPLOY_DIR/nginx/conf.d/service-staging.inc" ]; then
+              echo "set \$staging_upstream whoreads-staging-blue;" > "$DEPLOY_DIR/nginx/conf.d/service-staging.inc"
+            fi
 
             # Nginx 설정: 템플릿이 변경되었으면 반영
             NGINX_TEMPLATE="$DEPLOY_DIR/nginx/default.conf.template"
@@ -216,14 +234,6 @@ jobs:
                 docker rm "${CONTAINER_PREFIX}-$NEW" 2>/dev/null || true
                 exit 1
               }
-
-              # 최초 배포 시, 또는 다른 환경 파일이 없을 때 기본값(blue)으로 생성하여 Nginx syntax 에러 방지
-              if [ ! -f "$DEPLOY_DIR/nginx/conf.d/service-prod.inc" ]; then
-                echo "set \$prod_upstream whoreads-prod-blue;" > "$DEPLOY_DIR/nginx/conf.d/service-prod.inc"
-              fi
-              if [ ! -f "$DEPLOY_DIR/nginx/conf.d/service-staging.inc" ]; then
-                echo "set \$staging_upstream whoreads-staging-blue;" > "$DEPLOY_DIR/nginx/conf.d/service-staging.inc"
-              fi
 
               if ! docker ps --filter "name=$NGINX_CONTAINER" --format "{{.Names}}" | grep -q "$NGINX_CONTAINER"; then
                 echo "ERROR: Nginx container not running"
