@@ -25,7 +25,7 @@ public class ReadingSessionScheduler {
         // LocalDateTime threshold = LocalDateTime.now().minusHours(2);
 
         // 테스트용
-        LocalDateTime threshold = LocalDateTime.now().minusMinutes(10);
+        LocalDateTime threshold = LocalDateTime.now().minusMinutes(5);
         List<ReadingSession> staleSessions = readingSessionRepository.findStaleInProgressSessions(threshold);
 
         if (staleSessions.isEmpty()) {

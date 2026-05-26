@@ -132,4 +132,9 @@ public class ReadingSession extends BaseEntity {
                 .mapToLong(ReadingInterval::getDurationMinutes)
                 .sum();
     }
+
+    public void processIdleTime(LocalDateTime now) {
+        Objects.requireNonNull(now, "now must not be null");
+        this.lastHeartbeatAt = now;
+    }
 }
