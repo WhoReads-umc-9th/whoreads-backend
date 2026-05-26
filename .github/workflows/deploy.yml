@@ -214,7 +214,7 @@ jobs:
             echo "=== Step 5: Health Check ==="
             sleep 30
 
-            HEALTH=$(docker exec "${CONTAINER_PREFIX}-$NEW" curl -s http://localhost:8080/api/health || echo "FAILED")
+            HEALTH=$(docker exec "${CONTAINER_PREFIX}-$NEW" curl -s http://localhost:8081/api/health || echo "FAILED")
 
             if echo "$HEALTH" | grep -q '"status"\s*:\s*"UP"'; then
               echo "Health check passed!"
