@@ -44,8 +44,8 @@ server {
     # Proxy to Production (Blue/Green) - Docker DNS로 런타임 resolve
     location / {
         resolver 127.0.0.11 valid=30s;
-        set $upstream whoreads-prod-blue;
-        proxy_pass http://$upstream:8080;
+        include /etc/nginx/conf.d/service-prod.inc;
+        proxy_pass http://$prod_upstream:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -69,8 +69,8 @@ server {
     # Proxy to Staging (Blue/Green) - Docker DNS로 런타임 resolve
     location / {
         resolver 127.0.0.11 valid=30s;
-        set $upstream whoreads-staging-blue;
-        proxy_pass http://$upstream:8080;
+        include /etc/nginx/conf.d/service-staging.inc;
+        proxy_pass http://$staging_upstream:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

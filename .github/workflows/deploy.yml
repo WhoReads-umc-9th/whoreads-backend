@@ -206,19 +206,23 @@ jobs:
               # ========================================
               echo "=== Step 6: Update Nginx ==="
 
+              INC_FILE="$DEPLOY_DIR/nginx/conf.d/service-${ENVIRONMENT}.inc"
+              INC_FILE_BAK="${INC_FILE}.bak"
+
               rollback_nginx() {
                 echo "Rolling back nginx config..."
-                [ -f "$NGINX_CONF.bak" ] && cp "$NGINX_CONF.bak" "$NGINX_CONF"
+                [ -f "$INC_FILE_BAK" ] && cp "$INC_FILE_BAK" "$INC_FILE"
                 docker stop "${CONTAINER_PREFIX}-$NEW" 2>/dev/null || true
                 docker rm "${CONTAINER_PREFIX}-$NEW" 2>/dev/null || true
                 exit 1
               }
 
-              if [ ! -f "$NGINX_CONF" ]; then
-                echo "ERROR: Nginx config not found at $NGINX_CONF"
-                docker stop "${CONTAINER_PREFIX}-$NEW" 2>/dev/null || true
-                docker rm "${CONTAINER_PREFIX}-$NEW" 2>/dev/null || true
-                exit 1
+              # 최초 배포 시, 또는 다른 환경 파일이 없을 때 기본값(blue)으로 생성하여 Nginx syntax 에러 방지
+              if [ ! -f "$DEPLOY_DIR/nginx/conf.d/service-prod.inc" ]; then
+                echo "set \$prod_upstream whoreads-prod-blue;" > "$DEPLOY_DIR/nginx/conf.d/service-prod.inc"
+              fi
+              if [ ! -f "$DEPLOY_DIR/nginx/conf.d/service-staging.inc" ]; then
+                echo "set \$staging_upstream whoreads-staging-blue;" > "$DEPLOY_DIR/nginx/conf.d/service-staging.inc"
               fi
 
               if ! docker ps --filter "name=$NGINX_CONTAINER" --format "{{.Names}}" | grep -q "$NGINX_CONTAINER"; then
@@ -228,15 +232,16 @@ jobs:
                 exit 1
               fi
 
-              cp "$NGINX_CONF" "$NGINX_CONF.bak"
-              sed -i "s/${CONTAINER_PREFIX}-blue/${CONTAINER_PREFIX}-$NEW/g" "$NGINX_CONF"
-              sed -i "s/${CONTAINER_PREFIX}-green/${CONTAINER_PREFIX}-$NEW/g" "$NGINX_CONF"
+              # 기존 .inc 파일 백업 및 신규 업스트림 주소 덮어쓰기
+              [ -f "$INC_FILE" ] && cp "$INC_FILE" "$INC_FILE_BAK"
 
-              if ! grep -q "${CONTAINER_PREFIX}-$NEW" "$NGINX_CONF"; then
-                echo "ERROR: Failed to update Nginx config"
-                rollback_nginx
+              if [ "${ENVIRONMENT}" = "prod" ]; then
+                echo "set \$prod_upstream ${CONTAINER_PREFIX}-$NEW;" > "$INC_FILE"
+              else
+                echo "set \$staging_upstream ${CONTAINER_PREFIX}-$NEW;" > "$INC_FILE"
               fi
 
+              # Nginx 설정 테스트 및 리로드
               if ! docker exec "$NGINX_CONTAINER" nginx -t 2>&1; then
                 echo "ERROR: Nginx config validation failed"
                 rollback_nginx
@@ -247,8 +252,8 @@ jobs:
                 rollback_nginx
               fi
 
-              rm -f "$NGINX_CONF.bak"
-              echo "Nginx updated to: ${CONTAINER_PREFIX}-$NEW"
+              rm -f "$INC_FILE_BAK"
+              echo "Nginx updated target environment [${ENVIRONMENT}] to: ${CONTAINER_PREFIX}-$NEW"
 
               # ========================================
               # 7. 이전 컨테이너 정리
