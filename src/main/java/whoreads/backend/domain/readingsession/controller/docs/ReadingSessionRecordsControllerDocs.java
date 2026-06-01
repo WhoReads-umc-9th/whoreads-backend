@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -80,13 +82,13 @@ public interface ReadingSessionRecordsControllerDocs {
                     example = "2026",
                     schema = @Schema(minimum = "2000", maximum = "2100")
             )
-            Integer year,
+            @Min(2000) @Max(2100) Integer year,
             @Parameter(
                     description = "월 (1~12)",
                     required = true,
                     example = "2",
                     schema = @Schema(minimum = "1", maximum = "12")
             )
-            Integer month
+            @Min(1) @Max(12) Integer month
     );
 }
