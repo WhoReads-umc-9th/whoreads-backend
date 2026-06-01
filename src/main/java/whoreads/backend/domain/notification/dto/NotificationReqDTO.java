@@ -1,6 +1,7 @@
 package whoreads.backend.domain.notification.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
@@ -22,11 +23,11 @@ public class NotificationReqDTO {
             @NotNull(message = "알림 타입은 필수 입력 값입니다.")
             NotificationType type,
 
+            @JsonProperty("is_enabled")
             boolean isEnabled,
 
             List<DayOfWeek> days
     ) {
-        //type에 따라 검사
         public void validate() {
             if (this.type == NotificationType.ROUTINE) {
                 if (this.time == null) throw new CustomException(ErrorCode.INVALID_INPUT_VALUE,"루틴 알림은 시간이 필수입니다.");

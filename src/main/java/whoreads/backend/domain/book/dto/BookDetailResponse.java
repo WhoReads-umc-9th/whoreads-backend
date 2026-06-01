@@ -1,6 +1,7 @@
 package whoreads.backend.domain.book.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,21 +26,21 @@ public class BookDetailResponse {
 
     private Long id;
     private String title;
-    private String authorName;
+    @JsonProperty("author_name") private String authorName;
     private String genre;
-    private String coverUrl;
+    @JsonProperty("cover_url") private String coverUrl;
     private String link;
-    private int quoteCount;
+    @JsonProperty("quote_count") private int quoteCount;
     @Setter
-    private ReadingInfo readingInfo;  // 담아둔 책이 아니면 null
+    @JsonProperty("reading_info") private ReadingInfo readingInfo;
     private List<QuoteDetail> quotes;
 
     @Getter
     @Builder
     public static class QuoteDetail {
-        private Long quoteId;
-        private String originalText;
-        private int contextScore;
+        @JsonProperty("quote_id") private Long quoteId;
+        @JsonProperty("original_text") private String originalText;
+        @JsonProperty("context_score") private int contextScore;
         private CelebrityInfo celebrity;
         private QuoteResponse.SourceInfo source;
     }
@@ -49,8 +50,8 @@ public class BookDetailResponse {
     public static class CelebrityInfo {
         private Long id;
         private String name;
-        private String imageUrl;
-        private List<String> jobTags;
+        @JsonProperty("image_url") private String imageUrl;
+        @JsonProperty("job_tags") private List<String> jobTags;
 
         public static CelebrityInfo from(Celebrity celebrity) {
             return CelebrityInfo.builder()
@@ -68,11 +69,11 @@ public class BookDetailResponse {
     @Builder
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class ReadingInfo {
-        private ReadingStatus readingStatus;
-        private Integer readingPage;
-        private Integer totalPage;
-        private LocalDate startedAt;
-        private LocalDate completedAt;
+        @JsonProperty("reading_status") private ReadingStatus readingStatus;
+        @JsonProperty("reading_page") private Integer readingPage;
+        @JsonProperty("total_page") private Integer totalPage;
+        @JsonProperty("started_at") private LocalDate startedAt;
+        @JsonProperty("completed_at") private LocalDate completedAt;
 
         public static ReadingInfo from(UserBook userBook, Book book) {
             return ReadingInfo.builder()

@@ -22,7 +22,7 @@ public class Book extends BaseEntity {
     @Column(nullable = false, length = 255)
     private String title;
 
-    @Column(name = "author_name", nullable = false, length = 100)
+    @Column(name = "author_name", nullable = false, length = 255)
     private String authorName;
 
     @Column(columnDefinition = "TEXT")
