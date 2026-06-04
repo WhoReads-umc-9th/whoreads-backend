@@ -7,6 +7,6 @@ public interface NotificationHistoryService {
    NotificationResDTO.TotalInboxDTO getNotificationHistory(Long memberId, Long cursor, int size);
    NotificationResDTO.HistoryDTO readNotification(Long memberId, Long notificationId);
    Void readAllNotifications(Long memberId);
-   void saveHistory(Long memberId, FcmMessageDTO dto);
+   Long saveHistory(Long memberId, FcmMessageDTO dto);
    void deleteNotification(Long memberId,Long notificationId);
 }
