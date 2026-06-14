@@ -30,7 +30,6 @@ public enum CelebrityTag {
     COACH("코치"),
     FILM_CRITIC("영화평론가"),
     BIOLOGIST("생물학자"),
-    PRESIDENT("대통령"),
     POLITICIAN("정치인"),
     PROFESSOR("교수");
 
