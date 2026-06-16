@@ -1,6 +1,7 @@
 package whoreads.backend.domain.member.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import whoreads.backend.domain.celebrity.entity.Celebrity;
@@ -21,6 +22,8 @@ public interface MemberCelebrityRepository extends JpaRepository<MemberCelebrity
     boolean existsByMemberAndCelebrity(Member member, Celebrity celebrity);
 
     // 언팔로우 기능을 위해 관계 삭제 메서드
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("DELETE FROM MemberCelebrity mc WHERE mc.member = :member AND mc.celebrity = :celebrity")
     void deleteByMemberAndCelebrity(Member member, Celebrity celebrity);
 
     @Query("SELECT DISTINCT mc.member.id AS memberId, mc.member.fcmToken AS fcmToken " +

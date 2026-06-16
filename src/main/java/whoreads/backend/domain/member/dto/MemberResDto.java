@@ -32,6 +32,7 @@ public class MemberResDto {
             Long id,
             String name,
             @JsonProperty("image_url") String imageUrl,
-            @JsonProperty("short_bio") String shortBio
+            @JsonProperty("short_bio") String shortBio,
+            int intimacyScore
     ) {}
 }
