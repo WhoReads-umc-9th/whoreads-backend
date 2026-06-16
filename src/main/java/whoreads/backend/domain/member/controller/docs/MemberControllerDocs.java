@@ -79,4 +79,10 @@ public interface MemberControllerDocs {
             description = "팔로우중이라면 result = true, 아니라면 false를 리턴합니다. 유명인을 찾을 수 없는 경우에도 false를 리턴합니다."
     )
     ApiResponse<Boolean> checkFollowStatus(@AuthenticationPrincipal Long memberId, @PathVariable Long celebrityId);
+
+    @Operation(
+            summary = "유명인 언팔로우 API",
+            description = "이미 언팔로우 상태라면 is_success=false, 언팔로우에 성공했다면 is_success=true를 리턴합니다."
+    )
+    ApiResponse<Void> unfollowCelebrity(@AuthenticationPrincipal Long memberId, @PathVariable Long celebrityId);
 }

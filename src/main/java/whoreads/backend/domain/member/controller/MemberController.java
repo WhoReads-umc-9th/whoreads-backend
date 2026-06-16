@@ -73,6 +73,15 @@ public class MemberController implements MemberControllerDocs {
         return ApiResponse.success("팔로우가 완료됐습니다.");
     }
 
+    // 특정 유명인 팔로우 취소 (언팔로우)
+    @DeleteMapping("/api/members/follow/{celebrityId}")
+    public ApiResponse<Void> unfollowCelebrity(@AuthenticationPrincipal Long memberId, @PathVariable Long celebrityId) {
+
+        memberService.unfollowCelebrity(memberId, celebrityId);
+
+        return ApiResponse.success(null);
+    }
+
     @PostMapping ("/me/fcm-tokens")
     @Override
     public ApiResponse<Void> updateFcmToken(
