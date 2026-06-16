@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import whoreads.backend.domain.library.service.UserBookService;
 import whoreads.backend.domain.member.controller.docs.MemberControllerDocs;
 import whoreads.backend.domain.member.dto.MemberRequest;
 import whoreads.backend.domain.member.dto.MemberResDto;
@@ -24,6 +25,7 @@ public class MemberController implements MemberControllerDocs {
 
     private final MemberService memberService;
     private final NotificationTokenService notificationTokenService;
+    private final UserBookService userBookService;
 
     @GetMapping("/me")
     @Override
@@ -39,7 +41,21 @@ public class MemberController implements MemberControllerDocs {
     public ApiResponse<List<MemberResDto.CelebrityFollow>> getMyFollows(@AuthenticationPrincipal Long memberId) {
         List<MemberResDto.CelebrityFollow> followList = memberService.getFollowList(memberId);
 
-        return ApiResponse.success(followList);
+        List<MemberResDto.CelebrityFollow> updatedFollowList = followList.stream()
+                .map(follow -> {
+                    int score = userBookService.calculateIntimacyScore(memberId, follow.id());
+
+                    return MemberResDto.CelebrityFollow.builder()
+                            .id(follow.id())
+                            .name(follow.name())
+                            .imageUrl(follow.imageUrl())
+                            .shortBio(follow.shortBio())
+                            .intimacyScore(score)
+                            .build();
+                })
+                .toList();
+
+        return ApiResponse.success(updatedFollowList);
     }
 
     @PostMapping("/follow/{celebrityId}")
