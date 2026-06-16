@@ -65,4 +65,14 @@ public class MemberService {
 
         memberCelebrityRepository.save(follow);
     }
+
+    public boolean isFollowingCelebrity(Long memberId, Long celebrityId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        Celebrity celebrity = celebrityRepository.findById(celebrityId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CELEBRITY_NOT_FOUND));
+
+        return memberCelebrityRepository.existsByMemberAndCelebrity(member, celebrity);
+    }
 }

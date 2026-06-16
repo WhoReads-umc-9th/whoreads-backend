@@ -73,4 +73,10 @@ public interface MemberControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "이미 팔로우 중인 유명인"),
     })
     ApiResponse<Void> followCelebrity(@PathVariable @Positive Long celebrityId, @AuthenticationPrincipal Long memberId);
+
+    @Operation(
+            summary = "사용자가 유명인을 팔로우하는지 확인하는 API",
+            description = "팔로우중이라면 result = true, 아니라면 false를 리턴합니다. 유명인을 찾을 수 없는 경우에도 false를 리턴합니다."
+    )
+    ApiResponse<Boolean> checkFollowStatus(@AuthenticationPrincipal Long memberId, @PathVariable Long celebrityId);
 }

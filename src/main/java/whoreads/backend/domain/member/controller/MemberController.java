@@ -58,6 +58,14 @@ public class MemberController implements MemberControllerDocs {
         return ApiResponse.success(updatedFollowList);
     }
 
+    @GetMapping("/follow/{celebrityId}")
+    public ApiResponse<Boolean> checkFollowStatus(@AuthenticationPrincipal Long memberId, @PathVariable Long celebrityId) {
+
+        boolean isFollowing = memberService.isFollowingCelebrity(memberId, celebrityId);
+
+        return ApiResponse.success(isFollowing);
+    }
+
     @PostMapping("/follow/{celebrityId}")
     @Override
     public ApiResponse<Void> followCelebrity(@PathVariable Long celebrityId, @AuthenticationPrincipal Long memberId) {
