@@ -74,7 +74,7 @@ public class MemberController implements MemberControllerDocs {
     }
 
     // 특정 유명인 팔로우 취소 (언팔로우)
-    @DeleteMapping("/api/members/follow/{celebrityId}")
+    @DeleteMapping("/follow/{celebrityId}")
     public ApiResponse<Void> unfollowCelebrity(@AuthenticationPrincipal Long memberId, @PathVariable Long celebrityId) {
 
         memberService.unfollowCelebrity(memberId, celebrityId);
