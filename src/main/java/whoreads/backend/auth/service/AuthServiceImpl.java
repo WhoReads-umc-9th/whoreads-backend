@@ -1,5 +1,6 @@
 package whoreads.backend.auth.service;
 
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -101,6 +102,8 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void logout(Long memberId) {
         redisTemplate.delete("RT:" + memberId);
+        Optional<Member> member = memberRepository.findById(memberId);
+        member.ifPresent(m -> m.updateFcmToken(null));
         log.info("{}번 사용자 로그아웃 - Refresh Token 삭제", memberId);
     }
 
