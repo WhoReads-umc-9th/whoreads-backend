@@ -26,7 +26,7 @@ public interface CelebrityRepository extends JpaRepository<Celebrity, Long> {
     @EntityGraph(attributePaths = "jobTags")
     Optional<Celebrity> findById(Long id);
 
-    @Query("SELECT c FROM Celebrity c " +
+    @Query("SELECT DISTINCT c FROM Celebrity c " +
             "LEFT JOIN FETCH c.celebrityBookList cb " +
             "LEFT JOIN FETCH cb.book " + // Book까지 한꺼번에 긁어와야 함!
             "WHERE c.id IN :ids")

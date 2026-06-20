@@ -46,7 +46,7 @@ public class MemberConverter {
                 .loginId(member.getLoginId())
                 .createdAt(member.getCreatedAt())
                 .status(member.getStatus())
-                .trackCode(member.getDnaType() != null ? TrackCode.valueOf(member.getDnaType()) : null)
+                .trackCode(TrackCode.fromName(member.getDnaType()))
                 .fcmToken(member.getFcmToken())
                 .build();
     }

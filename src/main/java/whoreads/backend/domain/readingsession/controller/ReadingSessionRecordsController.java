@@ -29,8 +29,8 @@ public class ReadingSessionRecordsController implements ReadingSessionRecordsCon
     @GetMapping("/monthly")
     public ResponseEntity<ApiResponse<ReadingSessionResponse.MonthlyRecords>> getMonthlyRecords(
             @AuthenticationPrincipal Long memberId,
-            @RequestParam @Min(2000) @Max(2100) Integer year,
-            @RequestParam @Min(1) @Max(12) Integer month
+            @RequestParam Integer year,
+            @RequestParam Integer month
     ) {
         validateAuthentication(memberId);
         ReadingSessionResponse.MonthlyRecords result = readingSessionRecordsService.getMonthlyRecords(memberId, year, month);

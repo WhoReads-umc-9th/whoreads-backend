@@ -68,7 +68,7 @@ public class NotificationHistoryServiceImpl implements NotificationHistoryServic
     }
 
     @Transactional
-    public void saveHistory(Long memberId, FcmMessageDTO dto) {
+    public Long saveHistory(Long memberId, FcmMessageDTO dto) {
         NotificationHistory history = NotificationHistory.builder()
                 .member(memberRepository.getReferenceById(memberId))
                 .title(dto.getTitle())
@@ -77,5 +77,6 @@ public class NotificationHistoryServiceImpl implements NotificationHistoryServic
                 .link(FollowLink.builder().celebrityId(dto.getCelebrityId()).bookId(dto.getBookId()).build())
                 .build();
         notificationHistoryRepository.save(history);
+        return history.getId();
     }
 }

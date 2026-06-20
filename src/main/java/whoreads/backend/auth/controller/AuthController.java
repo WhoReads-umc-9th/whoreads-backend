@@ -99,4 +99,13 @@ public class AuthController implements AuthControllerDocs {
 
         return ApiResponse.success("이메일 인증에 성공했습니다.");
     }
+
+    // 비밀번호 재설정
+    @PatchMapping("/password")
+    public ApiResponse<Void> updatePassword(@AuthenticationPrincipal Long memberId, @RequestBody @Valid AuthReqDto.PasswordChangeRequest request) {
+        authService.changePassword(memberId, request);
+
+        return ApiResponse.success("비밀번호가 변경되었습니다.");
+    }
+
 }

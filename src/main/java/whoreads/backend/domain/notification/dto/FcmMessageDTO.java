@@ -17,18 +17,15 @@ public class FcmMessageDTO {
     private final String type;
     private final Map<String, String> data;
 
-    /*
-    todo: 링크 처리하는 것 정하기!
-    * */
     public static FcmMessageDTO of(NotificationType type, NotificationEvent event) {
         String[] generated = type.generateMessage(event);
 
         FcmMessageDTO.FcmMessageDTOBuilder builder = FcmMessageDTO.builder()
                 .title(generated[0])
                 .body(generated[1])
-                .type(type.name()); // DB 저장용 타입 이름 (FOLLOW, ROUTINE 등)
+                .type(type.name());
 
-        if (event != null && type.equals(NotificationType.FOLLOW) &&
+        if (event != null && type == NotificationType.FOLLOW &&
                 event instanceof NotificationEvent.FollowEvent followEvent)
         {
             builder.celebrityId(followEvent.celebId());

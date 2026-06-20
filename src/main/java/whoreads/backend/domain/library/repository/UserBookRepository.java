@@ -26,4 +26,6 @@ public interface UserBookRepository extends JpaRepository<UserBook, Long> {
             @Param("cursor") Long cursor,
             Pageable pageable
     );
+
+    int countByMemberIdAndReadingStatusAndBookIdIn(Long memberId, ReadingStatus readingStatus, List<Long> bookIds);
 }

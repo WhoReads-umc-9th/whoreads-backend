@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  whoreads-redis:
+    image: redis:7-alpine
+    container_name: whoreads-redis
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - whoreads-network
+
+  whoreads-nginx:
+    image: nginx:alpine
+    container_name: whoreads-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    networks:
+      - whoreads-network
+
+networks:
+  whoreads-network:
+    name: whoreads-network
+    driver: bridge

@@ -3,6 +3,8 @@ package whoreads.backend.domain.member.controller.docs;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,7 +29,7 @@ public interface MemberControllerDocs {
             })
     ApiResponse<Void> updateFcmToken(
             @AuthenticationPrincipal Long memberId,
-            @RequestBody MemberRequest.FcmTokenRequest request
+            @RequestBody @Valid MemberRequest.FcmTokenRequest request
     );
 
     @Operation(
@@ -42,17 +44,45 @@ public interface MemberControllerDocs {
     @Operation(
             summary = "사용자 개인 정보 조회"
     )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "회원 없음"),
+    })
     ApiResponse<MemberResDto.MemberInfo> getMyInfo(@AuthenticationPrincipal Long memberId);
 
 
     @Operation(
             summary = "사용자가 팔로우하는 유명인 리스트 조회"
     )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "회원 없음"),
+    })
     ApiResponse<List<MemberResDto.CelebrityFollow>> getMyFollows(@AuthenticationPrincipal Long memberId);
 
 
     @Operation(
             summary = "사용자가 유명인을 팔로우할 때 사용하는 API"
     )
-    ApiResponse<Void> followCelebrity(@PathVariable Long celebrityId, @AuthenticationPrincipal Long memberId);
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "팔로우 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "회원 없음 / 유명인 없음"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "이미 팔로우 중인 유명인"),
+    })
+    ApiResponse<Void> followCelebrity(@PathVariable @Positive Long celebrityId, @AuthenticationPrincipal Long memberId);
+
+    @Operation(
+            summary = "사용자가 유명인을 팔로우하는지 확인하는 API",
+            description = "팔로우중이라면 result = true, 아니라면 false를 리턴합니다. 유명인을 찾을 수 없는 경우에도 false를 리턴합니다."
+    )
+    ApiResponse<Boolean> checkFollowStatus(@AuthenticationPrincipal Long memberId, @PathVariable Long celebrityId);
+
+    @Operation(
+            summary = "유명인 언팔로우 API",
+            description = "이미 언팔로우 상태라면 is_success=false, 언팔로우에 성공했다면 is_success=true를 리턴합니다."
+    )
+    ApiResponse<Void> unfollowCelebrity(@AuthenticationPrincipal Long memberId, @PathVariable Long celebrityId);
 }

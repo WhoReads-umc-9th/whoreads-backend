@@ -1,6 +1,13 @@
 package whoreads.backend.domain.quote.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
+import org.hibernate.validator.constraints.URL;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import whoreads.backend.domain.quote.entity.Quote;
@@ -10,41 +17,55 @@ import whoreads.backend.domain.quote.entity.QuoteSourceType;
 @NoArgsConstructor
 public class QuoteRequest {
 
-    // 1. 기본 정보
+    @JsonProperty("book_id")
     @NotNull(message = "책 ID는 필수입니다.")
+    @Positive(message = "책 ID는 양수여야 합니다.")
     private Long bookId;
 
+    @JsonProperty("celebrity_id")
     @NotNull(message = "유명인 ID는 필수입니다.")
+    @Positive(message = "유명인 ID는 양수여야 합니다.")
     private Long celebrityId;
 
-    @NotNull(message = "인용 문구는 필수입니다.")
+    @JsonProperty("original_text")
+    @NotBlank(message = "인용 문구는 필수입니다.")
+    @Size(max = 2000, message = "인용 문구는 2000자를 초과할 수 없습니다.")
     private String originalText;
 
-    private Quote.Language language; // 없을 경우 로직에서 기본값 처리 가능
+    @NotNull(message = "언어 설정은 필수입니다.")
+    private Quote.Language language;
 
-    private int contextScore;
+    @JsonProperty("context_score")
+    @NotNull(message = "맥락 점수는 필수입니다.")
+    @Min(value = 0, message = "맥락 점수는 0 이상이어야 합니다.")
+    private Integer contextScore;
 
-    // 2. 출처 정보 (선택)
+    @Valid
     private SourceInfo source;
 
-    // 3. 맥락 정보 (선택)
+    @Valid
     private ContextInfo context;
 
     @Getter
     @NoArgsConstructor
     public static class SourceInfo {
+        @URL(message = "올바른 URL 형식이어야 합니다.")
         private String url;
         private QuoteSourceType type;
         private String timestamp;
-        private boolean isDirect; // 직접 인용 여부 (true: 직접, false: 간접/추천사 아님 등)
+        @JsonProperty("is_direct") private boolean isDirect;
     }
 
     @Getter
     @NoArgsConstructor
     public static class ContextInfo {
-        private String how;  // 계기
-        private String when; // 시기
-        private String why;  // 이유
-        private String help; // 도움
+        @Size(max = 1000, message = "계기 설명은 1000자 이내여야 합니다.")
+        private String how;
+        @Size(max = 500, message = "시기 설명은 500자 이내여야 합니다.")
+        private String when;
+        @Size(max = 1000, message = "이유 설명은 1000자 이내여야 합니다.")
+        private String why;
+        @Size(max = 1000, message = "도움 설명은 1000자 이내여야 합니다.")
+        private String help;
     }
 }

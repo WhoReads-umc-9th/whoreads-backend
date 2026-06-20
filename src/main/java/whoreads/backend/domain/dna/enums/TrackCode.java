@@ -14,4 +14,12 @@ public enum TrackCode {
     FOCUS("재미/몰입");
 
     private final String description;
+
+    public static TrackCode fromName(String name) {
+        if (name == null) return null;
+        for (TrackCode code : values()) {
+            if (code.name().equalsIgnoreCase(name)) return code;
+        }
+        return null;
+    }
 }

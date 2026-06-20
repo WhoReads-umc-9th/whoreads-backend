@@ -25,6 +25,7 @@ public class SecurityConfig {
     private final String[] allowUris = {
             "/api/auth/**",
             "/api/health",
+            "/api/books",
             "/api/books/**",
             "/api/celebrities/**",
             "/swagger-ui/**",

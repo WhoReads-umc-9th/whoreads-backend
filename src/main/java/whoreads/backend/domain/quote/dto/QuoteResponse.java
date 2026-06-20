@@ -1,5 +1,6 @@
 package whoreads.backend.domain.quote.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 import whoreads.backend.domain.book.entity.Book;
@@ -13,24 +14,19 @@ import whoreads.backend.domain.quote.entity.QuoteSource;
 public class QuoteResponse {
 
     private Long id;
-    private String originalText;
-    private int contextScore;
+    @JsonProperty("original_text") private String originalText;
+    @JsonProperty("context_score") private int contextScore;
 
-    // 책 정보
-    private Long bookId;
-    private String bookTitle;
-    private String bookCover;
+    @JsonProperty("book_id") private Long bookId;
+    @JsonProperty("book_title") private String bookTitle;
+    @JsonProperty("book_cover") private String bookCover;
 
-    // 인물 정보
-    private Long celebrityId;
-    private String celebrityName;
-    private String celebrityImg;
-    private String celebrityJob;
+    @JsonProperty("celebrity_id") private Long celebrityId;
+    @JsonProperty("celebrity_name") private String celebrityName;
+    @JsonProperty("celebrity_img") private String celebrityImg;
+    @JsonProperty("celebrity_job") private String celebrityJob;
 
-    // 맥락 (Why, How)
     private ContextInfo context;
-
-    // 출처 (Link)
     private SourceInfo source;
 
     @Getter @Builder
@@ -44,7 +40,7 @@ public class QuoteResponse {
     @Getter @Builder
     public static class SourceInfo {
         private String url;
-        private String type; // Enum Name or Description
+        private String type;
         private String timestamp;
     }
 
@@ -53,23 +49,19 @@ public class QuoteResponse {
                 .id(quote.getId())
                 .originalText(quote.getOriginalText())
                 .contextScore(quote.getContextScore())
-                // 책 정보
                 .bookId(book.getId())
                 .bookTitle(book.getTitle())
                 .bookCover(book.getCoverUrl())
-                // 인물 정보
                 .celebrityId(celebrity.getId())
                 .celebrityName(celebrity.getName())
                 .celebrityImg(celebrity.getImageUrl())
                 .celebrityJob(celebrity.getShortBio())
-                // 맥락
                 .context(ctx != null ? ContextInfo.builder()
                         .how(ctx.getContextHow())
                         .when(ctx.getContextWhen())
                         .why(ctx.getContextWhy())
                         .help(ctx.getContextHelp())
                         .build() : null)
-                // 출처 (NPE 방지 처리)
                 .source(src != null ? SourceInfo.builder()
                         .url(src.getSourceUrl())
                         .type(src.getSourceType() != null ? src.getSourceType().name() : null)

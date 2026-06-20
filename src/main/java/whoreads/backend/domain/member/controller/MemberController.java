@@ -1,9 +1,12 @@
 package whoreads.backend.domain.member.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import whoreads.backend.domain.library.service.UserBookService;
 import whoreads.backend.domain.member.controller.docs.MemberControllerDocs;
 import whoreads.backend.domain.member.dto.MemberRequest;
 import whoreads.backend.domain.member.dto.MemberResDto;
@@ -14,6 +17,7 @@ import whoreads.backend.global.response.ApiResponse;
 import java.util.List;
 
 
+@Validated
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/members")
@@ -21,6 +25,7 @@ public class MemberController implements MemberControllerDocs {
 
     private final MemberService memberService;
     private final NotificationTokenService notificationTokenService;
+    private final UserBookService userBookService;
 
     @GetMapping("/me")
     @Override
@@ -36,7 +41,29 @@ public class MemberController implements MemberControllerDocs {
     public ApiResponse<List<MemberResDto.CelebrityFollow>> getMyFollows(@AuthenticationPrincipal Long memberId) {
         List<MemberResDto.CelebrityFollow> followList = memberService.getFollowList(memberId);
 
-        return ApiResponse.success(followList);
+        List<MemberResDto.CelebrityFollow> updatedFollowList = followList.stream()
+                .map(follow -> {
+                    int score = userBookService.calculateIntimacyScore(memberId, follow.id());
+
+                    return MemberResDto.CelebrityFollow.builder()
+                            .id(follow.id())
+                            .name(follow.name())
+                            .imageUrl(follow.imageUrl())
+                            .shortBio(follow.shortBio())
+                            .intimacyScore(score)
+                            .build();
+                })
+                .toList();
+
+        return ApiResponse.success(updatedFollowList);
+    }
+
+    @GetMapping("/follow/{celebrityId}")
+    public ApiResponse<Boolean> checkFollowStatus(@AuthenticationPrincipal Long memberId, @PathVariable Long celebrityId) {
+
+        boolean isFollowing = memberService.isFollowingCelebrity(memberId, celebrityId);
+
+        return ApiResponse.success(isFollowing);
     }
 
     @PostMapping("/follow/{celebrityId}")
@@ -46,16 +73,25 @@ public class MemberController implements MemberControllerDocs {
         return ApiResponse.success("팔로우가 완료됐습니다.");
     }
 
-    @PostMapping ("me/fcm-tokens")
+    // 특정 유명인 팔로우 취소 (언팔로우)
+    @DeleteMapping("/follow/{celebrityId}")
+    public ApiResponse<Void> unfollowCelebrity(@AuthenticationPrincipal Long memberId, @PathVariable Long celebrityId) {
+
+        memberService.unfollowCelebrity(memberId, celebrityId);
+
+        return ApiResponse.success(null);
+    }
+
+    @PostMapping ("/me/fcm-tokens")
     @Override
     public ApiResponse<Void> updateFcmToken(
             @AuthenticationPrincipal Long memberId,
-            @RequestBody @Valid MemberRequest.FcmTokenRequest fcmRequest) {
+            @RequestBody MemberRequest.FcmTokenRequest fcmRequest) {
 
         notificationTokenService.updateToken(memberId,fcmRequest.fcmToken());
         return ApiResponse.success("토큰이 성공적으로 등록되었습니다.");
     }
-    @DeleteMapping("me/fcm-tokens")
+    @DeleteMapping("/me/fcm-tokens")
     @Override
     public ApiResponse<Void> deleteFcmToken(
             @AuthenticationPrincipal Long memberId) {
