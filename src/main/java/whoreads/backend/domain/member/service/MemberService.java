@@ -14,9 +14,6 @@ import whoreads.backend.domain.member.repository.MemberRepository;
 import whoreads.backend.global.exception.CustomException;
 import whoreads.backend.global.exception.ErrorCode;
 
-import whoreads.backend.domain.member.enums.AgeGroup;
-import whoreads.backend.domain.member.enums.Gender;
-
 import java.util.List;
 
 @Service
@@ -94,26 +91,5 @@ public class MemberService {
 
         // 레포지토리에 만들어둔 메서드로 관계 삭제
         memberCelebrityRepository.deleteByMemberAndCelebrity(member, celebrity);
-    }
-
-    @Transactional
-    public void updateNickname(Long memberId, String nickname) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-        member.updateNickname(nickname);
-    }
-
-    @Transactional
-    public void updateGender(Long memberId, Gender gender) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-        member.updateGender(gender);
-    }
-
-    @Transactional
-    public void updateAgeGroup(Long memberId, AgeGroup ageGroup) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-        member.updateAgeGroup(ageGroup);
     }
 }
