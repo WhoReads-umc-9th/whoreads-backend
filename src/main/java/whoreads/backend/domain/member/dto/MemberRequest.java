@@ -25,6 +25,7 @@ public class MemberRequest {
 
     public record UpdateAgeRequest(
             @NotNull(message = "연령대는 필수 입력 항목입니다.")
+            @JsonProperty("age_group")
             AgeGroup ageGroup
     ){}
 }

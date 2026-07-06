@@ -157,7 +157,7 @@ public interface MemberControllerDocs {
                     description = "변경할 닉네임 정보",
                     required = true
             )
-            @RequestBody MemberRequest.UpdateNicknameRequest request
+            @RequestBody @Valid MemberRequest.UpdateNicknameRequest request
     );
 
     @Operation(
@@ -228,7 +228,7 @@ public interface MemberControllerDocs {
                     description = "변경할 성별 정보 (MALE, FEMALE, ETC)",
                     required = true
             )
-            @RequestBody MemberRequest.UpdateGenderRequest request
+            @RequestBody @Valid MemberRequest.UpdateGenderRequest request
     );
 
     @Operation(
@@ -299,6 +299,6 @@ public interface MemberControllerDocs {
                     description = "변경할 연령대 정보 (TEENAGERS, TWENTIES, THIRTIES, FORTIES, FIFTY_PLUS)",
                     required = true
             )
-            @RequestBody MemberRequest.UpdateAgeRequest request
+            @RequestBody @Valid MemberRequest.UpdateAgeRequest request
     );
 }

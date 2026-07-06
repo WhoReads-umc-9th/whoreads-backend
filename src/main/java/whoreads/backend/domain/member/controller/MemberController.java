@@ -104,7 +104,7 @@ public class MemberController implements MemberControllerDocs {
     @Override
     public ApiResponse<Void> updateNickname(
             @AuthenticationPrincipal Long memberId,
-            @RequestBody @Valid MemberRequest.UpdateNicknameRequest request) {
+            @RequestBody MemberRequest.UpdateNicknameRequest request) {
         memberService.updateNickname(memberId, request.nickname());
         return ApiResponse.success("닉네임이 성공적으로 수정되었습니다.");
     }
@@ -113,7 +113,7 @@ public class MemberController implements MemberControllerDocs {
     @Override
     public ApiResponse<Void> updateGender(
             @AuthenticationPrincipal Long memberId,
-            @RequestBody @Valid MemberRequest.UpdateGenderRequest request) {
+            @RequestBody MemberRequest.UpdateGenderRequest request) {
         memberService.updateGender(memberId, request.gender());
         return ApiResponse.success("성별이 성공적으로 수정되었습니다.");
     }
@@ -122,7 +122,7 @@ public class MemberController implements MemberControllerDocs {
     @Override
     public ApiResponse<Void> updateAgeGroup(
             @AuthenticationPrincipal Long memberId,
-            @RequestBody @Valid MemberRequest.UpdateAgeRequest request) {
+            @RequestBody MemberRequest.UpdateAgeRequest request) {
         memberService.updateAgeGroup(memberId, request.ageGroup());
         return ApiResponse.success("연령대가 성공적으로 수정되었습니다.");
     }
