@@ -6,10 +6,14 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
+import whoreads.backend.domain.celebrity.dto.CelebrityImageRequest;
+import whoreads.backend.domain.celebrity.dto.CelebrityImageResponse;
 import whoreads.backend.domain.celebrity.dto.CelebrityResponse;
 import whoreads.backend.domain.celebrity.entity.CelebrityTag;
 
@@ -33,5 +37,19 @@ public interface CelebrityControllerDocs {
     ResponseEntity<CelebrityResponse> getCelebrityById(
             @Parameter(description = "유명인 ID (1 이상)", required = true)
             @PathVariable @Positive(message = "올바른 유명인 ID를 입력해주세요.") Long id // 바꾼 이유: 파라미터 제약조건 문서화
+    );
+    // 📌 추가된 프로필 이미지 조회 명세
+    @Operation(summary = "유명인 프로필 이미지 조회", description = "특정 유명인의 프로필 이미지 URL을 조회합니다.")
+    ResponseEntity<CelebrityImageResponse> getCelebrityImage(
+            @Parameter(description = "유명인 ID", required = true)
+            @PathVariable @Positive(message = "올바른 유명인 ID를 입력해주세요.") Long id
+    );
+
+    // 📌 추가된 프로필 이미지 수정 명세
+    @Operation(summary = "유명인 프로필 이미지 수정 (PATCH)", description = "특정 유명인의 프로필 이미지 URL을 수정합니다.")
+    ResponseEntity<CelebrityImageResponse> updateCelebrityImage(
+            @Parameter(description = "유명인 ID", required = true)
+            @PathVariable @Positive(message = "올바른 유명인 ID를 입력해주세요.") Long id,
+            @RequestBody @Valid CelebrityImageRequest request // 📌 깰끔하게 import 완료
     );
 }
