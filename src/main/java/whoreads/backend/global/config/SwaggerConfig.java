@@ -17,12 +17,13 @@ import org.springframework.context.annotation.Configuration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 @Configuration
 public class SwaggerConfig {
 
     private static final String DEPLOY_TIME = ZonedDateTime.now(ZoneId.of("Asia/Seoul"))
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z"));
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z", Locale.ENGLISH));
 
     @Bean
     public OpenAPI openAPI() {

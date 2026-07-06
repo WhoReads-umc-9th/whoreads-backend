@@ -42,16 +42,14 @@ public class MemberService {
     }
 
     public MemberResDto.MemberInfo getMemberInfo(Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member = findMemberById(memberId);
 
         return MemberConverter.toMemberInfo(member);
     }
 
     @Transactional
     public void followCelebrity(Long memberId, Long celebrityId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member = findMemberById(memberId);
 
         Celebrity celebrity = celebrityRepository.findById(celebrityId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CELEBRITY_NOT_FOUND));
@@ -70,8 +68,7 @@ public class MemberService {
     }
 
     public boolean isFollowingCelebrity(Long memberId, Long celebrityId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member = findMemberById(memberId);
 
         Celebrity celebrity = celebrityRepository.findById(celebrityId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CELEBRITY_NOT_FOUND));
@@ -81,8 +78,7 @@ public class MemberService {
 
     @Transactional
     public void unfollowCelebrity(Long memberId, Long celebrityId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member = findMemberById(memberId);
 
         Celebrity celebrity = celebrityRepository.findById(celebrityId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CELEBRITY_NOT_FOUND));
@@ -98,22 +94,24 @@ public class MemberService {
 
     @Transactional
     public void updateNickname(Long memberId, String nickname) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member = findMemberById(memberId);
         member.updateNickname(nickname);
     }
 
     @Transactional
     public void updateGender(Long memberId, Gender gender) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member = findMemberById(memberId);
         member.updateGender(gender);
     }
 
     @Transactional
     public void updateAgeGroup(Long memberId, AgeGroup ageGroup) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member = findMemberById(memberId);
         member.updateAgeGroup(ageGroup);
+    }
+
+    private Member findMemberById(Long memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
     }
 }
