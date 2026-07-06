@@ -14,8 +14,16 @@ import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
 @Configuration
 public class SwaggerConfig {
+
+    private static final String DEPLOY_TIME = ZonedDateTime.now(ZoneId.of("Asia/Seoul"))
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z", Locale.ENGLISH));
 
     @Bean
     public OpenAPI openAPI() {
@@ -35,7 +43,7 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("WhoReads API Document")
-                        .description("WhoReads 서비스의 API 명세서입니다.")
+                        .description("WhoReads 서비스의 API 명세서입니다.<br><br>**배포 일시**: " + DEPLOY_TIME)
                         .version("1.0.0"))
                 .addServersItem(new Server().url("/").description("Staging(개발)"))
                 .addServersItem(new Server().url("https://api.whoreads.kro.kr").description("Production"))
