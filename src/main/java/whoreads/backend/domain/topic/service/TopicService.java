@@ -1,12 +1,15 @@
 package whoreads.backend.domain.topic.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import whoreads.backend.domain.book.dto.BookResponse;
 import whoreads.backend.domain.book.entity.Book;
 import whoreads.backend.domain.topic.dto.TopicResponse;
 import whoreads.backend.domain.topic.entity.Topic;
 import whoreads.backend.domain.topic.entity.TopicBook;
+import whoreads.backend.domain.topic.entity.TopicTag;
 import whoreads.backend.domain.topic.repository.TopicBookRepository;
 import whoreads.backend.domain.topic.repository.TopicRepository;
 
@@ -43,6 +46,14 @@ public class TopicService {
                         topic,
                         booksByTopicId.getOrDefault(topic.getId(), List.of())
                 ))
+                .collect(Collectors.toList());
+    }
+
+    public List<BookResponse> getBooksByTopic(TopicTag theme, Pageable pageable) {
+        List<Book> books = topicBookRepository.findBooksByThemeName(theme, pageable);
+
+        return books.stream()
+                .map(BookResponse::from)
                 .collect(Collectors.toList());
     }
 }
