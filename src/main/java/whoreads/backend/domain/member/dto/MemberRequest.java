@@ -16,7 +16,7 @@ public class MemberRequest {
 
     public record UpdateNicknameRequest(
             @NotBlank(message = "닉네임은 필수 입력 항목입니다.")
-            @Size(max = 10, message = "닉네임은 10자 이하이어야 합니다.")
+            @Size(max = 50, message = "닉네임은 50자 이하이어야 합니다.")
             String nickname
     ){}
 
