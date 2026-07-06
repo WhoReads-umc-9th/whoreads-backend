@@ -3,6 +3,8 @@ package whoreads.backend.domain.celebrity.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import whoreads.backend.domain.celebrity.dto.CelebrityImageRequest;
+import whoreads.backend.domain.celebrity.dto.CelebrityImageResponse;
 import whoreads.backend.domain.celebrity.dto.CelebrityResponse;
 import whoreads.backend.domain.celebrity.entity.Celebrity;
 import whoreads.backend.domain.celebrity.entity.CelebrityTag;
@@ -42,5 +44,25 @@ public class CelebrityService {
                 .orElseThrow(() -> new CustomException(ErrorCode.CELEBRITY_NOT_FOUND));
 
         return CelebrityResponse.from(celebrity);
+    }
+
+    // 유명인 프로필 이미지 조회
+    public CelebrityImageResponse getCelebrityImage(Long id) {
+        Celebrity celebrity = celebrityRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.CELEBRITY_NOT_FOUND));
+
+        return CelebrityImageResponse.from(celebrity.getId(), celebrity.getImageUrl());
+    }
+
+    // 유명인 프로필 이미지 수정 (PATCH)
+    @Transactional
+    public CelebrityImageResponse updateCelebrityImage(Long id, CelebrityImageRequest request) {
+        Celebrity celebrity = celebrityRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.CELEBRITY_NOT_FOUND));
+
+        // 변경 감지(Dirty Checking)로 업데이트 처리
+        celebrity.updateImageUrl(request.getImageUrl());
+
+        return CelebrityImageResponse.from(celebrity.getId(), celebrity.getImageUrl());
     }
 }

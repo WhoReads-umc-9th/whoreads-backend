@@ -1,11 +1,14 @@
 package whoreads.backend.domain.celebrity.controller;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import whoreads.backend.domain.celebrity.controller.docs.CelebrityControllerDocs;
+import whoreads.backend.domain.celebrity.dto.CelebrityImageRequest;
+import whoreads.backend.domain.celebrity.dto.CelebrityImageResponse;
 import whoreads.backend.domain.celebrity.dto.CelebrityResponse;
 import whoreads.backend.domain.celebrity.entity.CelebrityTag;
 import whoreads.backend.domain.celebrity.service.CelebrityService;
@@ -35,5 +38,22 @@ public class CelebrityController implements CelebrityControllerDocs {
             @PathVariable @Positive(message = "올바른 유명인 ID를 입력해주세요.") Long id) {
         // 바꾼 이유: 음수나 0 같은 비정상적인 ID가 들어오는 것을 컨트롤러 단에서 미리 차단
         return ResponseEntity.ok(celebrityService.getCelebrity(id));
+    }
+
+    // 3. 프로필 이미지 조회
+    @Override
+    @GetMapping("/{id}/image")
+    public ResponseEntity<CelebrityImageResponse> getCelebrityImage(
+            @PathVariable @Positive(message = "올바른 유명인 ID를 입력해주세요.") Long id) {
+        return ResponseEntity.ok(celebrityService.getCelebrityImage(id));
+    }
+
+    // 4. 프로필 이미지 수정 (PATCH)
+    @Override
+    @PatchMapping("/{id}/image")
+    public ResponseEntity<CelebrityImageResponse> updateCelebrityImage(
+            @PathVariable @Positive(message = "올바른 유명인 ID를 입력해주세요.") Long id,
+            @RequestBody @Valid CelebrityImageRequest request) {
+        return ResponseEntity.ok(celebrityService.updateCelebrityImage(id, request));
     }
 }
