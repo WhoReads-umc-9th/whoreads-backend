@@ -194,4 +194,26 @@ public class UserBookServiceImpl implements UserBookService {
 
         return userBook;
     }
+
+    // 사용자와 유명인 간의 친밀도 점수 계산
+    public int calculateIntimacyScore(Long memberId, Long celebrityId) {
+
+        List<CelebrityBook> celebBooks = celebrityBookRepository.findAllByCelebrityIdsWithBook(List.of(celebrityId));
+
+        int totalRecommendedCount = celebBooks.size();
+
+        List<Long> recommendedBookIds = celebBooks.stream()
+                .map(celebBook -> celebBook.getBook().getId())
+                .toList();
+
+        int userReadCount = userBookRepository.countByMemberIdAndReadingStatusAndBookIdIn(
+                memberId,
+                ReadingStatus.COMPLETE,
+                recommendedBookIds
+        );
+
+        int score = (int) (((double) userReadCount / totalRecommendedCount) * 100);
+
+        return score;
+    }
 }

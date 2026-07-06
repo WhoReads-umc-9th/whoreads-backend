@@ -15,4 +15,6 @@ public interface UserBookService {
     void updateUserBook(Long memberId, Long userBookId, UserBookRequest.UpdateStatus request);
 
     void deleteBookFromLibrary(Long memberId, Long userBookId);
+
+    int calculateIntimacyScore(Long memberId, Long celebrityId);
 }

@@ -82,6 +82,18 @@ public class Member extends BaseEntity {
         this.fcmTokenUpdatedAt = LocalDateTime.now();
     }
 
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void updateGender(Gender gender) {
+        this.gender = gender;
+    }
+
+    public void updateAgeGroup(AgeGroup ageGroup) {
+        this.ageGroup = ageGroup;
+    }
+
     // 회원 탈퇴 (Soft Delete)
     public void withdraw() {
         this.status = Status.INACTIVE;
