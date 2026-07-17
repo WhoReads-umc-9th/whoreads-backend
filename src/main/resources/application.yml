@@ -9,8 +9,8 @@ spring:
   # JPA (공통 설정)
   jpa:
     hibernate:
-#      ddl-auto: update
-      ddl-auto: none
+      ddl-auto: update
+#      ddl-auto: none
     properties:
       hibernate:
         format_sql: true
@@ -53,7 +53,7 @@ aladin:
 
 # Server
 server:
-  port: 8080
+  port: 8081
 
 # Logging
 logging:

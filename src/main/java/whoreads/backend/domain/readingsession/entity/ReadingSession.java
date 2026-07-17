@@ -41,6 +41,9 @@ public class ReadingSession extends BaseEntity {
     @Column(name = "last_heartbeat_at")
     private LocalDateTime lastHeartbeatAt;
 
+    @Column(name = "remaining_minutes")
+    private Long remainingMinutes;
+
     @OneToMany(mappedBy = "readingSession", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReadingInterval> intervals = new ArrayList<>();
 
@@ -66,16 +69,42 @@ public class ReadingSession extends BaseEntity {
         this.status = SessionStatus.IN_PROGRESS;
     }
 
+    public void recover() {
+        if (this.status != SessionStatus.SUSPENDED) {
+            throw new IllegalStateException("SUSPENDED 상태인 세션만 재개할 수 있습니다. 현재 상태: " + this.status);
+        }
+        this.status = SessionStatus.IN_PROGRESS;
+    }
+
     public void updateHeartbeat(LocalDateTime heartbeatAt) {
         Objects.requireNonNull(heartbeatAt, "heartbeatAt must not be null");
         this.lastHeartbeatAt = heartbeatAt;
     }
 
-    public void suspend() {
+    public void suspend(Long goalMinutes) {
         if (this.status != SessionStatus.IN_PROGRESS && this.status != SessionStatus.PAUSED) {
-            throw new IllegalStateException("IN_PROGRESS 또는 PAUSED 상태의 세션만 중단할 수 있습니다. 현재 상태: " + this.status);
+            throw new IllegalStateException("진행 중인 세션만 중단할 수 있습니다.");
         }
+
+        // 아직 닫히지 않은 모든 인터벌을 마지막 하트비트 시점으로 닫아버림
+        for (ReadingInterval interval : this.intervals) {
+            if (interval.getEndTime() == null) {
+                LocalDateTime endTime = this.lastHeartbeatAt != null ? this.lastHeartbeatAt : interval.getStartTime().plusSeconds(1);
+                if (!endTime.isAfter(interval.getStartTime())) {
+                    endTime = interval.getStartTime().plusSeconds(1);
+                }
+                interval.end(endTime);
+            }
+        }
+
         this.status = SessionStatus.SUSPENDED;
+        this.finishedAt = this.lastHeartbeatAt;
+
+        // 지금까지 읽은 총 시간 계산 (total_read_times)
+        this.totalMinutes = calculateTotalMinutes();
+
+        // 남은 시간 계산 (remaining_times)
+        this.remainingMinutes = goalMinutes - this.totalMinutes;
     }
 
     public void complete() {
@@ -102,5 +131,10 @@ public class ReadingSession extends BaseEntity {
                 .filter(interval -> interval.getDurationMinutes() != null)
                 .mapToLong(ReadingInterval::getDurationMinutes)
                 .sum();
+    }
+
+    public void processIdleTime(LocalDateTime now) {
+        Objects.requireNonNull(now, "now must not be null");
+        this.lastHeartbeatAt = now;
     }
 }

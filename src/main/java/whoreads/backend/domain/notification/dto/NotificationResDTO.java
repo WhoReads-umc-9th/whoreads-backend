@@ -1,8 +1,8 @@
 package whoreads.backend.domain.notification.dto;
 
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import whoreads.backend.domain.notification.entity.FollowLink;
@@ -12,15 +12,15 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
-// NULL 인 필드 보내지 않기
 public class NotificationResDTO {
-    // 알림 설정 리스트 조회
+
     @Builder
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record TotalSettingDTO(
-            SettingDTO followSetting,
-            List<SettingDTO> routineSettings
+            @JsonProperty("follow_setting") SettingDTO followSetting,
+            @JsonProperty("routine_settings") List<SettingDTO> routineSettings
     ){}
+
     @Builder
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record SettingDTO(
@@ -30,16 +30,17 @@ public class NotificationResDTO {
             String type,
             LocalTime time,
             List<DayOfWeek> days,
-            boolean isEnabled
+            @JsonProperty("is_enabled") boolean isEnabled
     ){}
-    // 알림내역 조회
+
     @Builder
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record TotalInboxDTO(
             List<HistoryDTO> contents,
-            Long nextCursor,
-            Boolean hasNext
+            @JsonProperty("next_cursor") Long nextCursor,
+            @JsonProperty("has_next") Boolean hasNext
     ){}
+
     @Builder
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record HistoryDTO(
@@ -48,7 +49,8 @@ public class NotificationResDTO {
             String title,
             String body,
             FollowLink link,
-            boolean isRead,
+            @JsonProperty("is_read") boolean isRead,
+            @JsonProperty("created_at")
             @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
             LocalDateTime createdAt
     ){}

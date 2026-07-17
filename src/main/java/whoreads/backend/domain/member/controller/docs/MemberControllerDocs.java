@@ -5,6 +5,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -73,4 +76,229 @@ public interface MemberControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "이미 팔로우 중인 유명인"),
     })
     ApiResponse<Void> followCelebrity(@PathVariable @Positive Long celebrityId, @AuthenticationPrincipal Long memberId);
+
+    @Operation(
+            summary = "사용자가 유명인을 팔로우하는지 확인하는 API",
+            description = "팔로우중이라면 result = true, 아니라면 false를 리턴합니다. 유명인을 찾을 수 없는 경우에도 false를 리턴합니다."
+    )
+    ApiResponse<Boolean> checkFollowStatus(@AuthenticationPrincipal Long memberId, @PathVariable Long celebrityId);
+
+    @Operation(
+            summary = "유명인 언팔로우 API",
+            description = "이미 언팔로우 상태라면 is_success=false, 언팔로우에 성공했다면 is_success=true를 리턴합니다."
+    )
+    ApiResponse<Void> unfollowCelebrity(@AuthenticationPrincipal Long memberId, @PathVariable Long celebrityId);
+
+    @Operation(
+            summary = "닉네임 수정 API",
+            description = "사용자의 닉네임을 변경합니다."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "닉네임 수정 성공",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": true,
+                                      "code": 200,
+                                      "message": "닉네임이 성공적으로 수정되었습니다."
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "잘못된 입력값",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": false,
+                                      "code": 400,
+                                      "message": "닉네임은 필수 입력 항목입니다."
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "인증 필요",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": false,
+                                      "code": 401,
+                                      "message": "인증이 필요합니다."
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "회원 없음",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": false,
+                                      "code": 404,
+                                      "message": "회원을 찾을 수 없습니다."
+                                    }
+                                    """)
+                    )
+            )
+    })
+    ApiResponse<Void> updateNickname(
+            @AuthenticationPrincipal Long memberId,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "변경할 닉네임 정보",
+                    required = true
+            )
+            @RequestBody @Valid MemberRequest.UpdateNicknameRequest request
+    );
+
+    @Operation(
+            summary = "성별 수정 API",
+            description = "사용자의 성별을 변경합니다."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성별 수정 성공",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": true,
+                                      "code": 200,
+                                      "message": "성별이 성공적으로 수정되었습니다."
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "잘못된 입력값",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": false,
+                                      "code": 400,
+                                      "message": "성별은 필수 입력 항목입니다."
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "인증 필요",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": false,
+                                      "code": 401,
+                                      "message": "인증이 필요합니다."
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "회원 없음",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": false,
+                                      "code": 404,
+                                      "message": "회원을 찾을 수 없습니다."
+                                    }
+                                    """)
+                    )
+            )
+    })
+    ApiResponse<Void> updateGender(
+            @AuthenticationPrincipal Long memberId,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "변경할 성별 정보 (MALE, FEMALE, ETC)",
+                    required = true
+            )
+            @RequestBody @Valid MemberRequest.UpdateGenderRequest request
+    );
+
+    @Operation(
+            summary = "연령대 수정 API",
+            description = "사용자의 연령대를 변경합니다."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "연령대 수정 성공",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": true,
+                                      "code": 200,
+                                      "message": "연령대가 성공적으로 수정되었습니다."
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "잘못된 입력값",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": false,
+                                      "code": 400,
+                                      "message": "연령대는 필수 입력 항목입니다."
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "인증 필요",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": false,
+                                      "code": 401,
+                                      "message": "인증이 필요합니다."
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "회원 없음",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": false,
+                                      "code": 404,
+                                      "message": "회원을 찾을 수 없습니다."
+                                    }
+                                    """)
+                    )
+            )
+    })
+    ApiResponse<Void> updateAgeGroup(
+            @AuthenticationPrincipal Long memberId,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "변경할 연령대 정보 (TEENAGERS, TWENTIES, THIRTIES, FORTIES, FIFTY_PLUS)",
+                    required = true
+            )
+            @RequestBody @Valid MemberRequest.UpdateAgeRequest request
+    );
 }

@@ -2,13 +2,17 @@ package whoreads.backend.domain.member.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import whoreads.backend.domain.focusmode.entity.FocusTimerSetting;
 import whoreads.backend.domain.member.enums.AgeGroup;
 import whoreads.backend.domain.member.enums.Gender;
 import whoreads.backend.domain.member.enums.Provider;
 import whoreads.backend.domain.member.enums.Status;
+import whoreads.backend.domain.readingsession.entity.ReadingSession;
 import whoreads.backend.global.entity.BaseEntity;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Builder
 @Entity
@@ -70,6 +74,14 @@ public class Member extends BaseEntity {
 
     private LocalDateTime deletedAt;
 
+    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private FocusTimerSetting focusTimerSetting;
+
+    // 2. ReadingSession과의 1:N 양방향 관계 설정
+    @Builder.Default
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ReadingSession> readingSessions = new ArrayList<>();
+
     public Status setStatus(Status status) {
         this.status = status;
         return status;
@@ -78,6 +90,18 @@ public class Member extends BaseEntity {
     public void updateFcmToken(String fcmToken){
         this.fcmToken = fcmToken;
         this.fcmTokenUpdatedAt = LocalDateTime.now();
+    }
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void updateGender(Gender gender) {
+        this.gender = gender;
+    }
+
+    public void updateAgeGroup(AgeGroup ageGroup) {
+        this.ageGroup = ageGroup;
     }
 
     // 회원 탈퇴 (Soft Delete)

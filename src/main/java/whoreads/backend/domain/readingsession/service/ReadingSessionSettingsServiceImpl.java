@@ -144,6 +144,7 @@ public class ReadingSessionSettingsServiceImpl implements ReadingSessionSettings
     }
 
     @Override // 추가 - 현
+    @Transactional
     public ReadingSessionResponse.SessionSettings getSessionSettings(Long memberId) {
         FocusTimerSetting setting = getOrCreateSetting(memberId);
 

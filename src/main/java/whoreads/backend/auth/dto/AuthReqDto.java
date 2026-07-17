@@ -34,8 +34,7 @@ public class AuthReqDto {
     // JSON 최상위 {} 역할
     public record SignUpRequest(
             @Valid JoinRequest request,
-            @JsonProperty("member_info")
-            @Valid MemberInfo memberInfo
+            @JsonProperty("member_info") @Valid MemberInfo memberInfo
     ) {}
 
     // 회원가입시 사용
@@ -111,16 +110,13 @@ public class AuthReqDto {
 
     // 비밀번호 재설정
     public record PasswordChangeRequest(
-            @JsonProperty("current_password")
             @NotBlank
             String currentPassword,
-            @JsonProperty("new_password")
             @NotBlank
             @Size(min = 8, message = "비밀번호는 8자 이상이어야 합니다.")
             @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=\\S+$).+$",
                     message = "비밀번호는 영문, 숫자를 포함해야 하며 공백을 사용할 수 없습니다.")
             String newPassword,
-            @JsonProperty("confirm_password")
             @NotBlank
             String confirmPassword
     ){}
