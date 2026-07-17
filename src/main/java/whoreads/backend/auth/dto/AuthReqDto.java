@@ -71,6 +71,33 @@ public class AuthReqDto {
         String refreshToken
     ){}
 
+    // 카카오 로그인 (모바일 앱: 카카오 SDK가 이미 발급받은 access_token을 그대로 전달)
+    public record KakaoTokenLoginRequest(
+            @JsonProperty("access_token")
+            @Schema(description = "카카오 SDK로 발급받은 카카오 access_token", example = "abcd1234...")
+            @NotBlank
+            String accessToken
+    ){}
+
+    // 카카오 최초 로그인 시 추가 정보를 입력받아 회원가입을 완료
+    public record KakaoSignUpRequest(
+            @JsonProperty("registration_token")
+            @Schema(description = "카카오 로그인 응답으로 받은 임시 가입용 토큰", example = "eyJhbGciOiJIUzI1NiJ...")
+            @NotBlank
+            String registrationToken,
+
+            @Schema(description = "닉네임", example = "woody123")
+            @NotBlank
+            String nickname,
+
+            @NotNull
+            Gender gender,
+
+            @JsonProperty("age_group")
+            @NotNull
+            AgeGroup ageGroup
+    ){}
+
     public record MemberInfo(
             @NotBlank
             String nickname,

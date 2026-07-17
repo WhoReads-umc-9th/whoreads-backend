@@ -71,6 +71,24 @@ public class AuthController implements AuthControllerDocs {
         return ApiResponse.success("엑세스 토큰 재발급이 완료되었습니다.", refresh);
     }
 
+
+
+    @Override
+    @PostMapping("/kakao/login/token")
+    public ApiResponse<AuthResDto.KakaoLoginData> kakaoLoginWithToken(@RequestBody @Valid AuthReqDto.KakaoTokenLoginRequest request) {
+        AuthResDto.KakaoLoginData data = authService.kakaoLoginWithToken(request);
+
+        return ApiResponse.success("카카오 로그인 처리가 완료되었습니다.", data);
+    }
+
+    @Override
+    @PostMapping("/kakao/signup")
+    public ApiResponse<AuthResDto.TokenData> kakaoSignup(@RequestBody @Valid AuthReqDto.KakaoSignUpRequest request) {
+        AuthResDto.TokenData tokenData = authService.kakaoSignup(request);
+
+        return ApiResponse.created("카카오 회원가입에 성공했습니다.", tokenData);
+    }
+
     @Override
     @PatchMapping("/delete")
     public ApiResponse<Void> delete(@AuthenticationPrincipal Long memberId) {

@@ -5,6 +5,7 @@ import lombok.*;
 import whoreads.backend.domain.focusmode.entity.FocusTimerSetting;
 import whoreads.backend.domain.member.enums.AgeGroup;
 import whoreads.backend.domain.member.enums.Gender;
+import whoreads.backend.domain.member.enums.Provider;
 import whoreads.backend.domain.member.enums.Status;
 import whoreads.backend.domain.readingsession.entity.ReadingSession;
 import whoreads.backend.global.entity.BaseEntity;
@@ -18,7 +19,7 @@ import java.util.List;
 @Getter @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Table
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"provider", "providerId"}))
 public class Member extends BaseEntity {
 
     @Id
@@ -44,6 +45,15 @@ public class Member extends BaseEntity {
 
     @Column(nullable = false)
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private Provider provider = Provider.LOCAL;
+
+    // 소셜 로그인 제공자가 발급한 고유 ID (LOCAL 회원은 null)
+    @Column
+    private String providerId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

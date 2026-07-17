@@ -12,6 +12,8 @@ CREATE TABLE `member` (
     `email` VARCHAR(255) NOT NULL UNIQUE,
     `login_id` VARCHAR(255) NOT NULL UNIQUE,
     `password` VARCHAR(255) NOT NULL,
+    `provider` ENUM('LOCAL', 'KAKAO') NOT NULL DEFAULT 'LOCAL',
+    `provider_id` VARCHAR(255) NULL COMMENT '소셜 로그인 제공자가 발급한 고유 ID (LOCAL 회원은 NULL)',
     `status` ENUM('INACTIVE', 'ACTIVE') NOT NULL,
     `dna_type` VARCHAR(255) NULL,
     `dna_type_name` VARCHAR(255) NULL,
@@ -20,7 +22,8 @@ CREATE TABLE `member` (
     `deleted_at` DATETIME(6) NULL,
     `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_member_provider` (`provider`, `provider_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================

@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import whoreads.backend.domain.member.entity.Member;
+import whoreads.backend.domain.member.enums.Provider;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -15,6 +16,10 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     boolean existsByEmail(String email);
 
     boolean existsByLoginId(String loginId);
+
+    Optional<Member> findByProviderAndProviderId(Provider provider, String providerId);
+
+    boolean existsByProviderAndProviderId(Provider provider, String providerId);
 
     @Modifying(clearAutomatically = true)
     @Query("""
