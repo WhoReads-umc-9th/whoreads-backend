@@ -1,5 +1,6 @@
 package whoreads.backend.auth.service;
 
+import io.jsonwebtoken.Claims;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
