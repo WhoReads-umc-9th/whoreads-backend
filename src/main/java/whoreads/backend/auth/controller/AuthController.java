@@ -71,10 +71,12 @@ public class AuthController implements AuthControllerDocs {
         return ApiResponse.success("엑세스 토큰 재발급이 완료되었습니다.", refresh);
     }
 
+
+
     @Override
-    @PostMapping("/kakao/login")
-    public ApiResponse<AuthResDto.KakaoLoginData> kakaoLogin(@RequestBody @Valid AuthReqDto.KakaoLoginRequest request) {
-        AuthResDto.KakaoLoginData data = authService.kakaoLogin(request);
+    @PostMapping("/kakao/login/token")
+    public ApiResponse<AuthResDto.KakaoLoginData> kakaoLoginWithToken(@RequestBody @Valid AuthReqDto.KakaoTokenLoginRequest request) {
+        AuthResDto.KakaoLoginData data = authService.kakaoLoginWithToken(request);
 
         return ApiResponse.success("카카오 로그인 처리가 완료되었습니다.", data);
     }

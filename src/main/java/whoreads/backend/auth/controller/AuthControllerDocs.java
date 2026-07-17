@@ -51,8 +51,8 @@ public interface AuthControllerDocs {
     ApiResponse<AuthResDto.TokenData> refresh(@RequestBody @Valid AuthReqDto.RefreshRequest request);
 
 
-    @Operation(summary = "카카오 로그인",
-            description = "카카오 인가 코드(code)로 로그인을 시도합니다. \n\n" +
+    @Operation(summary = "카카오 로그인 (모바일 앱)",
+            description = "카카오 SDK(iOS/Android)가 이미 발급받은 카카오 access_token으로 로그인을 시도합니다. \n\n" +
                     "- 이미 가입된 회원이면 `is_new_member=false`와 함께 로그인 토큰(`token_data`)을 반환합니다. \n\n" +
                     "- 처음 로그인하는 회원이면 `is_new_member=true`와 함께 10분간 유효한 `registration_token`을 반환합니다. " +
                     "이 토큰으로 `/api/auth/kakao/signup`을 호출해 회원가입을 완료해야 합니다.")
@@ -61,7 +61,7 @@ public interface AuthControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "이메일 제공에 동의하지 않은 카카오 계정"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "502", description = "카카오 서버와 통신 실패")
     })
-    ApiResponse<AuthResDto.KakaoLoginData> kakaoLogin(@RequestBody @Valid AuthReqDto.KakaoLoginRequest request);
+    ApiResponse<AuthResDto.KakaoLoginData> kakaoLoginWithToken(@RequestBody @Valid AuthReqDto.KakaoTokenLoginRequest request);
 
 
     @Operation(summary = "카카오 회원가입",

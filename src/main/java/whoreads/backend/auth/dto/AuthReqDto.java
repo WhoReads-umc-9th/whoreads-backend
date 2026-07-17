@@ -1,5 +1,6 @@
 package whoreads.backend.auth.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -25,6 +26,7 @@ public class AuthReqDto {
 
     // 아이디 중복 확인 요청
     public record CheckIdRequest(
+            @JsonProperty("login_id")
             @Schema(description = "중복 확인할 아이디", example = "woody123")
             @NotBlank String loginId
     ){}
@@ -32,11 +34,13 @@ public class AuthReqDto {
     // JSON 최상위 {} 역할
     public record SignUpRequest(
             @Valid JoinRequest request,
+            @JsonProperty("member_info")
             @Valid MemberInfo memberInfo
     ) {}
 
     // 회원가입시 사용
     public record JoinRequest(
+            @JsonProperty("login_id")
             @Schema(description = "로그인 아이디", example = "woody123")
             @NotBlank
             String loginId,
@@ -54,6 +58,7 @@ public class AuthReqDto {
     ){}
 
     public record LoginRequest(
+            @JsonProperty("login_id")
             @Schema(description = "로그인 아이디", example = "woody123")
             @NotBlank String loginId,
             @Schema(description = "비밀번호", example = "password1234!")
@@ -61,20 +66,23 @@ public class AuthReqDto {
     ){}
 
     public record RefreshRequest(
+        @JsonProperty("refresh_token")
         @Schema(description = "리프레시 토큰", example = "eyJhbGciOiJIUzI1NiJ...")
         @NotBlank
         String refreshToken
     ){}
 
-    // 카카오 로그인 (클라이언트가 카카오로부터 받은 인가 코드 전달)
-    public record KakaoLoginRequest(
-            @Schema(description = "카카오 인가 코드", example = "abcd1234...")
+    // 카카오 로그인 (모바일 앱: 카카오 SDK가 이미 발급받은 access_token을 그대로 전달)
+    public record KakaoTokenLoginRequest(
+            @JsonProperty("access_token")
+            @Schema(description = "카카오 SDK로 발급받은 카카오 access_token", example = "abcd1234...")
             @NotBlank
-            String code
+            String accessToken
     ){}
 
     // 카카오 최초 로그인 시 추가 정보를 입력받아 회원가입을 완료
     public record KakaoSignUpRequest(
+            @JsonProperty("registration_token")
             @Schema(description = "카카오 로그인 응답으로 받은 임시 가입용 토큰", example = "eyJhbGciOiJIUzI1NiJ...")
             @NotBlank
             String registrationToken,
@@ -86,6 +94,7 @@ public class AuthReqDto {
             @NotNull
             Gender gender,
 
+            @JsonProperty("age_group")
             @NotNull
             AgeGroup ageGroup
     ){}
@@ -95,19 +104,23 @@ public class AuthReqDto {
             String nickname,
             @NotNull
             Gender gender,
+            @JsonProperty("age_group")
             @NotNull
             AgeGroup ageGroup
     ){}
 
     // 비밀번호 재설정
     public record PasswordChangeRequest(
+            @JsonProperty("current_password")
             @NotBlank
             String currentPassword,
+            @JsonProperty("new_password")
             @NotBlank
             @Size(min = 8, message = "비밀번호는 8자 이상이어야 합니다.")
             @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=\\S+$).+$",
                     message = "비밀번호는 영문, 숫자를 포함해야 하며 공백을 사용할 수 없습니다.")
             String newPassword,
+            @JsonProperty("confirm_password")
             @NotBlank
             String confirmPassword
     ){}

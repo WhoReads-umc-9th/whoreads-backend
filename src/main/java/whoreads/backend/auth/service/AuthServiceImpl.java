@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import whoreads.backend.auth.dto.AuthReqDto;
 import whoreads.backend.auth.dto.AuthResDto;
-import whoreads.backend.auth.dto.KakaoTokenResponseDto;
 import whoreads.backend.auth.dto.KakaoUserInfoDto;
 import whoreads.backend.auth.jwt.JwtTokenProvider;
 import whoreads.backend.auth.principal.CustomUserDetails;
@@ -126,14 +125,17 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthResDto.KakaoLoginData kakaoLogin(AuthReqDto.KakaoLoginRequest request) {
-        // 1. 인가 코드로 카카오 액세스 토큰 교환 후, 사용자 정보 조회
-        KakaoTokenResponseDto kakaoToken = kakaoOAuthClient.requestToken(request.code());
-        KakaoUserInfoDto userInfo = kakaoOAuthClient.requestUserInfo(kakaoToken.accessToken());
+    public AuthResDto.KakaoLoginData kakaoLoginWithToken(AuthReqDto.KakaoTokenLoginRequest request) {
+        // 카카오 SDK(iOS/Android)가 이미 발급받은 access_token으로 바로 사용자 정보 조회
+        KakaoUserInfoDto userInfo = kakaoOAuthClient.requestUserInfo(request.accessToken());
 
+        return processKakaoUserInfo(userInfo);
+    }
+
+    private AuthResDto.KakaoLoginData processKakaoUserInfo(KakaoUserInfoDto userInfo) {
         String providerId = String.valueOf(userInfo.id());
 
-        // 2. 이미 가입된 카카오 회원이면 바로 로그인 처리
+        // 이미 가입된 카카오 회원이면 바로 로그인 처리
         Member member = memberRepository.findByProviderAndProviderId(Provider.KAKAO, providerId).orElse(null);
         if (member != null) {
             AuthResDto.TokenData tokenData = jwtTokenProvider.generateTokenResponse(member.getId());
@@ -149,7 +151,7 @@ public class AuthServiceImpl implements AuthService {
                     .build();
         }
 
-        // 3. 신규 회원이면 닉네임/성별/연령대를 입력받기 위해 임시 가입용 토큰만 발급
+        // 신규 회원이면 닉네임/성별/연령대를 입력받기 위해 임시 가입용 토큰만 발급
         String email = userInfo.kakaoAccount() != null ? userInfo.kakaoAccount().email() : null;
         if (email == null)
             throw new CustomException(ErrorCode.KAKAO_EMAIL_REQUIRED);
