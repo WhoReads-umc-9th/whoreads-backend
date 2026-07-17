@@ -34,6 +34,10 @@ public interface AuthService {
 
     AuthResDto.TokenData refresh(AuthReqDto.RefreshRequest dto);
 
+    AuthResDto.KakaoLoginData kakaoLoginWithToken(AuthReqDto.KakaoTokenLoginRequest request);
+
+    AuthResDto.TokenData kakaoSignup(AuthReqDto.KakaoSignUpRequest request);
+
     void delete(Long memberId);
 
     void changePassword(Long memberId, AuthReqDto.PasswordChangeRequest request);

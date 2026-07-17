@@ -29,4 +29,18 @@ public class AuthResDto {
             @JsonProperty("refresh_token") String refreshToken,
             @JsonProperty("access_token_expires_in") Long accessTokenExpiresIn
     ){}
+
+    @Builder
+    public record KakaoLoginData(
+            // true: 신규 회원 -> registrationToken으로 /kakao/signup 호출 필요
+            // false: 기존 회원 -> tokenData로 바로 로그인 완료
+            @JsonProperty("is_new_member")
+            boolean isNewMember,
+            @JsonProperty("token_data")
+            TokenData tokenData,
+            @JsonProperty("registration_token")
+            String registrationToken,
+            String email,
+            String nickname
+    ){}
 }
