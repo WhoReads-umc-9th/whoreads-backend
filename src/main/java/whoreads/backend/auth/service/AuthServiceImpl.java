@@ -1,5 +1,6 @@
 package whoreads.backend.auth.service;
 
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -11,10 +12,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import whoreads.backend.auth.dto.AuthReqDto;
 import whoreads.backend.auth.dto.AuthResDto;
+import whoreads.backend.auth.dto.KakaoTokenResponseDto;
+import whoreads.backend.auth.dto.KakaoUserInfoDto;
 import whoreads.backend.auth.jwt.JwtTokenProvider;
 import whoreads.backend.auth.principal.CustomUserDetails;
 import whoreads.backend.domain.member.converter.MemberConverter;
 import whoreads.backend.domain.member.entity.Member;
+import whoreads.backend.domain.member.enums.Provider;
 import whoreads.backend.domain.member.enums.Status;
 import whoreads.backend.domain.member.repository.MemberRepository;
 import whoreads.backend.global.exception.CustomException;
@@ -22,6 +26,7 @@ import whoreads.backend.global.exception.ErrorCode;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -36,6 +41,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final EmailService emailService;
     private final StringRedisTemplate redisTemplate;
+    private final KakaoOAuthClient kakaoOAuthClient;
 
     @Override
     public AuthResDto.JoinData signup(AuthReqDto.SignUpRequest dto) {
@@ -117,6 +123,83 @@ public class AuthServiceImpl implements AuthService {
 
         // 토큰 재발급
         return jwtTokenProvider.generateTokenResponse(memberId);
+    }
+
+    @Override
+    public AuthResDto.KakaoLoginData kakaoLogin(AuthReqDto.KakaoLoginRequest request) {
+        // 1. 인가 코드로 카카오 액세스 토큰 교환 후, 사용자 정보 조회
+        KakaoTokenResponseDto kakaoToken = kakaoOAuthClient.requestToken(request.code());
+        KakaoUserInfoDto userInfo = kakaoOAuthClient.requestUserInfo(kakaoToken.accessToken());
+
+        String providerId = String.valueOf(userInfo.id());
+
+        // 2. 이미 가입된 카카오 회원이면 바로 로그인 처리
+        Member member = memberRepository.findByProviderAndProviderId(Provider.KAKAO, providerId).orElse(null);
+        if (member != null) {
+            AuthResDto.TokenData tokenData = jwtTokenProvider.generateTokenResponse(member.getId());
+            redisTemplate.opsForValue().set(
+                    "RT:" + member.getId(),
+                    tokenData.refreshToken(),
+                    Duration.ofDays(7)
+            );
+
+            return AuthResDto.KakaoLoginData.builder()
+                    .isNewMember(false)
+                    .tokenData(tokenData)
+                    .build();
+        }
+
+        // 3. 신규 회원이면 닉네임/성별/연령대를 입력받기 위해 임시 가입용 토큰만 발급
+        String email = userInfo.kakaoAccount() != null ? userInfo.kakaoAccount().email() : null;
+        if (email == null)
+            throw new CustomException(ErrorCode.KAKAO_EMAIL_REQUIRED);
+
+        String nickname = (userInfo.kakaoAccount() != null && userInfo.kakaoAccount().profile() != null)
+                ? userInfo.kakaoAccount().profile().nickname()
+                : null;
+
+        String registrationToken = jwtTokenProvider.createKakaoRegistrationToken(providerId, email, nickname);
+
+        return AuthResDto.KakaoLoginData.builder()
+                .isNewMember(true)
+                .registrationToken(registrationToken)
+                .email(email)
+                .nickname(nickname)
+                .build();
+    }
+
+    @Override
+    public AuthResDto.TokenData kakaoSignup(AuthReqDto.KakaoSignUpRequest request) {
+        Claims claims = jwtTokenProvider.parseKakaoRegistrationToken(request.registrationToken());
+        String providerId = claims.get("providerId", String.class);
+        String email = claims.get("email", String.class);
+
+        if (memberRepository.existsByProviderAndProviderId(Provider.KAKAO, providerId))
+            throw new CustomException(ErrorCode.ALREADY_REGISTERED_KAKAO);
+        validateDuplicateEmail(email);
+
+        Member member = Member.builder()
+                .provider(Provider.KAKAO)
+                .providerId(providerId)
+                .loginId("kakao_" + providerId)
+                .email(email)
+                .nickname(request.nickname())
+                .gender(request.gender())
+                .ageGroup(request.ageGroup())
+                // 소셜 로그인 회원은 비밀번호 로그인을 쓰지 않으므로, 알 수 없는 랜덤 값으로 채워 NOT NULL 제약만 만족시킨다.
+                .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                .build();
+
+        memberRepository.save(member);
+
+        AuthResDto.TokenData tokenData = jwtTokenProvider.generateTokenResponse(member.getId());
+        redisTemplate.opsForValue().set(
+                "RT:" + member.getId(),
+                tokenData.refreshToken(),
+                Duration.ofDays(7)
+        );
+
+        return tokenData;
     }
 
     @Override

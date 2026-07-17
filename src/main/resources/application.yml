@@ -51,6 +51,14 @@ aladin:
     key: ${ALADIN_KEY}
     url: "http://www.aladin.co.kr/ttb/api/ItemSearch.aspx"
 
+# Kakao Login
+kakao:
+  # 카카오 디벨로퍼스에서 앱을 발급받기 전에는 비어 있어도 서버는 정상 기동됨 (카카오 로그인 API 호출 시에만 필요)
+  client-id: ${KAKAO_CLIENT_ID:}
+  # 카카오 디벨로퍼스 > 보안 탭에서 Client Secret을 발급/활성화한 경우에만 설정 (미사용 시 비워둠)
+  client-secret: ${KAKAO_CLIENT_SECRET:}
+  redirect-uri: ${KAKAO_REDIRECT_URI:}
+
 # Server
 server:
   port: 8080

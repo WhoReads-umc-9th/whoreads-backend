@@ -28,4 +28,15 @@ public class AuthResDto {
             String refreshToken,
             Long accessTokenExpiresIn
     ){}
+
+    @Builder
+    public record KakaoLoginData(
+            // true: 신규 회원 -> registrationToken으로 /kakao/signup 호출 필요
+            // false: 기존 회원 -> tokenData로 바로 로그인 완료
+            boolean isNewMember,
+            TokenData tokenData,
+            String registrationToken,
+            String email,
+            String nickname
+    ){}
 }

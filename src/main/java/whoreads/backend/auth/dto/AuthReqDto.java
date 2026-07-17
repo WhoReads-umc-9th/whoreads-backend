@@ -66,6 +66,30 @@ public class AuthReqDto {
         String refreshToken
     ){}
 
+    // 카카오 로그인 (클라이언트가 카카오로부터 받은 인가 코드 전달)
+    public record KakaoLoginRequest(
+            @Schema(description = "카카오 인가 코드", example = "abcd1234...")
+            @NotBlank
+            String code
+    ){}
+
+    // 카카오 최초 로그인 시 추가 정보를 입력받아 회원가입을 완료
+    public record KakaoSignUpRequest(
+            @Schema(description = "카카오 로그인 응답으로 받은 임시 가입용 토큰", example = "eyJhbGciOiJIUzI1NiJ...")
+            @NotBlank
+            String registrationToken,
+
+            @Schema(description = "닉네임", example = "woody123")
+            @NotBlank
+            String nickname,
+
+            @NotNull
+            Gender gender,
+
+            @NotNull
+            AgeGroup ageGroup
+    ){}
+
     public record MemberInfo(
             @NotBlank
             String nickname,

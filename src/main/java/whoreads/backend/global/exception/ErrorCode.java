@@ -22,6 +22,9 @@ public enum ErrorCode {
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "만료된 토큰입니다."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
     PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "새 비밀번호와 비밀번호 확인이 일치하지 않습니다."),
+    KAKAO_API_ERROR(HttpStatus.BAD_GATEWAY, "카카오 서버와 통신 중 오류가 발생했습니다."),
+    KAKAO_EMAIL_REQUIRED(HttpStatus.BAD_REQUEST, "카카오 계정의 이메일 제공에 동의해주세요."),
+    ALREADY_REGISTERED_KAKAO(HttpStatus.CONFLICT, "이미 가입된 카카오 계정입니다."),
 
     // Member
     DUPLICATE_ID(HttpStatus.CONFLICT, "이미 사용 중인 아이디입니다. 다른 아이디를 사용하세요."),

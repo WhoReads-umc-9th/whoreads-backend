@@ -1,6 +1,7 @@
 package whoreads.backend.auth.jwt;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -12,6 +13,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 import whoreads.backend.auth.dto.AuthResDto;
+import whoreads.backend.global.exception.CustomException;
+import whoreads.backend.global.exception.ErrorCode;
 
 import java.security.Key;
 import java.util.Collections;
@@ -39,6 +42,10 @@ import java.util.Date;
 @Slf4j
 @Component
 public class JwtTokenProvider {
+
+    // 카카오 회원가입용 임시 토큰(신규 회원이 추가 정보를 입력하는 동안만 유효) - 10분
+    private static final long KAKAO_REGISTRATION_TOKEN_VALIDITY = 1000L * 60 * 10;
+    private static final String KAKAO_REGISTRATION_SUBJECT = "KAKAO_SIGNUP";
 
     private final Key key;
     private final long accessTokenValidityTime;
@@ -94,6 +101,35 @@ public class JwtTokenProvider {
                 .parseClaimsJws(token)
                 .getBody();
         return Long.parseLong(claims.getSubject());
+    }
+
+    // 카카오 신규 회원의 providerId/email/nickname을 담은 임시 가입용 토큰 발급
+    public String createKakaoRegistrationToken(String providerId, String email, String nickname) {
+        long now = new Date().getTime();
+
+        return Jwts.builder()
+                .setSubject(KAKAO_REGISTRATION_SUBJECT)
+                .claim("providerId", providerId)
+                .claim("email", email)
+                .claim("nickname", nickname)
+                .setIssuedAt(new Date(now))
+                .setExpiration(new Date(now + KAKAO_REGISTRATION_TOKEN_VALIDITY))
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    // 카카오 가입용 토큰 검증 및 클레임 추출 (일반 액세스/리프레시 토큰과 용도가 다름을 subject로 구분)
+    public Claims parseKakaoRegistrationToken(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+            if (!KAKAO_REGISTRATION_SUBJECT.equals(claims.getSubject())) {
+                throw new CustomException(ErrorCode.INVALID_TOKEN);
+            }
+            return claims;
+        } catch (JwtException e) {
+            log.info("카카오 가입 토큰 검증 실패: {}", e.getMessage());
+            throw new CustomException(ErrorCode.INVALID_TOKEN);
+        }
     }
 
     public AuthResDto.TokenData generateTokenResponse(Long memberId) {
