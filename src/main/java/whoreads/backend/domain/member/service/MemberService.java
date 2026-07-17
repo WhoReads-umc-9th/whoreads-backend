@@ -14,6 +14,9 @@ import whoreads.backend.domain.member.repository.MemberRepository;
 import whoreads.backend.global.exception.CustomException;
 import whoreads.backend.global.exception.ErrorCode;
 
+import whoreads.backend.domain.member.enums.AgeGroup;
+import whoreads.backend.domain.member.enums.Gender;
+
 import java.util.List;
 
 @Service
@@ -39,16 +42,14 @@ public class MemberService {
     }
 
     public MemberResDto.MemberInfo getMemberInfo(Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member = findMemberById(memberId);
 
         return MemberConverter.toMemberInfo(member);
     }
 
     @Transactional
     public void followCelebrity(Long memberId, Long celebrityId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member = findMemberById(memberId);
 
         Celebrity celebrity = celebrityRepository.findById(celebrityId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CELEBRITY_NOT_FOUND));
@@ -67,8 +68,7 @@ public class MemberService {
     }
 
     public boolean isFollowingCelebrity(Long memberId, Long celebrityId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member = findMemberById(memberId);
 
         Celebrity celebrity = celebrityRepository.findById(celebrityId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CELEBRITY_NOT_FOUND));
@@ -78,8 +78,7 @@ public class MemberService {
 
     @Transactional
     public void unfollowCelebrity(Long memberId, Long celebrityId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member = findMemberById(memberId);
 
         Celebrity celebrity = celebrityRepository.findById(celebrityId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CELEBRITY_NOT_FOUND));
@@ -91,5 +90,28 @@ public class MemberService {
 
         // 레포지토리에 만들어둔 메서드로 관계 삭제
         memberCelebrityRepository.deleteByMemberAndCelebrity(member, celebrity);
+    }
+
+    @Transactional
+    public void updateNickname(Long memberId, String nickname) {
+        Member member = findMemberById(memberId);
+        member.updateNickname(nickname);
+    }
+
+    @Transactional
+    public void updateGender(Long memberId, Gender gender) {
+        Member member = findMemberById(memberId);
+        member.updateGender(gender);
+    }
+
+    @Transactional
+    public void updateAgeGroup(Long memberId, AgeGroup ageGroup) {
+        Member member = findMemberById(memberId);
+        member.updateAgeGroup(ageGroup);
+    }
+
+    private Member findMemberById(Long memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
     }
 }
