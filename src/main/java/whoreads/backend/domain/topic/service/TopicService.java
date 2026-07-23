@@ -25,8 +25,11 @@ public class TopicService {
     private final TopicRepository topicRepository;
     private final TopicBookRepository topicBookRepository;
 
-    public List<TopicResponse> getAllTopics() {
-        List<Topic> topics = topicRepository.findAll();
+    public List<TopicResponse> getAllTopics(TopicTag tag) {
+        // tag가 있으면 해당 카테고리만, 없으면 전체 조회
+        List<Topic> topics = (tag == null)
+                ? topicRepository.findAll()
+                : topicRepository.findByName(tag).map(List::of).orElseGet(List::of);
 
         // 바꾼 이유: topics가 비어있을 때 빈 컬렉션으로 IN 쿼리를 날려 발생하는 에러(또는 불필요한 쿼리) 방지
         if (topics.isEmpty()) {
