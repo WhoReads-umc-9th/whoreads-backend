@@ -45,6 +45,12 @@ public class Celebrity extends BaseEntity {
     @Builder.Default
     private List<CelebrityBook> celebrityBookList = new ArrayList<>();
 
+    public void updateImageUrl(String imageUrl) {
+        if (imageUrl != null && !imageUrl.trim().isEmpty()) {
+            this.imageUrl = imageUrl.trim();
+        }
+    }
+
     @Builder
     public Celebrity(String name, String imageUrl, String shortBio, List<CelebrityTag> jobTags) {
         this.name = name;
