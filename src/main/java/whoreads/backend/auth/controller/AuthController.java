@@ -118,6 +118,15 @@ public class AuthController implements AuthControllerDocs {
         return ApiResponse.success("이메일 인증에 성공했습니다.");
     }
 
+    // 아이디 찾기
+    @Override
+    @PostMapping("/find-id")
+    public ApiResponse<Void> findLoginId(@RequestBody @Valid AuthReqDto.EmailRequest request) {
+        authService.findLoginId(request.email());
+
+        return ApiResponse.success("가입하신 이메일로 아이디를 발송했습니다.");
+    }
+
     // 비밀번호 재설정
     @PatchMapping("/password")
     public ApiResponse<Void> updatePassword(@AuthenticationPrincipal Long memberId, @RequestBody @Valid AuthReqDto.PasswordChangeRequest request) {
