@@ -100,6 +100,6 @@ public class BookService {
             return getMostRecommendedBooks(limit);
         }
         // 그 외의 주제들은 Topic... (기존 로직 유지)
-        return Collections.emptyList();
+        return bookRepository.findBooksByTheme(theme, PageRequest.of(0, limit));
     }
 }
