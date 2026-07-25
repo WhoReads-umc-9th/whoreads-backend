@@ -212,8 +212,8 @@ public interface UserBookControllerDocs {
             description = """
                     서재에 있는 책의 읽기 상태와 읽은 페이지를 변경합니다.
                     - reading_status: 필수 (WISH, READING, COMPLETE)
-                    - reading_page: 선택 (status가 READING일 때만 변경 가능)
-                    - status가 READING이 아닌데 reading_page를 보내면 400 에러
+                    - reading_page: 선택 (reading_status가 READING으로 전환될 때만 반영됨)
+                    - reading_status가 READING이 아닌 경우 reading_page를 함께 보내도 에러 없이 무시됨
                     - status가 WISH/COMPLETE로 변경되어도 기존 reading_page는 유지됨
                     """
     )
@@ -234,14 +234,14 @@ public interface UserBookControllerDocs {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "400",
-                    description = "잘못된 요청 (READING이 아닌데 reading_page 전송)",
+                    description = "잘못된 요청 (READING 전환 시 reading_page가 1 미만이거나 총 페이지 수 초과)",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             examples = @ExampleObject(value = """
                                     {
                                       "is_success": false,
                                       "code": 400,
-                                      "message": "READING 상태인 책만 reading_page를 변경할 수 있습니다."
+                                      "message": "읽은 페이지는 1 이상이어야 합니다."
                                     }
                                     """)
                     )
