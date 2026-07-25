@@ -41,4 +41,6 @@ public interface AuthService {
     void delete(Long memberId);
 
     void changePassword(Long memberId, AuthReqDto.PasswordChangeRequest request);
+
+    void findLoginId(String email);
 }

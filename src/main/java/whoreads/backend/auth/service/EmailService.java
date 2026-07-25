@@ -34,6 +34,17 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    // 계정 찾기 - 가입한 이메일로 로그인 아이디 발송
+    public void sendLoginId(String email, String loginId) {
+        SimpleMailMessage message = new SimpleMailMessage();
+
+        message.setFrom(senderEmail);
+        message.setTo(email);
+        message.setSubject("[WoReads] 요청하신 아이디입니다.");
+        message.setText("회원님의 아이디는 " + loginId + " 입니다.");
+        mailSender.send(message);
+    }
+
     // 인증 코드 검증
     public boolean verifyCode(String email, String code) {
         String savedCode = redisTemplate.opsForValue().get("CHECK_" + email);
