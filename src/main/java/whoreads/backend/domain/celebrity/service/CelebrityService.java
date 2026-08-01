@@ -3,6 +3,7 @@ package whoreads.backend.domain.celebrity.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import whoreads.backend.domain.celebrity.dto.CelebrityCategoryResponse;
 import whoreads.backend.domain.celebrity.dto.CelebrityImageRequest;
 import whoreads.backend.domain.celebrity.dto.CelebrityImageResponse;
 import whoreads.backend.domain.celebrity.dto.CelebrityResponse;
@@ -12,6 +13,7 @@ import whoreads.backend.domain.celebrity.repository.CelebrityRepository;
 import whoreads.backend.global.exception.CustomException;
 import whoreads.backend.global.exception.ErrorCode;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +23,13 @@ import java.util.stream.Collectors;
 public class CelebrityService {
 
     private final CelebrityRepository celebrityRepository;
+
+    // 인물 카테고리(직업 태그) 목록 조회 - 프론트 하드코딩 제거용
+    public List<CelebrityCategoryResponse> getCategories() {
+        return Arrays.stream(CelebrityTag.values())
+                .map(CelebrityCategoryResponse::from)
+                .collect(Collectors.toList());
+    }
 
     // 전체 조회 혹은 태그 필터링 조회
     public List<CelebrityResponse> getCelebrities(CelebrityTag tag) {

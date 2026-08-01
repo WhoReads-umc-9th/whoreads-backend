@@ -242,4 +242,12 @@ public class AuthServiceImpl implements AuthService {
         String newPassword = passwordEncoder.encode(request.newPassword());
         member.updatePassword(newPassword);
     }
+
+    @Override
+    public void findLoginId(String email) {
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        emailService.sendLoginId(email, member.getLoginId());
+    }
 }

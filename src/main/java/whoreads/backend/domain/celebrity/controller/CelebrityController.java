@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import whoreads.backend.domain.celebrity.controller.docs.CelebrityControllerDocs;
+import whoreads.backend.domain.celebrity.dto.CelebrityCategoryResponse;
 import whoreads.backend.domain.celebrity.dto.CelebrityImageRequest;
 import whoreads.backend.domain.celebrity.dto.CelebrityImageResponse;
 import whoreads.backend.domain.celebrity.dto.CelebrityResponse;
@@ -22,6 +23,13 @@ import java.util.List;
 public class CelebrityController implements CelebrityControllerDocs {
 
     private final CelebrityService celebrityService;
+
+    // 0. 카테고리(직업 태그) 목록 조회 - "/{id}"보다 먼저 매칭되도록 리터럴 경로 우선
+    @Override
+    @GetMapping("/categories")
+    public ResponseEntity<List<CelebrityCategoryResponse>> getCelebrityCategories() {
+        return ResponseEntity.ok(celebrityService.getCategories());
+    }
 
     // 1. 목록 조회 (전체 or 태그 필터)
     @Override

@@ -114,4 +114,13 @@ public interface AuthControllerDocs {
                      "2. 새 비밀번호와 확인용 비밀번호가 일치하지 않는 경우")
     })
     ApiResponse<Void> updatePassword(@AuthenticationPrincipal Long memberId, @RequestBody @Valid AuthReqDto.PasswordChangeRequest request);
+
+    @Operation(summary = "아이디 찾기",
+            description = "가입 시 등록한 이메일을 입력하면 해당 이메일로 로그인 아이디를 발송합니다. \n\n" +
+                    "- 별도의 이메일 인증 절차 없이, 가입된 이메일로만 아이디가 전송됩니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "아이디 발송 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "해당 이메일로 가입된 회원 없음")
+    })
+    ApiResponse<Void> findLoginId(@RequestBody @Valid AuthReqDto.EmailRequest request);
 }
