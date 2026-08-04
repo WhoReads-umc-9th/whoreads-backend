@@ -106,12 +106,11 @@ public interface AuthControllerDocs {
     ApiResponse<Void> verifyEmail(@RequestBody @Valid AuthReqDto.VerificationRequest request);
 
     @Operation(summary = "비밀번호 변경",
-                description = "현재 비밀번호, 변경할 비밀번호, 확인용 비밀번호를 입력합니다.")
+                description = "변경할 비밀번호, 확인용 비밀번호를 입력합니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "비밀번호 변경 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 요청입니다.<br>" +
-                     "1. 현재 비밀번호가 일치하지 않는 경우<br>" +
-                     "2. 새 비밀번호와 확인용 비밀번호가 일치하지 않는 경우")
+                     "새 비밀번호와 확인용 비밀번호가 일치하지 않는 경우")
     })
     ApiResponse<Void> updatePassword(@AuthenticationPrincipal Long memberId, @RequestBody @Valid AuthReqDto.PasswordChangeRequest request);
 
