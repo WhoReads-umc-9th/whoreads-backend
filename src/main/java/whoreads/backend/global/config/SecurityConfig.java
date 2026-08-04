@@ -23,7 +23,15 @@ public class SecurityConfig {
     private final SecurityErrorHandler securityErrorHandler;
 
     private final String[] allowUris = {
-            "/api/auth/**",
+            "/api/auth/signup",
+            "/api/auth/login",
+            "/api/auth/refresh",
+            "/api/auth/kakao/login/token",
+            "/api/auth/kakao/signup",
+            "/api/auth/check-id",
+            "/api/auth/email/send",
+            "/api/auth/email/verify",
+            "/api/auth/find-id",
             "/api/health",
             "/api/books",
             "/api/books/**",
