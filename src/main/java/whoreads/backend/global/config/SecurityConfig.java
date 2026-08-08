@@ -28,6 +28,7 @@ public class SecurityConfig {
             "/api/auth/refresh",
             "/api/auth/kakao/login/token",
             "/api/auth/kakao/signup",
+            "/api/auth/kakao/callback",
             "/api/auth/check-id",
             "/api/auth/email/send",
             "/api/auth/email/verify",
