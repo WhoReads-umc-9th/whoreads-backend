@@ -45,6 +45,7 @@ public class SwaggerConfig {
                         .title("WhoReads API Document")
                         .description("WhoReads 서비스의 API 명세서입니다.<br><br>**배포 일시**: " + DEPLOY_TIME)
                         .version("1.0.0"))
+                .addServersItem(new Server().url("http://localhost:8081").description("Local"))
                 .addServersItem(new Server().url("https://staging-api.whoreads.kro.kr").description("Staging(개발)"))
                 .addServersItem(new Server().url("https://api.whoreads.kro.kr").description("Production"))
                 .addSecurityItem(securityRequirement)
