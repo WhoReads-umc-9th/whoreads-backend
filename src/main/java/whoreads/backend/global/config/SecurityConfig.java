@@ -11,9 +11,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import whoreads.backend.auth.jwt.JwtAuthenticationFilter;
 import whoreads.backend.auth.jwt.JwtTokenProvider;
 import whoreads.backend.auth.service.CustomUserDetailsService;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -34,6 +39,10 @@ public class SecurityConfig {
             "/swagger-resources/**",
     };
 
+    private final List<String> allowedOriginPatterns = List.of(
+            "https://*.whoreads.kro.kr"
+    );
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtTokenProvider jwtTokenProvider, CustomUserDetailsService customUserDetailsService) throws Exception {
         http
@@ -52,17 +61,33 @@ public class SecurityConfig {
                         .accessDeniedHandler(securityErrorHandler)
                 )
 
-                // 4. 인가 설정
+                // 4. CORS 설정
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                // 5. 인가 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(allowUris).permitAll()
                         .anyRequest().authenticated()
                 )
 
-                // 5. JWT 필터 배치
+                // 6. JWT 필터 배치
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService),
                         UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(allowedOriginPatterns);
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     @Bean
