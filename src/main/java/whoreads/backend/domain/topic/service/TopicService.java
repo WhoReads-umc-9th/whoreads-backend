@@ -1,6 +1,7 @@
 package whoreads.backend.domain.topic.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +26,7 @@ public class TopicService {
     private final TopicRepository topicRepository;
     private final TopicBookRepository topicBookRepository;
 
-    public List<TopicResponse> getAllTopics(TopicTag tag) {
+    public List<TopicResponse> getAllTopics(TopicTag tag, Integer previewSize) {
         // tag가 있으면 해당 카테고리만, 없으면 전체 조회
         List<Topic> topics = (tag == null)
                 ? topicRepository.findAll()
@@ -35,6 +36,19 @@ public class TopicService {
         if (topics.isEmpty()) {
             return List.of();
         }
+
+        // previewSize가 있으면 주제별로 그 개수만큼만 조회 (메인 배너 미리보기용, DB 단에서 LIMIT)
+        // 없으면 기존처럼 주제별 전체 도서 반환 (하위호환)
+        if (previewSize != null) {
+            Pageable preview = PageRequest.of(0, previewSize);
+            return topics.stream()
+                    .map(topic -> TopicResponse.of(
+                            topic,
+                            topicBookRepository.findBooksByThemeName(topic.getName(), preview)
+                    ))
+                    .collect(Collectors.toList());
+        }
+
         // 변경: 안정적인 매핑을 위해 안전하게 참조 호출
         List<TopicBook> topicBooks = topicBookRepository.findAllByTopicInWithFetchJoin(topics);
 
