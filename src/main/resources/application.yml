@@ -51,6 +51,12 @@ aladin:
     key: ${ALADIN_KEY}
     url: "http://www.aladin.co.kr/ttb/api/ItemSearch.aspx"
 
+# 카카오 인가 코드(code) -> access_token 교환 테스트용 (앱 없이 브라우저로 카카오 로그인 테스트할 때만 사용)
+kakao:
+  rest-api-key: ${KAKAO_REST_API_KEY}
+  client-secret: ${KAKAO_CLIENT_SECRET:}
+  redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:8081/api/auth/kakao/callback}
+
 # Server
 server:
   port: 8081

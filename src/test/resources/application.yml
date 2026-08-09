@@ -40,6 +40,12 @@ aladin:
     key: "test-aladin-api-key"
     url: "http://www.aladin.co.kr/ttb/api/ItemSearch.aspx"
 
+# 카카오 (더미)
+kakao:
+  rest-api-key: "test-kakao-rest-api-key"
+  client-secret: "test-kakao-client-secret"
+  redirect-uri: "http://localhost:8081/api/auth/kakao/callback"
+
 # JWT (더미 - Base64 인코딩 필수)
 jwt:
   secret: "d2hvcmVhZHMtdGVzdC1zZWNyZXQta2V5LWZvci1qd3QtZGV2ZWxvcG1lbnQtb25seQ=="

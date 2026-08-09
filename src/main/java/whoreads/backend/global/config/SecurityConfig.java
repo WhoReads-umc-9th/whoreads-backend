@@ -11,9 +11,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import whoreads.backend.auth.jwt.JwtAuthenticationFilter;
 import whoreads.backend.auth.jwt.JwtTokenProvider;
 import whoreads.backend.auth.service.CustomUserDetailsService;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -23,7 +28,16 @@ public class SecurityConfig {
     private final SecurityErrorHandler securityErrorHandler;
 
     private final String[] allowUris = {
-            "/api/auth/**",
+            "/api/auth/signup",
+            "/api/auth/login",
+            "/api/auth/refresh",
+            "/api/auth/kakao/login/token",
+            "/api/auth/kakao/signup",
+            "/api/auth/kakao/callback",
+            "/api/auth/check-id",
+            "/api/auth/email/send",
+            "/api/auth/email/verify",
+            "/api/auth/find-id",
             "/api/health",
             "/api/books",
             "/api/books/**",
@@ -33,6 +47,10 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/swagger-resources/**",
     };
+
+    private final List<String> allowedOriginPatterns = List.of(
+            "https://*.whoreads.kro.kr"
+    );
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtTokenProvider jwtTokenProvider, CustomUserDetailsService customUserDetailsService) throws Exception {
@@ -52,17 +70,33 @@ public class SecurityConfig {
                         .accessDeniedHandler(securityErrorHandler)
                 )
 
-                // 4. 인가 설정
+                // 4. CORS 설정
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                // 5. 인가 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(allowUris).permitAll()
                         .anyRequest().authenticated()
                 )
 
-                // 5. JWT 필터 배치
+                // 6. JWT 필터 배치
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService),
                         UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(allowedOriginPatterns);
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     @Bean
