@@ -135,13 +135,14 @@ public class UserBookServiceImpl implements UserBookService {
     public void updateUserBook(Long memberId, Long userBookId, UserBookRequest.UpdateStatus request) {
         UserBook userBook = findByIdAndValidateOwnership(userBookId, memberId);
 
-        // READING이 아닌데 readingPage를 보내면 에러
-        if (request.getReadingStatus() != ReadingStatus.READING && request.getReadingPage() != null) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "READING 상태인 책만 reading_page를 변경할 수 있습니다.");
-        }
+        ReadingStatus oldStatus = userBook.getReadingStatus();
+        ReadingStatus newStatus = request.getReadingStatus();
 
-        // readingPage 유효성 검증
-        if (request.getReadingPage() != null) {
+        // readingPage는 READING으로 전환할 때만 의미가 있으므로, 그 외 상태에서 함께 오더라도 무시한다.
+        boolean applyReadingPage = newStatus == ReadingStatus.READING && request.getReadingPage() != null;
+
+        // readingPage 유효성 검증 (실제로 반영될 때만)
+        if (applyReadingPage) {
             if (request.getReadingPage() <= 0) {
                 throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "읽은 페이지는 1 이상이어야 합니다.");
             }
@@ -150,9 +151,6 @@ public class UserBookServiceImpl implements UserBookService {
                 throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "읽은 페이지가 전체 페이지 수를 초과할 수 없습니다.");
             }
         }
-
-        ReadingStatus oldStatus = userBook.getReadingStatus();
-        ReadingStatus newStatus = request.getReadingStatus();
 
         // 상태 변경
         userBook.updateReadingStatus(newStatus);
@@ -171,8 +169,8 @@ public class UserBookServiceImpl implements UserBookService {
             userBook.updateCompletedAt(LocalDate.now());
         }
 
-        // readingPage 업데이트 (READING 상태이고 값이 있을 때만)
-        if (request.getReadingPage() != null) {
+        // readingPage 업데이트 (READING 상태로 전환될 때만)
+        if (applyReadingPage) {
             userBook.updateReadingPage(request.getReadingPage());
         }
     }

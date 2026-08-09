@@ -8,6 +8,7 @@ import whoreads.backend.auth.dto.AuthReqDto;
 import whoreads.backend.auth.dto.AuthResDto;
 import whoreads.backend.auth.service.AuthService;
 import whoreads.backend.auth.service.EmailService;
+import whoreads.backend.auth.service.KakaoOAuthClient;
 import whoreads.backend.global.response.ApiResponse;
 
 /**
@@ -30,6 +31,7 @@ public class AuthController implements AuthControllerDocs {
 
     private final AuthService authService;
     private final EmailService emailService;
+    private final KakaoOAuthClient kakaoOAuthClient;
 
     // TODO: 로그인 API - POST /api/auth/login
     // TODO: 회원가입 API - POST /api/auth/signup
@@ -89,6 +91,15 @@ public class AuthController implements AuthControllerDocs {
         return ApiResponse.created("카카오 회원가입에 성공했습니다.", tokenData);
     }
 
+    // 앱 없이 브라우저만으로 카카오 로그인을 테스트하기 위한 인가 코드 콜백 (개발/테스트 용도)
+    @GetMapping("/kakao/callback")
+    public ApiResponse<AuthResDto.KakaoLoginData> kakaoCallback(@RequestParam String code) {
+        String accessToken = kakaoOAuthClient.exchangeCodeForAccessToken(code);
+        AuthResDto.KakaoLoginData data = authService.kakaoLoginWithToken(new AuthReqDto.KakaoTokenLoginRequest(accessToken));
+
+        return ApiResponse.success("카카오 인가 코드로 로그인 처리가 완료되었습니다.", data);
+    }
+
     @Override
     @PatchMapping("/delete")
     public ApiResponse<Void> delete(@AuthenticationPrincipal Long memberId) {
@@ -116,6 +127,15 @@ public class AuthController implements AuthControllerDocs {
         emailService.verifyCode(request.email(), request.code());
 
         return ApiResponse.success("이메일 인증에 성공했습니다.");
+    }
+
+    // 아이디 찾기
+    @Override
+    @PostMapping("/find-id")
+    public ApiResponse<Void> findLoginId(@RequestBody @Valid AuthReqDto.EmailRequest request) {
+        authService.findLoginId(request.email());
+
+        return ApiResponse.success("가입하신 이메일로 아이디를 발송했습니다.");
     }
 
     // 비밀번호 재설정

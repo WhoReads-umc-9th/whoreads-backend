@@ -2,7 +2,8 @@
 # WhoReads Nginx Configuration
 # ==============================================
 # - api.whoreads.kro.kr (HTTPS) → Production
-# - EC2 IP 직접 접근 (HTTP)    → Staging
+# - staging-api.whoreads.kro.kr (HTTPS) → Staging
+# - EC2 IP 직접 접근 (HTTP)    → Staging (fallback)
 # ==============================================
 
 # ----------------------------------------------
@@ -59,7 +60,60 @@ server {
 }
 
 # ----------------------------------------------
-# 2. Staging (EC2 IP 직접 접근)
+# 2. Staging 도메인 (staging-api.whoreads.kro.kr)
+# ----------------------------------------------
+
+# HTTP → HTTPS 리다이렉트
+server {
+    listen 80;
+    server_name staging-api.whoreads.kro.kr;
+
+    # Let's Encrypt 인증 챌린지용
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    # 나머지는 HTTPS로 리다이렉트
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# HTTPS 서버 (Staging)
+server {
+    listen 443 ssl;
+    server_name staging-api.whoreads.kro.kr;
+
+    # SSL 인증서
+    ssl_certificate /etc/letsencrypt/live/staging-api.whoreads.kro.kr/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/staging-api.whoreads.kro.kr/privkey.pem;
+
+    # SSL 설정
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+
+    # Proxy to Staging (Blue/Green) - Docker DNS로 런타임 resolve
+    location / {
+        resolver 127.0.0.11 valid=30s;
+        include /etc/nginx/conf.d/service-staging.inc;
+        proxy_pass http://$staging_upstream:8081;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # 타임아웃 설정
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+}
+
+# ----------------------------------------------
+# 3. EC2 IP 직접 접근 (HTTP)
 # ----------------------------------------------
 
 server {
