@@ -7,6 +7,7 @@ import whoreads.backend.domain.dna.dto.DnaResDto;
 import whoreads.backend.domain.dna.entity.DnaOption;
 import whoreads.backend.domain.dna.entity.DnaQuestion;
 import whoreads.backend.domain.dna.enums.TrackCode;
+import whoreads.backend.infra.s3.S3Service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,7 +41,8 @@ public class DnaConverter {
     }
 
 
-    public static DnaResDto.Result toResultDto(Celebrity celebrity, TrackCode trackCode, String description) {
+    public static DnaResDto.Result toResultDto(Celebrity celebrity, TrackCode trackCode, String description,
+                                              S3Service s3Service) {
         String headLine = switch (trackCode) {
             case COMFORT -> "있는 그대로의 마음을 이해하기 위해";
             case HABIT -> "행동을 바꾸기 위해";
@@ -68,7 +70,7 @@ public class DnaConverter {
                 .description(descriptionList)
                 .celebrityId(celebrity.getId())
                 .celebrityName(celebrity.getName())
-                .imageUrl(celebrity.getImageUrl())
+                .imageUrl(s3Service.generateUrl(celebrity.getImageUrl()))
                 .jobTags(jobTags)
                 .build();
     }

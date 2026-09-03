@@ -21,6 +21,7 @@
     import whoreads.backend.domain.member.repository.MemberRepository;
     import whoreads.backend.global.exception.CustomException;
     import whoreads.backend.global.exception.ErrorCode;
+    import whoreads.backend.infra.s3.S3Service;
 
     import java.util.ArrayList;
     import java.util.HashMap;
@@ -44,6 +45,7 @@
         private final DnaResultRepository dnaResultRepository;
         private final CelebrityRepository celebrityRepository;
         private final MemberRepository memberRepository;
+        private final S3Service s3Service;
 
         public DnaResDto.Question getRootQuestion() {
             // Q1 질문
@@ -89,7 +91,7 @@
 
             String finalCommentary = getCommentary(celebrity.getId(), trackCode);
 
-            return DnaConverter.toResultDto(celebrity, trackCode, finalCommentary);
+            return DnaConverter.toResultDto(celebrity, trackCode, finalCommentary, s3Service);
         }
 
         /**
@@ -154,7 +156,7 @@
             // 하드코딩된 RESULT_COMMENTS 맵에서 이 인물+트랙에 맞는 문구 추출
             String finalCommentary = getCommentary(winner.getId(), request.trackCode());
 
-            return DnaConverter.toResultDto(winner, request.trackCode(), finalCommentary);
+            return DnaConverter.toResultDto(winner, request.trackCode(), finalCommentary, s3Service);
         }
 
         /**

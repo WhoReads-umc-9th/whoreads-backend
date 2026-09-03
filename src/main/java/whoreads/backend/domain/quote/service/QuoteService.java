@@ -21,6 +21,7 @@ import whoreads.backend.domain.quote.repository.QuoteRepository;
 import whoreads.backend.domain.quote.repository.QuoteSourceRepository;
 import whoreads.backend.global.exception.CustomException;
 import whoreads.backend.global.exception.ErrorCode;
+import whoreads.backend.infra.s3.S3Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,6 +38,7 @@ public class QuoteService {
     private final QuoteContextRepository quoteContextRepository;
     private final QuoteSourceRepository quoteSourceRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final S3Service s3Service;
 
     @Transactional
     public Long registerQuote(QuoteRequest request) {
@@ -113,6 +115,7 @@ public class QuoteService {
         QuoteContext context = quoteContextRepository.findByQuoteId(quote.getId()).orElse(null);
         QuoteSource source = quoteSourceRepository.findByQuoteId(quote.getId()).orElse(null);
 
-        return QuoteResponse.of(quote, book, celebrity, context, source);
+        return QuoteResponse.of(quote, book, celebrity, context, source,
+                s3Service.generateUrl(celebrity.getImageUrl()));
     }
 }
