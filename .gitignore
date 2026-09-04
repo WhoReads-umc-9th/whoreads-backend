@@ -71,3 +71,6 @@ firebase/
 ### Claude ###
 docs/claude.md
 docs/DOCKER_STUDY.md
+profiles/
+cropped/
+review.html
