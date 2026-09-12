@@ -25,7 +25,11 @@ public interface TopicControllerDocs {
             Integer previewSize
     );
 
-    @Operation(summary = "특정 주제별 도서 목록 조회", description = "선택한 특정 주제 탭에 해당하는 도서 목록을 페이징하여 조회합니다.")
+    @Operation(summary = "특정 주제별 도서 목록 조회 (주제별 조회 표준 엔드포인트)",
+            description = "선택한 특정 주제 탭에 해당하는 도서 목록을 페이징하여 조회합니다.\n\n"
+                    + "TOP_20을 넘기면 인용(추천) 수 기준 상위 도서를 반환합니다.\n\n"
+                    + "같은 기능의 `GET /api/books/themes/{theme}`, `GET /api/books/most-recommended`는 "
+                    + "하위호환용으로만 남겨두었으니 신규 연동은 이 엔드포인트를 사용해주세요.")
     ResponseEntity<List<BookResponse>> getBooksByTopic(
             @Parameter(description = "주제 태그 (예: LIFE_DIRECTION, MINDSET 등)", required = true) TopicTag theme,
             @ParameterObject Pageable pageable

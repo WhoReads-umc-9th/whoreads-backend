@@ -10,22 +10,32 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import whoreads.backend.domain.book.dto.BookDetailResponse;
 import whoreads.backend.domain.book.dto.BookRequest;
 import whoreads.backend.domain.book.dto.BookResponse;
 import whoreads.backend.domain.topic.entity.TopicTag;
+import whoreads.backend.global.response.PageResponse;
 
 import java.util.List;
 
 @Tag(name = "Book (책)", description = "책 조회 및 검색 API")
 public interface BookControllerDocs {
 
-    @Operation(summary = "도서 목록 조회 및 검색 (내부 DB)", description = "우리 DB에 저장된 도서 목록을 조회합니다. keyword가 있으면 제목/저자로 검색합니다.")
-    List<BookResponse> getAllBooks(
-            @Parameter(description = "검색어 (비워두면 전체 조회)") @RequestParam(required = false) String keyword
+    @Operation(summary = "도서 목록 조회 및 검색 (내부 DB, 페이징)",
+            description = "우리 DB에 저장된 도서 목록을 페이징 조회합니다. keyword가 있으면 제목/저자로 검색합니다.\n\n"
+                    + "⚠️ 응답 형식 변경: 기존에는 배열을 그대로 내려줬지만, 이제 "
+                    + "`{ content: [...], page, size, total_elements, total_pages, has_next, is_first, is_last }` 형태로 내려갑니다.\n\n"
+                    + "page는 0부터 시작하고 size 기본값은 20입니다.")
+    PageResponse<BookResponse> getAllBooks(
+            @Parameter(description = "검색어 (비워두면 전체 조회)") @RequestParam(required = false) String keyword,
+            @ParameterObject @PageableDefault(size = 20) Pageable pageable
     );
 
     @Operation(summary = "알라딘 도서 검색", description = "알라딘 API를 사용하여 외부 도서를 검색합니다. (검색어 필수)")
@@ -39,7 +49,11 @@ public interface BookControllerDocs {
             @RequestBody @Valid BookRequest request
     );
 
-    @Operation(summary = "가장 많이 추천된 책 (TOP 20)", description = "유명인들이 가장 많이 언급(인용)한 책들을 추천 수 내림차순으로 조회합니다. limit은 1 이상이어야 합니다.")
+    @Operation(summary = "[Deprecated] 가장 많이 추천된 책 (TOP 20)",
+            description = "유명인들이 가장 많이 언급(인용)한 책들을 추천 수 내림차순으로 조회합니다. limit은 1 이상이어야 합니다.\n\n"
+                    + "⚠️ `GET /api/topics/TOP_20/books` 와 동일한 기능입니다. 신규 연동은 그쪽을 사용해주세요.",
+            deprecated = true)
+    @Deprecated
     ResponseEntity<List<BookResponse>> getMostRecommendedBooks(
             @Parameter(description = "가져올 책 개수 (기본값 20, 1 이상)")
             @RequestParam(defaultValue = "20") @Positive(message = "가져올 개수는 1 이상이어야 합니다.") int limit
@@ -57,10 +71,15 @@ public interface BookControllerDocs {
     })
     whoreads.backend.global.response.ApiResponse<BookDetailResponse> getBookDetail(
             @Parameter(description = "책 ID (1 이상)", required = true)
-            @PathVariable @Positive(message = "올바른 책 ID를 입력해주세요.") Long bookId
+            @PathVariable @Positive(message = "올바른 책 ID를 입력해주세요.") Long bookId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId
     );
 
-    @Operation(summary = "주제별 추천 책 목록 조회", description = "특정 주제(SOCIETY, HUMAN_UNDERSTANDING 등)에 맞는 유명인 추천 책 목록을 조회합니다.")
+    @Operation(summary = "[Deprecated] 주제별 추천 책 목록 조회",
+            description = "특정 주제(SOCIETY, HUMAN_UNDERSTANDING 등)에 맞는 유명인 추천 책 목록을 조회합니다.\n\n"
+                    + "⚠️ `GET /api/topics/{theme}/books` 와 동일한 기능입니다. 신규 연동은 그쪽을 사용해주세요.",
+            deprecated = true)
+    @Deprecated
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "400", description = "유효하지 않은 TopicTag 또는 limit 값", content = @Content),
