@@ -60,7 +60,10 @@ public class BookService {
                 : quoteSourceRepository.findByQuoteIdIn(quoteIds).stream()
                 .collect(Collectors.toMap(
                         src -> src.getQuote().getId(),
-                        Function.identity()
+                        Function.identity(),
+                        // 바꾼 이유: 한 인용에 출처가 둘 이상이면 toMap이 IllegalStateException을 던져
+                        // 책 상세 전체가 500으로 죽음. 먼저 조회된 것을 쓰고 넘어가도록 함
+                        (first, duplicate) -> first
                 ));
 
         // 응답 조립
