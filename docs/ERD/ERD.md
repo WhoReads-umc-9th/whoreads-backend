@@ -105,17 +105,17 @@ erDiagram
     quote_context {
         bigint id PK
         bigint quote_id FK
-        varchar context_how
-        varchar context_when
-        varchar context_why
-        varchar context_help
+        text context_how
+        text context_when
+        text context_why
+        text context_help
     }
 
     quote_source {
         bigint id PK
         bigint quote_id FK
-        varchar source_url
-        enum source_type
+        text source_url
+        enum source_type "NOT_NULL"
         varchar timestamp
         tinyint is_direct_quote "NOT_NULL"
     }
