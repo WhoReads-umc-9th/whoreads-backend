@@ -42,6 +42,10 @@ public class SecurityConfig {
             "/api/books",
             "/api/books/**",
             "/api/celebrities/**",
+            // 추가 이유: /api/topics 가 permitAll 목록에 빠져 있어 비로그인 요청이 전부 401로 막혔음
+            // (메인 화면 주제 큐레이션은 로그인 없이도 보여야 함)
+            "/api/topics",
+            "/api/topics/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/v3/api-docs/**",

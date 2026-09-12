@@ -19,6 +19,7 @@ public class QuoteResponse {
 
     @JsonProperty("book_id") private Long bookId;
     @JsonProperty("book_title") private String bookTitle;
+    @JsonProperty("book_author") private String bookAuthor; // 추가 이유: 저자를 안 내려줘서 프론트에서 "미상"으로 표시되던 문제
     @JsonProperty("book_cover") private String bookCover;
 
     @JsonProperty("celebrity_id") private Long celebrityId;
@@ -51,6 +52,7 @@ public class QuoteResponse {
                 .contextScore(quote.getContextScore())
                 .bookId(book.getId())
                 .bookTitle(book.getTitle())
+                .bookAuthor(book.getAuthorName())
                 .bookCover(book.getCoverUrl())
                 .celebrityId(celebrity.getId())
                 .celebrityName(celebrity.getName())

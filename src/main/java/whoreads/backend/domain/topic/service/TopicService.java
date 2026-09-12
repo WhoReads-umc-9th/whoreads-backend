@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import whoreads.backend.domain.book.dto.BookResponse;
 import whoreads.backend.domain.book.entity.Book;
+import whoreads.backend.domain.book.service.BookService;
 import whoreads.backend.domain.topic.dto.TopicResponse;
 import whoreads.backend.domain.topic.entity.Topic;
 import whoreads.backend.domain.topic.entity.TopicBook;
@@ -25,6 +26,8 @@ public class TopicService {
 
     private final TopicRepository topicRepository;
     private final TopicBookRepository topicBookRepository;
+    // 바꾼 이유: 주제별 도서 조회 로직이 BookService와 중복되어 있어, 구현은 BookService 한 곳만 두고 위임하도록 정리
+    private final BookService bookService;
 
     public List<TopicResponse> getAllTopics(TopicTag tag, Integer previewSize) {
         // tag가 있으면 해당 카테고리만, 없으면 전체 조회
@@ -67,7 +70,9 @@ public class TopicService {
     }
 
     public List<BookResponse> getBooksByTopic(TopicTag theme, Pageable pageable) {
-        List<Book> books = topicBookRepository.findBooksByThemeName(theme, pageable);
+        // 바꾼 이유: 직접 조회하면 TOP_20처럼 topic_book 매핑이 없는 주제가 빈 배열로 내려감.
+        // BookService에 위임해서 /api/books/themes/{theme}와 항상 같은 결과가 나오도록 통일
+        List<Book> books = bookService.getBooksByTheme(theme, pageable);
 
         return books.stream()
                 .map(BookResponse::from)

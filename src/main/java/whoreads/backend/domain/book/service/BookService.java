@@ -1,6 +1,8 @@
 package whoreads.backend.domain.book.service;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest; // 바꾼 이유: PageRequest 임포트 추가 (페이징 처리 에러 해결)
+import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,7 +62,10 @@ public class BookService {
                 : quoteSourceRepository.findByQuoteIdIn(quoteIds).stream()
                 .collect(Collectors.toMap(
                         src -> src.getQuote().getId(),
-                        Function.identity()
+                        Function.identity(),
+                        // 바꾼 이유: 한 인용에 출처가 둘 이상이면 toMap이 IllegalStateException을 던져
+                        // 책 상세 전체가 500으로 죽음. 먼저 조회된 것을 쓰고 넘어가도록 함
+                        (first, duplicate) -> first
                 ));
 
         // 응답 조립
@@ -77,29 +82,41 @@ public class BookService {
         return response;
     }
 
-    public List<Book> getAllBooks(String keyword) {
+    /**
+     * 도서 목록 조회 / 검색.
+     * 바꾼 이유: 전체 도서를 매번 통째로 조회해서 목록 API가 느렸음. 페이징으로 필요한 만큼만 가져오도록 변경.
+     */
+    public Page<Book> getAllBooks(String keyword, Pageable pageable) {
         if (keyword == null || keyword.isBlank()) {
-            return bookRepository.findAll();
+            return bookRepository.findAll(pageable);
         }
-        return bookRepository.searchByKeyword(keyword.trim());
+        return bookRepository.searchByKeyword(keyword.trim(), pageable);
     }
 
     public List<Book> getMostRecommendedBooks(int limit) {
-        // 바꾼 이유: limit 숫자 하나만 넣으면 에러가 나므로, PageRequest 객체로 생성해서 넘겨줌
-        return bookQuoteRepository.findMostRecommendedBooks(PageRequest.of(0, limit));
+        // 바꾼 이유: TOP_20도 결국 "주제별 도서 조회"의 한 종류라 getBooksByTheme으로 창구를 합침
+        return getBooksByTheme(TopicTag.TOP_20, limit);
     }
 
-    // 주제별 책 조회 로직
+    /**
+     * 주제별 책 조회 - 주제 관련 API(/api/books/themes, /api/topics/{theme}/books,
+     * /api/books/most-recommended)가 모두 이 메서드를 타도록 창구를 하나로 통일했다.
+     * 바꾼 이유: 같은 기능이 여러 곳에 흩어져 있어 엔드포인트마다 결과가 달랐음
+     * (예: TOP_20을 /api/topics 쪽으로 요청하면 topic_book 매핑이 없어 빈 배열이 내려갔음).
+     */
+    public List<Book> getBooksByTheme(TopicTag theme, Pageable pageable) {
+        // TOP_20은 topic_book 매핑이 아니라 인용 수 집계로 뽑는 가상 주제
+        if (theme == TopicTag.TOP_20) {
+            return bookQuoteRepository.findMostRecommendedBooks(pageable);
+        }
+        return bookRepository.findBooksByTheme(theme, pageable);
+    }
+
     public List<Book> getBooksByTheme(TopicTag theme, int limit) {
         if (limit <= 0) {
             throw new IllegalArgumentException("limit must be positive");
         }
-
-        // 프론트에서 TOP_20을 요청했을 땐 기존 로직 재사용
-        if (theme == TopicTag.TOP_20) {
-            return getMostRecommendedBooks(limit);
-        }
-        // 그 외의 주제들은 Topic... (기존 로직 유지)
-        return bookRepository.findBooksByTheme(theme, PageRequest.of(0, limit));
+        // 바꾼 이유: limit 숫자 하나만 넣으면 에러가 나므로, PageRequest 객체로 생성해서 넘겨줌
+        return getBooksByTheme(theme, PageRequest.of(0, limit));
     }
 }
