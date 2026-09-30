@@ -4,12 +4,12 @@ commons_final_v2.html에서 내보낸 CSV를 읽어, 선택한 원본을 profile
 DB에 넣을 출처 메타데이터(csv)를 만든다. (이슈 #207, #208)
 
 사용법:
-    python3 scripts/import_commons_selection.py --csv commons_selection.csv --out profiles/
+    python3 scripts/image-tools/import_commons_selection.py --csv commons_selection.csv --out profiles/
 
 이후 흐름:
     1) 이 스크립트로 profiles/{id}.{ext} 다운로드 + image_sources.csv 생성
     2) 나머지(유튜브 CC 등)는 profiles/{id}.{ext}로 수동 추가
-    3) python3 scripts/crop_faces_4x5.py --in profiles/ --out cropped/
+    3) python3 scripts/image-tools/crop_faces_4x5.py --in profiles/ --out cropped/
     4) S3 업로드 후, image_sources.csv를 이용해 최종 UPDATE SQL 생성
 """
 import argparse, csv, re, sys, urllib.request

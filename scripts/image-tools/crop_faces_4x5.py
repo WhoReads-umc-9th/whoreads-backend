@@ -8,8 +8,8 @@
   - 결과와 함께 검수용 컨택시트를 만든다. 자동 크롭은 반드시 눈으로 확인해야 한다
 
 사용법:
-    python3 scripts/crop_faces_4x5.py --in raw/ --out cropped/
-    python3 scripts/crop_faces_4x5.py --in raw/ --out cropped/ --face-ratio 0.36 --eye-line 0.40
+    python3 scripts/image-tools/crop_faces_4x5.py --in raw/ --out cropped/
+    python3 scripts/image-tools/crop_faces_4x5.py --in raw/ --out cropped/ --face-ratio 0.36 --eye-line 0.40
 
 의존성: pillow, opencv-python-headless (4.x/5.x 모두 지원)
         OpenCV 5는 YuNet 모델을 최초 1회 자동으로 내려받는다

@@ -6,7 +6,7 @@
 겹쳐 그린다. 어디가 왜 잘렸는지 한눈에 보이므로 파라미터를 조정할 근거가 된다.
 
 사용법:
-    python3 scripts/review_crops.py --src profiles/ --out cropped/ --html review.html
+    python3 scripts/image-tools/review_crops.py --src profiles/ --out cropped/ --html review.html
 
 crop_faces_4x5.py를 먼저 실행해 cropped/ 와 crop_report.csv 가 있어야 한다.
 """
