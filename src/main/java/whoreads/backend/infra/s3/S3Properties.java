@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.time.Duration;
+
 @Getter
 @Setter
 @ConfigurationProperties(prefix = "cloud.aws")
@@ -18,9 +20,9 @@ public class S3Properties {
         private String bucket;
 
         /**
-         * 이미지 배포 기준 도메인. CloudFront 등을 앞에 두면 이 값만 바꾸면 되고 DB는 건드리지 않는다.
-         * 비어 있으면 S3 기본 엔드포인트를 사용한다. (예: https://cdn.whoreads.app)
+         * Presigned URL 유효시간. 너무 짧으면 앱이 캐싱해둔 URL이 금방 만료되고,
+         * 너무 길면 봇 접근 방지 효과가 떨어진다. 기본 24시간.
          */
-        private String baseUrl;
+        private Duration presignDuration = Duration.ofHours(24);
     }
 }

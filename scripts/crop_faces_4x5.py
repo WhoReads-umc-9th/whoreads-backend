@@ -100,6 +100,41 @@ def detect_faces(pil_img):
     return sorted(faces, key=lambda f: f[2] * f[3], reverse=True)
 
 
+def pick_face(faces, face_pick):
+    """
+    얼굴이 여러 개 검출됐을 때 어느 것을 인물로 볼지 정한다.
+    face_pick: None(기본, 가장 큰 얼굴) / 'leftmost' / 'rightmost' / 정수 인덱스(크기순)
+    """
+    if not faces:
+        return None
+    if face_pick in (None, ""):
+        return faces[0]
+    if face_pick == "leftmost":
+        return min(faces, key=lambda f: f[0])
+    if face_pick == "rightmost":
+        return max(faces, key=lambda f: f[0])
+    try:
+        return faces[int(face_pick)]
+    except (ValueError, IndexError):
+        return faces[0]
+
+
+def load_overrides(path):
+    """
+    id,face_ratio,eye_line,face_pick 형식의 CSV를 읽는다. 빈 칸은 기본값을 그대로 쓴다.
+    """
+    if not path:
+        return {}
+    out = {}
+    for row in csv.DictReader(open(path, encoding="utf-8-sig")):
+        out[row["id"].strip()] = dict(
+            face_ratio=float(row["face_ratio"]) if row.get("face_ratio", "").strip() else None,
+            eye_line=float(row["eye_line"]) if row.get("eye_line", "").strip() else None,
+            face_pick=row.get("face_pick", "").strip() or None,
+        )
+    return out
+
+
 def crop_box(img_w, img_h, face, face_ratio, eye_line):
     """
     얼굴이 프레임에서 원하는 크기·위치에 오도록 4:5 크롭 영역을 구한다.
@@ -130,7 +165,11 @@ def crop_box(img_w, img_h, face, face_ratio, eye_line):
             int(round(left + want_w)), int(round(top + want_h)))
 
 
-def process(path, out_dir, face_ratio, eye_line, min_short):
+def process(path, out_dir, face_ratio, eye_line, min_short, override=None):
+    override = override or {}
+    face_ratio = override.get("face_ratio") or face_ratio
+    eye_line = override.get("eye_line") or eye_line
+
     row = {"file": path.name, "status": "", "note": "",
            "src_w": 0, "src_h": 0, "src_fmt": "", "faces": 0, "upscaled": ""}
     try:
@@ -149,7 +188,7 @@ def process(path, out_dir, face_ratio, eye_line, min_short):
 
     faces = detect_faces(img)
     row["faces"] = len(faces)
-    face = faces[0] if len(faces) else None
+    face = pick_face(faces, override.get("face_pick"))
 
     box = crop_box(w, h, face, face_ratio, eye_line)
     cropped = img.crop(box)
@@ -166,9 +205,12 @@ def process(path, out_dir, face_ratio, eye_line, min_short):
     if face is None:
         row["status"] = "검수필요"
         row["note"] = "얼굴 미검출 — 중앙 기준으로 잘랐음"
-    elif len(faces) > 1:
+    elif len(faces) > 1 and not override.get("face_pick"):
         row["status"] = "검수필요"
         row["note"] = f"얼굴 {len(faces)}개 검출 — 가장 큰 얼굴 사용"
+    elif len(faces) > 1:
+        row["status"] = "성공"
+        row["note"] = f"얼굴 {len(faces)}개 중 수동 지정({override['face_pick']}) 적용"
     else:
         row["status"] = "성공"
     return row
@@ -218,6 +260,11 @@ def main():
                     help="얼굴 중심을 놓을 세로 위치 (기본 0.42, 위에서부터의 비율)")
     ap.add_argument("--min-short-side", type=int, default=MIN_SHORT_SIDE,
                     help=f"이보다 짧은 변을 가진 이미지는 건너뜀 (기본 {MIN_SHORT_SIDE})")
+    ap.add_argument("--overrides", default=None,
+                    help="id,face_ratio,eye_line,face_pick 형식 CSV. 빈 칸은 기본값 사용. "
+                         "face_pick: leftmost/rightmost/정수 인덱스")
+    ap.add_argument("--only", default=None,
+                    help="쉼표로 구분한 id 목록만 처리 (예: --only 3,10,115). 나머지는 건드리지 않음")
     args = ap.parse_args()
 
     src, dst = Path(args.src), Path(args.dst)
@@ -226,14 +273,29 @@ def main():
     if not files:
         sys.exit(f"{src}에 파일이 없습니다.")
 
+    if args.only:
+        wanted = set(args.only.split(","))
+        files = [p for p in files if p.stem in wanted]
+        if not files:
+            sys.exit(f"--only로 지정한 id가 {src}에 없습니다: {args.only}")
+
+    overrides = load_overrides(args.overrides)
+
     rows = []
     for p in files:
-        r = process(p, dst, args.face_ratio, args.eye_line, args.min_short_side)
+        r = process(p, dst, args.face_ratio, args.eye_line, args.min_short_side,
+                    override=overrides.get(p.stem))
         rows.append(r)
         mark = {"성공": "OK", "검수필요": "  검수", "건너뜀": "  건너뜀", "실패": "  실패"}[r["status"]]
         print(f"{mark:6s} {p.name}  {r['note']}")
 
     report = dst / "crop_report.csv"
+    if args.only and report.exists():
+        # 일부만 재실행한 경우, 기존 리포트에서 대상 행만 갱신하고 나머지는 보존한다
+        prior = {r["file"]: r for r in csv.DictReader(open(report, encoding="utf-8-sig"))}
+        for r in rows:
+            prior[r["file"]] = r
+        rows = list(prior.values())
     with open(report, "w", newline="", encoding="utf-8-sig") as f:
         wtr = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
         wtr.writeheader()

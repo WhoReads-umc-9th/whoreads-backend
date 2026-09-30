@@ -19,6 +19,7 @@ public class CelebrityResponse {
     @JsonProperty("image_source_url") private String imageSourceUrl;
     @JsonProperty("image_author") private String imageAuthor;
     @JsonProperty("image_license") private String imageLicense;
+    @JsonProperty("image_license_version") private String imageLicenseVersion;
     @JsonProperty("short_bio") private String shortBio;
     @JsonProperty("job_tags") private List<String> jobTags;
 
@@ -33,6 +34,7 @@ public class CelebrityResponse {
                 .imageSourceUrl(celebrity.getImageSourceUrl())
                 .imageAuthor(celebrity.getImageAuthor())
                 .imageLicense(license != null ? license.name() : null)
+                .imageLicenseVersion(celebrity.getImageLicenseVersion())
                 .shortBio(celebrity.getShortBio())
                 .jobTags(celebrity.getJobTags().stream()
                         .map(CelebrityTag::getDescription)

@@ -33,7 +33,12 @@ public class Celebrity extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "image_license", length = 30)
-    private ImageLicense imageLicense; // 저작권 라이선스 구분
+    private ImageLicense imageLicense; // 저작권 라이선스 계열 (CC_BY, CC_BY_SA 등)
+
+    @Column(name = "image_license_version", length = 10)
+    private String imageLicenseVersion; // 라이선스 버전 (예: "2.0", "3.0", "4.0"). 같은 계열이어도
+    // 버전마다 별개 법적 문서라 저작자 표시 문구에 반드시 함께 노출해야 한다.
+    // 유튜브 CC BY처럼 버전 개념이 없는 출처는 null로 둔다.
 
     @Column(name = "short_bio", nullable = false)
     private String shortBio; // 한줄 소개
@@ -62,7 +67,8 @@ public class Celebrity extends BaseEntity {
 
     @Builder
     public Celebrity(String name, String imageUrl, String shortBio, List<CelebrityTag> jobTags,
-                     String imageSourceUrl, String imageAuthor, ImageLicense imageLicense) {
+                     String imageSourceUrl, String imageAuthor, ImageLicense imageLicense,
+                     String imageLicenseVersion) {
         this.name = name;
         this.imageUrl = imageUrl;
         this.shortBio = shortBio;
@@ -70,5 +76,6 @@ public class Celebrity extends BaseEntity {
         this.imageSourceUrl = imageSourceUrl;
         this.imageAuthor = imageAuthor;
         this.imageLicense = imageLicense;
+        this.imageLicenseVersion = imageLicenseVersion;
     }
 }

@@ -99,5 +99,5 @@ cloud:
     region: ap-northeast-2
     s3:
       bucket: ${AWS_S3_BUCKET:whoreads-img-bucket}
-      # CloudFront 등 CDN을 앞에 두면 이 값만 바꾸면 되고 DB는 건드리지 않는다. 비우면 S3 기본 엔드포인트 사용
-      base-url: ${AWS_S3_BASE_URL:}
+      # Presigned URL 유효시간. 앱이 너무 자주 재발급받지 않도록 넉넉하게, 봇 접근 방지 취지는 유지되게 24시간
+      presign-duration: ${AWS_S3_PRESIGN_DURATION:PT24H}
