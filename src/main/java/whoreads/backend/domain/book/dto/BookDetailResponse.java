@@ -14,6 +14,7 @@ import whoreads.backend.domain.library.enums.ReadingStatus;
 import whoreads.backend.domain.quote.dto.QuoteResponse;
 import whoreads.backend.domain.quote.entity.Quote;
 import whoreads.backend.domain.quote.entity.QuoteSource;
+import whoreads.backend.infra.s3.S3Service;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -53,11 +54,12 @@ public class BookDetailResponse {
         @JsonProperty("image_url") private String imageUrl;
         @JsonProperty("job_tags") private List<String> jobTags;
 
-        public static CelebrityInfo from(Celebrity celebrity) {
+        /** @param imageUrl S3Service.generateUrl()로 변환을 마친 절대 URL */
+        public static CelebrityInfo from(Celebrity celebrity, String imageUrl) {
             return CelebrityInfo.builder()
                     .id(celebrity.getId())
                     .name(celebrity.getName())
-                    .imageUrl(celebrity.getImageUrl())
+                    .imageUrl(imageUrl)
                     .jobTags(celebrity.getJobTags().stream()
                             .map(CelebrityTag::getDescription)
                             .collect(Collectors.toList()))
@@ -89,7 +91,8 @@ public class BookDetailResponse {
     public static BookDetailResponse of(
             Book book,
             List<BookQuote> bookQuotes,
-            Map<Long, QuoteSource> sourceMap
+            Map<Long, QuoteSource> sourceMap,
+            S3Service s3Service
     ) {
         List<QuoteDetail> quoteDetails = bookQuotes.stream()
                 .map(bq -> {
@@ -100,7 +103,8 @@ public class BookDetailResponse {
                             .quoteId(quote.getId())
                             .originalText(quote.getOriginalText())
                             .contextScore(quote.getContextScore())
-                            .celebrity(CelebrityInfo.from(quote.getCelebrity()))
+                            .celebrity(CelebrityInfo.from(quote.getCelebrity(),
+                                    s3Service.generateUrl(quote.getCelebrity().getImageUrl())))
                             .source(src != null ? QuoteResponse.SourceInfo.builder()
                                     .url(src.getSourceUrl())
                                     .type(src.getSourceType() != null

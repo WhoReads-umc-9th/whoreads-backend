@@ -4,14 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import whoreads.backend.domain.celebrity.dto.CelebrityCategoryResponse;
-import whoreads.backend.domain.celebrity.dto.CelebrityImageRequest;
-import whoreads.backend.domain.celebrity.dto.CelebrityImageResponse;
 import whoreads.backend.domain.celebrity.dto.CelebrityResponse;
 import whoreads.backend.domain.celebrity.entity.Celebrity;
 import whoreads.backend.domain.celebrity.entity.CelebrityTag;
 import whoreads.backend.domain.celebrity.repository.CelebrityRepository;
 import whoreads.backend.global.exception.CustomException;
 import whoreads.backend.global.exception.ErrorCode;
+import whoreads.backend.infra.s3.S3Service;
 
 import java.util.Arrays;
 import java.util.List;
@@ -23,6 +22,7 @@ import java.util.stream.Collectors;
 public class CelebrityService {
 
     private final CelebrityRepository celebrityRepository;
+    private final S3Service s3Service;
 
     // 인물 카테고리(직업 태그) 목록 조회 - 프론트 하드코딩 제거용
     public List<CelebrityCategoryResponse> getCategories() {
@@ -42,7 +42,7 @@ public class CelebrityService {
         }
 
         return celebrities.stream()
-                .map(CelebrityResponse::from)
+                .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -52,26 +52,10 @@ public class CelebrityService {
         Celebrity celebrity = celebrityRepository.findById(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.CELEBRITY_NOT_FOUND));
 
-        return CelebrityResponse.from(celebrity);
+        return toResponse(celebrity);
     }
 
-    // 유명인 프로필 이미지 조회
-    public CelebrityImageResponse getCelebrityImage(Long id) {
-        Celebrity celebrity = celebrityRepository.findById(id)
-                .orElseThrow(() -> new CustomException(ErrorCode.CELEBRITY_NOT_FOUND));
-
-        return CelebrityImageResponse.from(celebrity.getId(), celebrity.getImageUrl());
-    }
-
-    // 유명인 프로필 이미지 수정 (PATCH)
-    @Transactional
-    public CelebrityImageResponse updateCelebrityImage(Long id, CelebrityImageRequest request) {
-        Celebrity celebrity = celebrityRepository.findById(id)
-                .orElseThrow(() -> new CustomException(ErrorCode.CELEBRITY_NOT_FOUND));
-
-        // 변경 감지(Dirty Checking)로 업데이트 처리
-        celebrity.updateImageUrl(request.getImageUrl());
-
-        return CelebrityImageResponse.from(celebrity.getId(), celebrity.getImageUrl());
+    private CelebrityResponse toResponse(Celebrity celebrity) {
+        return CelebrityResponse.from(celebrity, s3Service.generateUrl(celebrity.getImageUrl()));
     }
 }

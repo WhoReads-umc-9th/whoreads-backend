@@ -4,12 +4,12 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import whoreads.backend.auth.principal.CustomUserDetails;
 import whoreads.backend.domain.book.controller.docs.BookControllerDocs;
 import whoreads.backend.domain.book.dto.BookDetailResponse;
 import whoreads.backend.domain.book.dto.BookRequest;
@@ -19,6 +19,7 @@ import whoreads.backend.domain.book.service.AladinBookService;
 import whoreads.backend.domain.book.service.BookService;
 import whoreads.backend.domain.topic.entity.TopicTag;
 import whoreads.backend.global.response.ApiResponse;
+import whoreads.backend.global.response.PageResponse;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,10 +35,11 @@ public class BookController implements BookControllerDocs {
 
     @Override
     @GetMapping
-    public List<BookResponse> getAllBooks(@RequestParam(required = false) String keyword) {
-        return bookService.getAllBooks(keyword).stream()
-                .map(BookResponse::from)
-                .collect(Collectors.toList());
+    public PageResponse<BookResponse> getAllBooks(
+            @RequestParam(required = false) String keyword,
+            @PageableDefault(size = 20) Pageable pageable) {
+        // 바꾼 이유: 전체 도서를 한 번에 내려주느라 목록 API가 느렸음 → 페이징 적용
+        return PageResponse.of(bookService.getAllBooks(keyword, pageable), BookResponse::from);
     }
 
     @Override
@@ -54,7 +56,9 @@ public class BookController implements BookControllerDocs {
         return ResponseEntity.ok(BookResponse.from(book));
     }
 
+    // 정리: /api/topics/TOP_20/books 와 동일한 결과. 신규 연동은 /api/topics/{theme}/books 사용 권장
     @Override
+    @Deprecated
     @GetMapping("/most-recommended")
     public ResponseEntity<List<BookResponse>> getMostRecommendedBooks(
             @RequestParam(defaultValue = "20") @Positive(message = "가져올 개수는 1 이상이어야 합니다.") int limit) { // 바꾼 이유: limit에 음수나 0이 들어오면 에러가 나므로 @Positive 추가
@@ -68,20 +72,18 @@ public class BookController implements BookControllerDocs {
     @Override
     @GetMapping("/{bookId}/detail")
     public ApiResponse<BookDetailResponse> getBookDetail(
-            @PathVariable @Positive(message = "올바른 책 ID를 입력해주세요.") Long bookId) { // 바꾼 이유: ID값 검증
-        Long memberId = resolveCurrentMemberId();
+            @PathVariable @Positive(message = "올바른 책 ID를 입력해주세요.") Long bookId, // 바꾼 이유: ID값 검증
+            @AuthenticationPrincipal Long memberId) {
+        // 바꾼 이유: 기존 resolveCurrentMemberId()는 principal을 CustomUserDetails로 캐스팅했지만
+        // JwtAuthenticationFilter가 principal에 memberId(Long)를 넣으므로 instanceof가 절대 매칭되지 않아
+        // 로그인 상태에서도 memberId가 항상 null → reading_info가 내려가지 않았음.
+        // 다른 컨트롤러들과 동일하게 @AuthenticationPrincipal Long로 통일 (비로그인 시 null)
         return ApiResponse.success(bookService.getBookDetail(bookId, memberId));
     }
 
-    private Long resolveCurrentMemberId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
-            return userDetails.getMember().getId();
-        }
-        return null;
-    }
-
+    // 정리: /api/topics/{theme}/books 와 동일한 결과. 신규 연동은 /api/topics/{theme}/books 사용 권장
     @Override
+    @Deprecated
     @GetMapping("/themes/{theme}")
     public ResponseEntity<List<BookResponse>> getBooksByTheme(
             @PathVariable TopicTag theme,
