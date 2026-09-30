@@ -18,6 +18,7 @@ import whoreads.backend.domain.quote.repository.QuoteSourceRepository;
 import whoreads.backend.domain.topic.entity.TopicTag;
 import whoreads.backend.global.exception.CustomException;
 import whoreads.backend.global.exception.ErrorCode;
+import whoreads.backend.infra.s3.S3Service;
 
 import java.util.Collections;
 import java.util.List;
@@ -34,6 +35,7 @@ public class BookService {
     private final BookQuoteRepository bookQuoteRepository;
     private final QuoteSourceRepository quoteSourceRepository;
     private final UserBookRepository userBookRepository;
+    private final S3Service s3Service;
 
     @Transactional
     public Book registerBook(BookRequest request) {
@@ -69,7 +71,7 @@ public class BookService {
                 ));
 
         // 응답 조립
-        BookDetailResponse response = BookDetailResponse.of(book, bookQuotes, sourceMap);
+        BookDetailResponse response = BookDetailResponse.of(book, bookQuotes, sourceMap, s3Service);
 
         // 로그인 사용자의 읽기 상태 확인
         if (memberId != null) {

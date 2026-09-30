@@ -13,6 +13,7 @@ import whoreads.backend.domain.member.repository.MemberCelebrityRepository;
 import whoreads.backend.domain.member.repository.MemberRepository;
 import whoreads.backend.global.exception.CustomException;
 import whoreads.backend.global.exception.ErrorCode;
+import whoreads.backend.infra.s3.S3Service;
 
 import whoreads.backend.domain.member.enums.AgeGroup;
 import whoreads.backend.domain.member.enums.Gender;
@@ -27,6 +28,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final CelebrityRepository celebrityRepository;
     private final MemberCelebrityRepository memberCelebrityRepository;
+    private final S3Service s3Service;
 
     public List<MemberResDto.CelebrityFollow> getFollowList(Long memberId) {
         List<Celebrity> followedCelebrities = memberCelebrityRepository.findCelebritiesByMemberId(memberId);
@@ -35,7 +37,7 @@ public class MemberService {
                 .map(celebrity -> MemberResDto.CelebrityFollow.builder()
                         .id(celebrity.getId())
                         .name(celebrity.getName())
-                        .imageUrl(celebrity.getImageUrl())
+                        .imageUrl(s3Service.generateUrl(celebrity.getImageUrl()))
                         .shortBio(celebrity.getShortBio())
                         .build())
                 .toList();
