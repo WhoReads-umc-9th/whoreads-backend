@@ -118,12 +118,13 @@ CREATE TABLE `book_quote` (
 -- =============================================
 CREATE TABLE `quote_context` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
-    `quote_id` BIGINT NULL,
-    `context_how` VARCHAR(255) NULL COMMENT '읽게 된 계기',
-    `context_when` VARCHAR(255) NULL COMMENT '어떤 시기에 읽었는지',
-    `context_why` VARCHAR(255) NULL COMMENT '왜 이 책이었나',
-    `context_help` VARCHAR(255) NULL COMMENT '어떤 도움을 받았나',
+    `quote_id` BIGINT NOT NULL,
+    `context_how` TEXT NULL COMMENT '읽게 된 계기',
+    `context_when` TEXT NULL COMMENT '어떤 시기에 읽었는지',
+    `context_why` TEXT NULL COMMENT '왜 이 책이었나',
+    `context_help` TEXT NULL COMMENT '어떤 도움을 받았나',
     PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_quote_context_quote` (`quote_id`),
     CONSTRAINT `fk_quote_context_quote` FOREIGN KEY (`quote_id`) REFERENCES `quote` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -132,12 +133,13 @@ CREATE TABLE `quote_context` (
 -- =============================================
 CREATE TABLE `quote_source` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
-    `quote_id` BIGINT NULL,
-    `source_url` VARCHAR(255) NULL,
-    `source_type` ENUM('INTERVIEW', 'VIDEO', 'SOCIAL_MEDIA', 'ARTICLE', 'MAGAZINE', 'ETC') NULL,
+    `quote_id` BIGINT NOT NULL,
+    `source_url` TEXT NULL,
+    `source_type` ENUM('INTERVIEW', 'YOUTUBE_VIDEO', 'SNS', 'ARTICLE', 'MAGAZINE') NOT NULL,
     `timestamp` VARCHAR(255) NULL COMMENT '영상일 경우 타임스탬프',
     `is_direct_quote` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '직접 인용 여부',
     PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_quote_source_quote` (`quote_id`),
     CONSTRAINT `fk_quote_source_quote` FOREIGN KEY (`quote_id`) REFERENCES `quote` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
