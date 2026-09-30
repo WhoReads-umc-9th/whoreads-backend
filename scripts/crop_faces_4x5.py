@@ -100,6 +100,11 @@ def detect_faces(pil_img):
     return sorted(faces, key=lambda f: f[2] * f[3], reverse=True)
 
 
+class InvalidFacePick(Exception):
+    """face_pick 값이 leftmost/rightmost/유효한 인덱스가 아닐 때. faces[0]으로 대체하되
+    process()가 이걸 '수동 지정 성공'이 아니라 '검수필요'로 기록하도록 구분하는 용도."""
+
+
 def pick_face(faces, face_pick):
     """
     얼굴이 여러 개 검출됐을 때 어느 것을 인물로 볼지 정한다.
@@ -116,7 +121,7 @@ def pick_face(faces, face_pick):
     try:
         return faces[int(face_pick)]
     except (ValueError, IndexError):
-        return faces[0]
+        raise InvalidFacePick(f"알 수 없는 face_pick 값: {face_pick!r}")
 
 
 def load_overrides(path):
@@ -188,7 +193,12 @@ def process(path, out_dir, face_ratio, eye_line, min_short, override=None):
 
     faces = detect_faces(img)
     row["faces"] = len(faces)
-    face = pick_face(faces, override.get("face_pick"))
+    bad_face_pick = None
+    try:
+        face = pick_face(faces, override.get("face_pick"))
+    except InvalidFacePick as e:
+        bad_face_pick = str(e)
+        face = faces[0] if faces else None
 
     box = crop_box(w, h, face, face_ratio, eye_line)
     cropped = img.crop(box)
@@ -205,6 +215,9 @@ def process(path, out_dir, face_ratio, eye_line, min_short, override=None):
     if face is None:
         row["status"] = "검수필요"
         row["note"] = "얼굴 미검출 — 중앙 기준으로 잘랐음"
+    elif bad_face_pick:
+        row["status"] = "검수필요"
+        row["note"] = f"{bad_face_pick} — 가장 큰 얼굴로 대체"
     elif len(faces) > 1 and not override.get("face_pick"):
         row["status"] = "검수필요"
         row["note"] = f"얼굴 {len(faces)}개 검출 — 가장 큰 얼굴 사용"
@@ -268,6 +281,7 @@ def main():
     args = ap.parse_args()
 
     src, dst = Path(args.src), Path(args.dst)
+    dst.mkdir(parents=True, exist_ok=True)
     files = sorted(p for p in src.iterdir()
                    if p.is_file() and not p.name.startswith("."))
     if not files:

@@ -19,7 +19,7 @@ except ImportError:
     sys.exit("pillow가 필요합니다: pip install pillow")
 
 sys.path.insert(0, str(Path(__file__).parent))
-from crop_faces_4x5 import detect_faces, crop_box, load_rgb, ASPECT  # noqa: E402
+from crop_faces_4x5 import detect_faces, crop_box, load_rgb, pick_face, load_overrides, InvalidFacePick, ASPECT  # noqa: E402
 
 THUMB_W = 300
 
@@ -32,7 +32,8 @@ def thumb_data_uri(img, width=THUMB_W):
     return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
 
 
-def build_rows(src_dir, out_dir, face_ratio, eye_line, names):
+def build_rows(src_dir, out_dir, face_ratio, eye_line, names, overrides=None):
+    overrides = overrides or {}
     report = {}
     rpt_path = out_dir / "crop_report.csv"
     if rpt_path.exists():
@@ -53,8 +54,14 @@ def build_rows(src_dir, out_dir, face_ratio, eye_line, names):
 
         w, h = img.size
         faces = detect_faces(img)
-        face = faces[0] if faces else None
-        box = crop_box(w, h, face, face_ratio, eye_line)
+        ov = overrides.get(stem, {})
+        try:
+            face = pick_face(faces, ov.get("face_pick"))
+        except InvalidFacePick:
+            face = faces[0] if faces else None
+        row_ratio = ov.get("face_ratio") or face_ratio
+        row_eye_line = ov.get("eye_line") or eye_line
+        box = crop_box(w, h, face, row_ratio, row_eye_line)
 
         # 원본 위에 겹쳐 그릴 좌표를 백분율로 넘긴다 (CSS로 렌더)
         overlay = dict(
@@ -185,6 +192,9 @@ def main():
     ap.add_argument("--names", help="id→이름 매핑 JSON (선택)")
     ap.add_argument("--face-ratio", type=float, default=0.40)
     ap.add_argument("--eye-line", type=float, default=0.42)
+    ap.add_argument("--overrides", default=None,
+                    help="crop_faces_4x5.py에 준 것과 동일한 --overrides CSV를 넘기면 "
+                         "실제 생성된 webp와 같은 얼굴·파라미터로 미리보기를 그린다")
     args = ap.parse_args()
 
     names = {}
@@ -192,7 +202,8 @@ def main():
         for r in json.load(open(args.names, encoding="utf-8")):
             names[str(r["id"])] = r["name"]
 
-    rows = build_rows(Path(args.src), Path(args.out), args.face_ratio, args.eye_line, names)
+    overrides = load_overrides(args.overrides)
+    rows = build_rows(Path(args.src), Path(args.out), args.face_ratio, args.eye_line, names, overrides)
     params = f"--face-ratio {args.face_ratio} --eye-line {args.eye_line}"
     out = Path(args.html)
     render(rows, params, out)

@@ -12,7 +12,7 @@ DB에 넣을 출처 메타데이터(csv)를 만든다. (이슈 #207, #208)
     3) python3 scripts/crop_faces_4x5.py --in profiles/ --out cropped/
     4) S3 업로드 후, image_sources.csv를 이용해 최종 UPDATE SQL 생성
 """
-import argparse, csv, sys, urllib.request
+import argparse, csv, re, sys, urllib.request
 from pathlib import Path
 
 UA = {'User-Agent': 'WhoReads-image-import/1.0'}
@@ -23,21 +23,31 @@ LICENSE_MAP = {
     'cc0': 'CC0',
 }
 
+_CC_BY_RE = re.compile(r'cc[-\s](by(?:-nc|-nd|-sa)*)')
+
+
 def map_license(raw):
     """
-    'CC BY-SA 3.0', 'CC BY 2.0 kr' 처럼 지역/버전이 붙어도 매칭한다.
-    매핑 실패 시 None을 반환해 수동 확인 대상으로 표시한다 (예: GFDL, GODL-India).
+    'CC BY-SA 3.0', 'CC BY 2.0 kr', 'cc-by-sa-3.0' 처럼 지역/버전 표기가 달라도 매칭한다.
+    BY-NC-*, BY-ND-* 등 재사용에 제약이 있는 변형은 절대 CC_BY/CC_BY_SA로 뭉뚱그리지 않고
+    None으로 돌려보내 수동 확인 대상으로 남긴다 — NC/ND는 이 앱의 라이선스 체계가 허용하는
+    "자유 재사용"과 다르다 (상업적 이용 금지 / 크롭 등 변형 금지).
+    매핑 실패 시 None을 반환한다 (예: GFDL, GODL-India, BY-NC, BY-ND).
     """
     if not raw:
         return None
     key = raw.strip().lower()
     if key in LICENSE_MAP:
         return LICENSE_MAP[key]
-    if 'by-sa' in key or ('by' in key and 'sa' in key):
-        return 'CC_BY_SA'
-    if key.startswith('cc by') or key.startswith('cc-by'):
+    m = _CC_BY_RE.match(key)
+    if not m:
+        return None
+    code = m.group(1)
+    if code == 'by':
         return 'CC_BY'
-    return None  # GFDL, GODL-India 등 enum에 없는 라이선스 — 수동 확인 필요
+    if code == 'by-sa':
+        return 'CC_BY_SA'
+    return None  # by-nc, by-nd, by-nc-sa 등 — 재사용 제약 있어 수동 확인 필요
 
 
 def guess_ext(url):
