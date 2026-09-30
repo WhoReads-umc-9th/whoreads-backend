@@ -19,6 +19,7 @@ public class QuoteResponse {
 
     @JsonProperty("book_id") private Long bookId;
     @JsonProperty("book_title") private String bookTitle;
+    @JsonProperty("book_author") private String bookAuthor; // 추가 이유: 저자를 안 내려줘서 프론트에서 "미상"으로 표시되던 문제
     @JsonProperty("book_cover") private String bookCover;
 
     @JsonProperty("celebrity_id") private Long celebrityId;
@@ -44,17 +45,20 @@ public class QuoteResponse {
         private String timestamp;
     }
 
-    public static QuoteResponse of(Quote quote, Book book, Celebrity celebrity, QuoteContext ctx, QuoteSource src) {
+    /** @param celebrityImageUrl S3Service.generateUrl()로 변환을 마친 절대 URL */
+    public static QuoteResponse of(Quote quote, Book book, Celebrity celebrity, QuoteContext ctx, QuoteSource src,
+                                   String celebrityImageUrl) {
         return QuoteResponse.builder()
                 .id(quote.getId())
                 .originalText(quote.getOriginalText())
                 .contextScore(quote.getContextScore())
                 .bookId(book.getId())
                 .bookTitle(book.getTitle())
+                .bookAuthor(book.getAuthorName())
                 .bookCover(book.getCoverUrl())
                 .celebrityId(celebrity.getId())
                 .celebrityName(celebrity.getName())
-                .celebrityImg(celebrity.getImageUrl())
+                .celebrityImg(celebrityImageUrl)
                 .celebrityJob(celebrity.getShortBio())
                 .context(ctx != null ? ContextInfo.builder()
                         .how(ctx.getContextHow())

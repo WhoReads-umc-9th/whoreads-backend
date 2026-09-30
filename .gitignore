@@ -71,3 +71,15 @@ firebase/
 ### Claude ###
 docs/claude.md
 docs/DOCKER_STUDY.md
+profiles/
+review.html
+.venv-imgtools/
+
+### Aider ###
+.aider.chat.history.md
+.aider.input.history
+__pycache__/
+
+### WIP scripts (not yet ready to commit) ###
+start-app.sh
+trigger-ai-fix.sh
