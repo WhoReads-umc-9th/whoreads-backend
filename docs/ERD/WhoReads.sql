@@ -1,5 +1,10 @@
 -- WhoReads Database DDL
 -- Generated from JPA Entities (2026-02-08)
+--
+-- ⚠️ 문서 용도 전용 (#206). 실제 스키마의 단일 진실 공급원은
+-- src/main/resources/db/migration/*.sql (Flyway)이다. 이 파일은 ERD.md를
+-- 생성하기 위한 사람이 읽기 좋은 스냅샷일 뿐, 실제 DB에 적용되지 않으며
+-- 수동으로 최신화해야 한다 — 누락되거나 어긋나도 배포에는 영향 없다(#217 참고).
 
 -- =============================================
 -- 1. Member (회원)

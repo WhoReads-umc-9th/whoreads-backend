@@ -7,7 +7,9 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      # Flyway가 스키마를 관리하므로 Hibernate는 검증만 한다 (#206) — 이전엔 update라서
+      # Hibernate가 컬럼을 임의로 추가하며 prod와 스키마가 어긋났다 (예: is_edited 기본값 누락)
+      ddl-auto: validate
     show-sql: false
 
 logging:

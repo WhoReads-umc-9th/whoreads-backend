@@ -59,6 +59,18 @@ src/main/java/com/whoreads/
 ```
 
 ---
+## 🗄 DB 마이그레이션 (Flyway)
+
+스키마 변경은 Hibernate `ddl-auto`가 아니라 **Flyway 마이그레이션 파일**로 관리합니다.
+
+- 위치: `src/main/resources/db/migration/`
+- 파일명 규칙: `V{버전}__{설명}.sql` (예: `V2__add_celebrity_nickname.sql`). 버전 번호는 항상 증가해야 하며, 이미 머지된 파일은 절대 수정하지 않습니다 — 틀렸으면 새 버전으로 고칩니다.
+- `V1__baseline.sql`은 2026-10-01 시점 운영 DB를 그대로 덤프한 베이스라인입니다. 엔티티나 `docs/ERD/WhoReads.sql` 기준이 아니라 **실제 운영 스키마 기준**입니다.
+- 새 컬럼/테이블이 필요하면: 엔티티 변경 + 새 마이그레이션 파일 추가를 **같은 PR**에서 함께 합니다. 마이그레이션 없이 엔티티만 바꾸면 `ddl-auto: validate`가 모든 환경에서 기동 실패로 막습니다.
+- 환경별 `ddl-auto`는 전부 `validate`로 통일되어 있습니다 (local/staging/prod). Flyway가 스키마를 만들고, Hibernate는 엔티티와 일치하는지 검증만 합니다.
+- 테스트(H2)는 Flyway를 쓰지 않습니다(`spring.flyway.enabled: false`, `src/test/resources/application.yml`) — MySQL 전용 DDL이 H2에서 깨지기 때문에, 기존처럼 `ddl-auto: create-drop`으로 스키마를 만듭니다.
+
+---
 ## 📖 Project Documentation
 프로젝트 운영 및 기술 관련 상세 정보는 아래 문서를 참고하세요.
 
