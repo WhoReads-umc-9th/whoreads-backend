@@ -66,8 +66,14 @@ CREATE TABLE `user_book` (
 CREATE TABLE `celebrity` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(50) NOT NULL,
-    `image_url` TEXT NULL,
+    `image_url` TEXT NULL COMMENT 'S3 objectKey (예: celebrity/12/profile_v1.webp). 과도기에는 전체 URL도 허용',
+    `image_source_url` TEXT NULL COMMENT '이미지를 가져온 원본 페이지 URL',
+    `image_author` VARCHAR(100) NULL COMMENT '사진 저작자 표기명',
+    `image_license` VARCHAR(30) NULL COMMENT 'PUBLIC_DOMAIN, CC0, CC_BY, CC_BY_SA, KOGL_TYPE1, UNKNOWN',
+    `image_license_version` VARCHAR(10) NULL COMMENT '라이선스 버전 (예: 2.0, 3.0, 4.0). 버전 개념이 없는 출처는 NULL',
+    `is_edited` BOOLEAN NOT NULL DEFAULT TRUE COMMENT '원본 이미지를 크롭 등으로 변형했는지 여부',
     `short_bio` VARCHAR(255) NOT NULL,
+    `result_comment` TEXT NULL,
     `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     PRIMARY KEY (`id`)

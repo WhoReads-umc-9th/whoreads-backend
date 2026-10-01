@@ -40,6 +40,9 @@ public class Celebrity extends BaseEntity {
     // 버전마다 별개 법적 문서라 저작자 표시 문구에 반드시 함께 노출해야 한다.
     // 유튜브 CC BY처럼 버전 개념이 없는 출처는 null로 둔다.
 
+    @Column(name = "is_edited", nullable = false)
+    private boolean isEdited; // 원본을 크롭 등으로 변형했는지 여부. CC BY/BY-SA는 변형 시 표시 의무가 있어 출처표시 문구에 반영한다.
+
     @Column(name = "short_bio", nullable = false)
     private String shortBio; // 한줄 소개
 
@@ -60,15 +63,39 @@ public class Celebrity extends BaseEntity {
     @Builder.Default
     private List<CelebrityBook> celebrityBookList = new ArrayList<>();
 
-    /** 출처 표기가 필요한 이미지인지 여부. 라이선스 미지정은 미확인으로 간주해 표기 대상에 포함한다. */
-    public boolean requiresImageAttribution() {
-        return imageLicense == null || imageLicense.requiresAttribution();
+    /**
+     * 앱에 그대로 표시할 출처 관련 문구. 세 가지 경우로 나뉜다:
+     * - "자유 이용 가능": 저작권이 없거나 포기된 경우(PUBLIC_DOMAIN, CC0) — 표시 의무는 없지만 상태는 알려준다
+     * - "{저작자} · {라이선스} {버전} · 편집됨\n{원본 URL}": 표시 의무가 있고 저작자 정보가 있는 경우
+     * - "" (빈 문자열): 표시 의무는 있는데 저작자 정보가 없는 경우(출처 미확인 13명) —
+     *   의무 자체가 없는 경우와 구분해 "확인 필요" 상태를 프론트가 식별할 수 있게 한다.
+     */
+    public String getImageAttribution() {
+        if (imageLicense == ImageLicense.PUBLIC_DOMAIN || imageLicense == ImageLicense.CC0) {
+            return "자유 이용 가능";
+        }
+        if (imageAuthor == null || imageAuthor.isBlank()) {
+            return "";
+        }
+
+        String licenseDescription = imageLicense != null ? imageLicense.getDescription() : "미확인";
+        StringBuilder sb = new StringBuilder(imageAuthor).append(" · ").append(licenseDescription);
+        if (imageLicenseVersion != null && !imageLicenseVersion.isBlank()) {
+            sb.append(" ").append(imageLicenseVersion);
+        }
+        if (isEdited) {
+            sb.append(" · 편집됨");
+        }
+        if (imageSourceUrl != null && !imageSourceUrl.isBlank()) {
+            sb.append("\n").append(imageSourceUrl);
+        }
+        return sb.toString();
     }
 
     @Builder
     public Celebrity(String name, String imageUrl, String shortBio, List<CelebrityTag> jobTags,
                      String imageSourceUrl, String imageAuthor, ImageLicense imageLicense,
-                     String imageLicenseVersion) {
+                     String imageLicenseVersion, boolean isEdited) {
         this.name = name;
         this.imageUrl = imageUrl;
         this.shortBio = shortBio;
@@ -77,5 +104,6 @@ public class Celebrity extends BaseEntity {
         this.imageAuthor = imageAuthor;
         this.imageLicense = imageLicense;
         this.imageLicenseVersion = imageLicenseVersion;
+        this.isEdited = isEdited;
     }
 }
