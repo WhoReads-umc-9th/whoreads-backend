@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import whoreads.backend.domain.celebrity.dto.CelebrityCategoryResponse;
+import whoreads.backend.domain.celebrity.dto.CelebrityDetailResponse;
 import whoreads.backend.domain.celebrity.dto.CelebrityResponse;
 import whoreads.backend.domain.celebrity.entity.Celebrity;
 import whoreads.backend.domain.celebrity.entity.CelebrityTag;
@@ -47,12 +48,12 @@ public class CelebrityService {
     }
 
     // 상세 조회 (ID)
-    public CelebrityResponse getCelebrity(Long id) {
+    public CelebrityDetailResponse getCelebrity(Long id) {
         // 바꾼 이유: 기본 EntityNotFoundException 대신 프로젝트 공통 CustomException과 이미 정의된 CELEBRITY_NOT_FOUND 사용
         Celebrity celebrity = celebrityRepository.findById(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.CELEBRITY_NOT_FOUND));
 
-        return toResponse(celebrity);
+        return CelebrityDetailResponse.from(celebrity, s3Service.generateUrl(celebrity.getImageUrl()));
     }
 
     private CelebrityResponse toResponse(Celebrity celebrity) {

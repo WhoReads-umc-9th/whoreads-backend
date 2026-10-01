@@ -80,6 +80,7 @@ erDiagram
         varchar_100 image_author
         varchar_30 image_license
         varchar_10 image_license_version
+        boolean is_edited "NOT_NULL"
         varchar short_bio "NOT_NULL"
         text result_comment
         datetime created_at "NOT_NULL"

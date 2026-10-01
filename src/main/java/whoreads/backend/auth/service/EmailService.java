@@ -29,7 +29,7 @@ public class EmailService {
 
         message.setFrom(senderEmail);
         message.setTo(email);
-        message.setSubject("[WoReads] 인증번호입니다.");
+        message.setSubject("[WhoReads] 인증번호입니다.");
         message.setText("인증번호: " + code);
         mailSender.send(message);
     }
@@ -40,7 +40,7 @@ public class EmailService {
 
         message.setFrom(senderEmail);
         message.setTo(email);
-        message.setSubject("[WoReads] 요청하신 아이디입니다.");
+        message.setSubject("[WhoReads] 요청하신 아이디입니다.");
         message.setText("회원님의 아이디는 " + loginId + " 입니다.");
         mailSender.send(message);
     }
