@@ -24,9 +24,6 @@ public enum ImageLicense {
     /** 공공누리 제1유형 - 출처 표시 */
     KOGL_TYPE1("공공누리 제1유형", true),
 
-    /** 직접 촬영/제작했거나 사용 허락을 받은 이미지 */
-    OWNED("자체 보유", false),
-
     /** 라이선스 미확인. 배포 전 반드시 정리되어야 하는 상태 */
     UNKNOWN("미확인", true);
 
