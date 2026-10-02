@@ -19,6 +19,7 @@ import whoreads.backend.domain.readingsession.enums.SessionStatus;
 import whoreads.backend.domain.readingsession.repository.ReadingSessionRepository;
 import whoreads.backend.global.exception.CustomException;
 import whoreads.backend.global.exception.ErrorCode;
+import whoreads.backend.infra.s3.S3Service;
 
 import java.time.LocalDate;
 import java.util.Collections;
@@ -36,6 +37,7 @@ public class UserBookServiceImpl implements UserBookService {
     private final MemberRepository memberRepository;
     private final CelebrityBookRepository celebrityBookRepository;
     private final ReadingSessionRepository readingSessionRepository;
+    private final S3Service s3Service;
 
     @Override
     public UserBookResponse.Summary getLibrarySummary(Long memberId) {
@@ -80,7 +82,7 @@ public class UserBookServiceImpl implements UserBookService {
                         Collectors.mapping(
                                 cb -> UserBookResponse.CelebritySummary.builder()
                                         .id(cb.getCelebrity().getId())
-                                        .profileUrl(cb.getCelebrity().getImageUrl())
+                                        .profileUrl(s3Service.generateUrl(cb.getCelebrity().getImageUrl()))
                                         .build(),
                                 Collectors.toList()
                         )

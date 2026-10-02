@@ -45,7 +45,9 @@ public class QuoteResponse {
         private String timestamp;
     }
 
-    public static QuoteResponse of(Quote quote, Book book, Celebrity celebrity, QuoteContext ctx, QuoteSource src) {
+    /** @param celebrityImageUrl S3Service.generateUrl()로 변환을 마친 절대 URL */
+    public static QuoteResponse of(Quote quote, Book book, Celebrity celebrity, QuoteContext ctx, QuoteSource src,
+                                   String celebrityImageUrl) {
         return QuoteResponse.builder()
                 .id(quote.getId())
                 .originalText(quote.getOriginalText())
@@ -56,7 +58,7 @@ public class QuoteResponse {
                 .bookCover(book.getCoverUrl())
                 .celebrityId(celebrity.getId())
                 .celebrityName(celebrity.getName())
-                .celebrityImg(celebrity.getImageUrl())
+                .celebrityImg(celebrityImageUrl)
                 .celebrityJob(celebrity.getShortBio())
                 .context(ctx != null ? ContextInfo.builder()
                         .how(ctx.getContextHow())
