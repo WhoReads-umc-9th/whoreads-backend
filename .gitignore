@@ -22,9 +22,10 @@ postman/globals/
 *.postman_environment.json
 
 # Local DB Data
-db/
-db/data/
-docker/db/data/
+# 바꾼 이유: "db/"가 루트 기준 없이 매칭돼 src/main/resources/db/migration/(Flyway)까지
+# 무시되고 있었음(#206) — 루트의 로컬 docker 볼륨 데이터만 가리키도록 앵커 고정
+/db/
+/docker/db/data/
 
 ### STS ###
 .apt_generated

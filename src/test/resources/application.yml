@@ -22,6 +22,11 @@ spring:
         dialect: org.hibernate.dialect.H2Dialect
     show-sql: false
 
+  # Flyway 비활성화(#206) — V1__baseline.sql은 MySQL 전용 DDL(ENUM, ENGINE=InnoDB 등)이라
+  # H2에서 실행하면 깨진다. 테스트는 기존처럼 Hibernate ddl-auto: create-drop으로 스키마를 만든다.
+  flyway:
+    enabled: false
+
   # Jackson
   jackson:
     property-naming-strategy: SNAKE_CASE
