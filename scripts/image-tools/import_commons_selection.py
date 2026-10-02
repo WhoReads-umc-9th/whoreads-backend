@@ -84,7 +84,11 @@ def main():
 
         ext = guess_ext(url)
         dest = out / f"{cid}{ext}"
-        if dest.exists() and not args.force:
+        # 재실행 시 guess_ext가 추측한 확장자가 실제 저장된 파일과 다를 수 있어
+        # (예: 처음엔 .jpg로 추측했는데 실제론 .png) 정확한 경로 대신 {cid}.* 전체를 찾는다
+        existing = next(iter(out.glob(f"{cid}.*")), None)
+        if existing and not args.force:
+            dest = existing
             print(f"  이미 있음 {cid} {r['name']} -> {dest.name}")
         else:
             try:
