@@ -306,7 +306,8 @@ def main():
     report = dst / "crop_report.csv"
     if args.only and report.exists():
         # 일부만 재실행한 경우, 기존 리포트에서 대상 행만 갱신하고 나머지는 보존한다
-        prior = {r["file"]: r for r in csv.DictReader(open(report, encoding="utf-8-sig"))}
+        with open(report, encoding="utf-8-sig") as f:
+            prior = {r["file"]: r for r in csv.DictReader(f)}
         for r in rows:
             prior[r["file"]] = r
         rows = list(prior.values())

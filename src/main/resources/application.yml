@@ -62,7 +62,7 @@ aladin:
 kakao:
   rest-api-key: ${KAKAO_REST_API_KEY}
   client-secret: ${KAKAO_CLIENT_SECRET:}
-  redirect-uri: ${KAKAO_REDIRECT_URI:https://api.whoreads.kro.kr/api/me/library/list}
+  redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:8081/api/auth/kakao/callback}
 
 # Server
 server:
