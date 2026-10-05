@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import whoreads.backend.global.response.ApiResponse;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -85,8 +88,19 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiResponse<Void>> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
-        log.error("MethodArgumentTypeMismatchException: {}", e.getMessage());
+        log.error("MethodArgumentTypeMismatchException - name: {}, value: {}, requiredType: {}",
+                e.getName(), e.getValue(), e.getRequiredType());
+
+        // 보강 이유: enum 파라미터(예: /api/topics/{theme})는 허용값을 모르면 프론트가 원인을 못 찾는다
+        Class<?> requiredType = e.getRequiredType();
         String message = String.format("'%s' 파라미터의 값이 올바르지 않습니다.", e.getName());
+        if (requiredType != null && requiredType.isEnum()) {
+            String allowed = Arrays.stream(requiredType.getEnumConstants())
+                    .map(constant -> ((Enum<?>) constant).name())
+                    .collect(Collectors.joining(", "));
+            message = message + String.format(" 허용되는 값: %s", allowed);
+        }
+
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(HttpStatus.BAD_REQUEST.value(), message));

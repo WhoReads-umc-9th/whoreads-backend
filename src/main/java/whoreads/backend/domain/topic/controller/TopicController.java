@@ -1,6 +1,5 @@
 package whoreads.backend.domain.topic.controller;
 
-import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -22,7 +21,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/topics")
 @RequiredArgsConstructor
-@Validated // previewSize 검증(@Positive) 활성화
+// previewSize 검증(@Positive) 활성화.
+// 제약은 TopicControllerDocs 쪽에만 선언한다 - 구현체에 중복 선언하면 Bean Validation 규칙(HV000151,
+// "오버라이드 메서드는 상위 메서드의 파라미터 제약을 재정의할 수 없다")에 걸려 이 컨트롤러의
+// validation 메타데이터 빌드가 실패하고, 결과적으로 /api/topics 계열 전체가 500이 된다.
+@Validated
 public class TopicController implements TopicControllerDocs {
 
     private final TopicService topicService;
@@ -31,7 +34,7 @@ public class TopicController implements TopicControllerDocs {
     @GetMapping
     public ResponseEntity<List<TopicResponse>> getAllTopics(
             @RequestParam(required = false) TopicTag tag,
-            @RequestParam(required = false) @Positive(message = "previewSize는 1 이상이어야 합니다.") Integer previewSize) {
+            @RequestParam(required = false) Integer previewSize) {
         return ResponseEntity.ok(topicService.getAllTopics(tag, previewSize));
     }
 
