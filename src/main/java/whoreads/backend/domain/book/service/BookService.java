@@ -114,6 +114,18 @@ public class BookService {
         return bookRepository.findBooksByTheme(theme, pageable);
     }
 
+    /**
+     * 주제별 전체 도서 권수. getBooksByTheme이 페이징으로 끝까지 내려줄 수 있는 총 개수와 같다.
+     * 추가 이유: 메인 주제 배너의 "총 N권"이 프론트에 3으로 하드코딩돼 있었음. 미리보기(previewSize)로
+     * 일부만 받아도 전체 권수를 알 수 있어야 해서, 목록 조회와 같은 조건으로 세는 창구를 추가했다.
+     */
+    public long countBooksByTheme(TopicTag theme) {
+        if (theme == TopicTag.TOP_20) {
+            return bookQuoteRepository.countDistinctBooks();
+        }
+        return bookRepository.countBooksByTheme(theme);
+    }
+
     public List<Book> getBooksByTheme(TopicTag theme, int limit) {
         if (limit <= 0) {
             throw new IllegalArgumentException("limit must be positive");
