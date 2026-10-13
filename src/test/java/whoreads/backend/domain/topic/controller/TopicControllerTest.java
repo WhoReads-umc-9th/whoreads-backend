@@ -53,15 +53,18 @@ class TopicControllerTest {
     }
 
     @Test
-    @DisplayName("주제 목록 응답에 프론트가 조회에 쓸 enum 상수명(tag)이 포함된다")
-    void getAllTopics_includesEnumTag() throws Exception {
+    @DisplayName("주제 목록 응답에 프론트가 조회에 쓸 enum 상수명(tag)과 주제 전체 도서 권수(bookCount)가 포함된다")
+    void getAllTopics_includesEnumTagAndBookCount() throws Exception {
+        // 미리보기로 books는 비어 있어도 bookCount는 주제 전체 권수를 그대로 내려줘야 한다 (배너 "총 N권" 하드코딩 제거용)
         Mockito.when(topicService.getAllTopics(Mockito.any(), Mockito.any()))
-                .thenReturn(List.of(TopicResponse.of(Topic.builder().name(TopicTag.MINDSET).build(), List.of())));
+                .thenReturn(List.of(TopicResponse.of(Topic.builder().name(TopicTag.MINDSET).build(), List.of(), 17)));
 
         mockMvc().perform(get("/api/topics"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].tag").value("MINDSET"))
-                .andExpect(jsonPath("$[0].name").value("사고방식"));
+                .andExpect(jsonPath("$[0].name").value("사고방식"))
+                .andExpect(jsonPath("$[0].bookCount").value(17))
+                .andExpect(jsonPath("$[0].books").isEmpty());
     }
 
     @Test

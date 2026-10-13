@@ -20,13 +20,19 @@ public class TopicResponse {
     private TopicTag tag; // ENUM 상수명 ("MINDSET" 등)
 
     private String name; // ENUM의 description ("삶의 방향" 등)
+
+    // 추가 이유: 메인 배너의 "총 N권"이 프론트에 3으로 하드코딩돼 있었다. previewSize로 books를 일부만
+    // 받아도 주제 전체 권수를 알 수 있도록 내려준다. books.size()가 아니라 DB에서 센 전체 개수다.
+    private long bookCount;
+
     private List<BookResponse> books;
 
-    public static TopicResponse of(Topic topic, List<Book> books) {
+    public static TopicResponse of(Topic topic, List<Book> books, long bookCount) {
         return TopicResponse.builder()
                 .id(topic.getId())
                 .tag(topic.getName())
                 .name(topic.getName().getDescription()) // ENUM에서 한글 명칭 추출
+                .bookCount(bookCount)
                 .books(books.stream()
                         .map(BookResponse::from)
                         .collect(Collectors.toList()))

@@ -18,7 +18,9 @@ public interface TopicControllerDocs {
 
     @Operation(summary = "주제별 도서 목록 조회", description = "메인 화면에 노출되는 주제별 추천 도서 목록을 조회합니다. "
             + "tag를 넘기면 해당 카테고리만 필터링하고, 비우면 전체를 조회합니다. "
-            + "previewSize를 넘기면 주제별로 그 개수만큼만(미리보기), 비우면 주제별 전체 도서를 반환합니다.")
+            + "previewSize를 넘기면 주제별로 그 개수만큼만(미리보기), 비우면 주제별 전체 도서를 반환합니다.\n\n"
+            + "응답의 bookCount는 previewSize와 무관하게 해당 주제의 전체 도서 권수입니다. "
+            + "메인 배너처럼 미리보기 N권 + 총 권수가 함께 필요하면 `?tag={theme}&previewSize=N` 한 번으로 받을 수 있습니다.")
     ResponseEntity<List<TopicResponse>> getAllTopics(
             @Parameter(description = "주제 카테고리 태그 (예: SOCIETY, MINDSET). 대소문자/하이픈 표기와 한글 이름(\"사고방식\")도 허용합니다. 비워두면 전체 조회")
             TopicTag tag,
