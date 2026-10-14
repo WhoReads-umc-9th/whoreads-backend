@@ -13,10 +13,13 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 import whoreads.backend.auth.dto.KakaoTokenResponseDto;
 import whoreads.backend.auth.dto.KakaoUserInfoDto;
 import whoreads.backend.global.exception.CustomException;
 import whoreads.backend.global.exception.ErrorCode;
+
+import java.net.URI;
 
 /**
  * 카카오 API 서버(kapi/kauth)와 통신하는 클라이언트
@@ -45,6 +48,32 @@ public class KakaoOAuthClient {
 
     private final RestTemplate restTemplate = createRestTemplate();
 
+    /** 앱은 키 없이 서버의 이 인가 진입점을 사용한다. Client Secret은 포함하지 않는다. */
+    public URI authorizationUri(String state) {
+        if (state == null || !state.matches("[A-Za-z0-9_-]{43,128}")) {
+            throw new CustomException(ErrorCode.INVALID_OAUTH_STATE);
+        }
+        URI callback;
+        try {
+            callback = URI.create(redirectUri);
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new CustomException(ErrorCode.KAKAO_API_ERROR);
+        }
+        if (restApiKey == null || !restApiKey.matches("[a-fA-F0-9]{32}")
+                || !"https".equals(callback.getScheme()) || callback.getHost() == null
+                || callback.getUserInfo() != null || callback.getQuery() != null
+                || callback.getFragment() != null
+                || !"/api/auth/kakao/callback".equals(callback.getPath())) {
+            throw new CustomException(ErrorCode.KAKAO_API_ERROR);
+        }
+        return UriComponentsBuilder.fromUriString("https://kauth.kakao.com/oauth/authorize")
+                .queryParam("client_id", restApiKey)
+                .queryParam("redirect_uri", redirectUri)
+                .queryParam("response_type", "code")
+                .queryParam("state", state)
+                .build().encode().toUri();
+    }
+
     private RestTemplate createRestTemplate() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(3000);
@@ -69,14 +98,15 @@ public class KakaoOAuthClient {
             }
             return userInfo;
         } catch (RestClientException e) {
-            log.error("카카오 사용자 정보 조회 중 통신 오류", e);
+            // 카카오 오류 응답 본문에 토큰 등이 들어갈 수 있으므로 예외 원문을 기록하지 않는다.
+            log.error("카카오 사용자 정보 조회 중 통신 오류");
             throw new CustomException(ErrorCode.KAKAO_API_ERROR);
         }
     }
 
     /**
      * 브라우저 인가 코드(code)를 카카오 access_token으로 교환한다.
-     * 로컬/스테이징에서 앱 없이 카카오 로그인을 테스트할 때만 사용.
+     * Client Secret은 서버 환경변수에서만 읽고 서버 간 토큰 요청에만 전달한다.
      */
     public String exchangeCodeForAccessToken(String code) {
         HttpHeaders headers = new HttpHeaders();
@@ -103,7 +133,7 @@ public class KakaoOAuthClient {
             }
             return tokenResponse.accessToken();
         } catch (RestClientException e) {
-            log.error("카카오 토큰 교환 중 통신 오류", e);
+            log.error("카카오 토큰 교환 중 통신 오류");
             throw new CustomException(ErrorCode.KAKAO_API_ERROR);
         }
     }
