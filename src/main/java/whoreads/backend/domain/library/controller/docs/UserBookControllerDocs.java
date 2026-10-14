@@ -208,13 +208,23 @@ public interface UserBookControllerDocs {
     );
 
     @Operation(
-            summary = "서재 책 상태/페이지 변경",
+            summary = "서재 책 읽기 정보 변경",
             description = """
-                    서재에 있는 책의 읽기 상태와 읽은 페이지를 변경합니다.
-                    - reading_status: 필수 (WISH, READING, COMPLETE)
-                    - reading_page: 선택 (reading_status가 READING으로 전환될 때만 반영됨)
-                    - reading_status가 READING이 아닌 경우 reading_page를 함께 보내도 에러 없이 무시됨
-                    - status가 WISH/COMPLETE로 변경되어도 기존 reading_page는 유지됨
+                    서재에 있는 책의 읽기 상태, 시작일, 완료일, 읽은 페이지를 변경합니다.
+                    모든 필드는 선택값이며, 보내지 않은(null) 필드는 기존 값을 유지합니다.
+                    - 상태 버튼 클릭: { "reading_status": "READING" } 처럼 상태만 전송
+                    - 상세 정보 수정: { "started_at": "2026-09-01", "reading_page": 120 } 처럼 필요한 필드만 전송
+                    - reading_status: WISH, READING, COMPLETE (생략 시 현재 상태 유지)
+                    - started_at, completed_at: READING/COMPLETE 상태에서만 입력 가능
+                    - reading_page: READING 상태에서만 입력 가능
+                    - 날짜 형식: yyyy-MM-dd, 미래 날짜 불가, 시작일 <= 완료일
+
+                    서버는 날짜/페이지를 자동으로 설정하지 않습니다.
+                    - 상태를 바꿔도 기존 시작일, 완료일, 읽은 페이지는 그대로 유지됩니다.
+                    - 예외: READING에서 시작일만 보냈는데 저장된 완료일보다 늦으면, 시작일을 반영하고 완료일은 null로 초기화합니다.
+                      (COMPLETE 상태이거나 완료일을 함께 보낸 경우에는 400)
+                    - COMPLETE로 바꿔도 읽은 페이지를 전체 페이지로 바꾸지 않습니다.
+                    - 날짜 기본값(예: 오늘)이나 다 읽음 시 페이지 처리는 프론트에서 결정해 함께 전송합니다.
                     """
     )
     @ApiResponses(value = {
@@ -234,7 +244,7 @@ public interface UserBookControllerDocs {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "400",
-                    description = "잘못된 요청 (READING 전환 시 reading_page가 1 미만이거나 총 페이지 수 초과)",
+                    description = "잘못된 요청 (상태에 맞지 않는 필드 입력, 미래 날짜, 시작일 > 완료일, 페이지 범위 초과)",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             examples = @ExampleObject(value = """
@@ -280,10 +290,10 @@ public interface UserBookControllerDocs {
             @Parameter(description = "UserBook ID", required = true)
             Long userBookId,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "변경할 상태 및 페이지 정보",
+                    description = "변경할 읽기 정보 (보낸 필드만 수정)",
                     required = true
             )
-            UserBookRequest.UpdateStatus request
+            UserBookRequest.UpdateReadingInfo request
     );
 
     @Operation(
