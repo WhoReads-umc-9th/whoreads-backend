@@ -40,6 +40,8 @@ public class SecurityConfig {
             "/api/auth/email/verify",
             "/api/auth/find-id",
             "/api/health",
+            // Dedicated server-to-server token is checked by PlayReviewController.
+            "/api/internal/play-review/**",
             "/api/books",
             "/api/books/**",
             "/api/celebrities/**",
