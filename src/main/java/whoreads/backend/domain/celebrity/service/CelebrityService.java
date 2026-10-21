@@ -14,6 +14,7 @@ import whoreads.backend.global.exception.ErrorCode;
 import whoreads.backend.infra.s3.S3Service;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,7 +28,9 @@ public class CelebrityService {
 
     // 인물 카테고리(직업 태그) 목록 조회 - 프론트 하드코딩 제거용
     public List<CelebrityCategoryResponse> getCategories() {
+        // 화면에서 description(한글 명칭)을 쓰므로 가나다순으로 정렬해서 내려준다
         return Arrays.stream(CelebrityTag.values())
+                .sorted(Comparator.comparing(CelebrityTag::getDescription))
                 .map(CelebrityCategoryResponse::from)
                 .collect(Collectors.toList());
     }

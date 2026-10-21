@@ -27,6 +27,7 @@ public class CelebrityResponse {
                 .shortBio(celebrity.getShortBio())
                 .jobTags(celebrity.getJobTags().stream()
                         .map(CelebrityTag::getDescription)
+                        .sorted()
                         .collect(Collectors.toList())
                 )
                 .build();
