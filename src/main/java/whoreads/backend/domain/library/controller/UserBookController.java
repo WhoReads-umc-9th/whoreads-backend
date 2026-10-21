@@ -61,7 +61,7 @@ public class UserBookController implements UserBookControllerDocs {
     public ResponseEntity<ApiResponse<Void>> updateUserBook(
             @AuthenticationPrincipal Long memberId,
             @PathVariable Long userBookId,
-            @RequestBody UserBookRequest.UpdateStatus request
+            @RequestBody UserBookRequest.UpdateReadingInfo request
     ) {
         validateAuthentication(memberId);
         userBookService.updateUserBook(memberId, userBookId, request);

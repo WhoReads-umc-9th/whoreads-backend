@@ -62,6 +62,7 @@ public class BookDetailResponse {
                     .imageUrl(imageUrl)
                     .jobTags(celebrity.getJobTags().stream()
                             .map(CelebrityTag::getDescription)
+                            .sorted()
                             .collect(Collectors.toList()))
                     .build();
         }
@@ -71,6 +72,7 @@ public class BookDetailResponse {
     @Builder
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class ReadingInfo {
+        @JsonProperty("user_book_id") private Long userBookId;
         @JsonProperty("reading_status") private ReadingStatus readingStatus;
         @JsonProperty("reading_page") private Integer readingPage;
         @JsonProperty("total_page") private Integer totalPage;
@@ -79,6 +81,7 @@ public class BookDetailResponse {
 
         public static ReadingInfo from(UserBook userBook, Book book) {
             return ReadingInfo.builder()
+                    .userBookId(userBook.getId())
                     .readingStatus(userBook.getReadingStatus())
                     .readingPage(userBook.getReadingPage())
                     .totalPage(book.getTotalPage())

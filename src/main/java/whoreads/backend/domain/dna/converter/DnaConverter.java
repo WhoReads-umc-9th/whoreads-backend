@@ -64,6 +64,7 @@ public class DnaConverter {
         List<String> jobTags = new ArrayList<>();
         for (CelebrityTag tag: celebrity.getJobTags())
             jobTags.add(tag.getDescription());
+        jobTags.sort(null);
 
         return DnaResDto.Result.builder()
                 .resultHeadLine(String.format("지금 당신은 '%s'를 위해 독서를 하는 사람입니다.", headLine))

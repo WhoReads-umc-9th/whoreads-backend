@@ -12,7 +12,7 @@ public interface UserBookService {
 
     UserBookResponse.AddResult addBookToLibrary(Long memberId, Long bookId);
 
-    void updateUserBook(Long memberId, Long userBookId, UserBookRequest.UpdateStatus request);
+    void updateUserBook(Long memberId, Long userBookId, UserBookRequest.UpdateReadingInfo request);
 
     void deleteBookFromLibrary(Long memberId, Long userBookId);
 
