@@ -251,7 +251,7 @@ public interface ReadingSessionControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청이 성공했습니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "마지막 활동으로부터 2시간이 경과하여 해당 세션을 재개할 수 없습니다. (SESSION_EXPIRED)"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "독서세션을 찾을 수 없습니다."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "이미 완료된 세션입니다. (SESSION_NOT_ACTIVE)")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "중단된 세션이거나 완료된 세션입니다. (SESSION_NOT_ACTIVE)")
     })
     ApiResponse<ReadingSessionResponse.ResumeResult> recoverSession(Long sessionId, Long memberId);
 
@@ -264,7 +264,7 @@ public interface ReadingSessionControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청이 성공했습니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "마지막 활동으로부터 2시간이 경과하여 해당 세션을 재개할 수 없습니다. (SESSION_EXPIRED)"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "독서세션을 찾을 수 없습니다."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "이미 완료된 세션입니다. (SESSION_NOT_ACTIVE)")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "중단된 세션이거나 완료된 세션입니다. (SESSION_NOT_ACTIVE)")
     })
     @Deprecated
     ApiResponse<ReadingSessionResponse.ResumeResult> recoverSessionLegacy(Long sessionId, Long memberId);

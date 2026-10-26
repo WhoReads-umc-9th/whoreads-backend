@@ -99,6 +99,8 @@ class ReadingSessionRecoverTest {
         MvcResult r = perform(get("/api/reading-sessions/{id}/recover/", sid));
 
         assertThat(r.getResponse().getStatus()).isEqualTo(409);
+        assertThat(r.getResponse().getContentAsString(StandardCharsets.UTF_8))
+                .contains("중단된 세션이거나 완료된 세션입니다.");
     }
 
     @Test
@@ -121,6 +123,8 @@ class ReadingSessionRecoverTest {
         MvcResult r = perform(post("/api/reading-sessions/{id}/recover", sid));
 
         assertThat(r.getResponse().getStatus()).isEqualTo(409);
+        assertThat(r.getResponse().getContentAsString(StandardCharsets.UTF_8))
+                .contains("중단된 세션이거나 완료된 세션입니다.");
     }
 
     @Test
