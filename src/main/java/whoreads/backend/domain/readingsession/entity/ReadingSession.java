@@ -9,6 +9,7 @@ import whoreads.backend.domain.member.entity.Member;
 import whoreads.backend.domain.readingsession.enums.SessionStatus;
 import whoreads.backend.global.entity.BaseEntity;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -126,11 +127,13 @@ public class ReadingSession extends BaseEntity {
         interval.setReadingSession(null);
     }
 
+    // 구간별 분 단위 내림 오차가 누적되지 않도록 초 단위로 합산한 뒤 분으로 반올림
     public long calculateTotalMinutes() {
-        return this.intervals.stream()
-                .filter(interval -> interval.getDurationMinutes() != null)
-                .mapToLong(ReadingInterval::getDurationMinutes)
+        long totalSeconds = this.intervals.stream()
+                .filter(interval -> interval.getEndTime() != null)
+                .mapToLong(interval -> Duration.between(interval.getStartTime(), interval.getEndTime()).getSeconds())
                 .sum();
+        return Math.round(totalSeconds / 60.0);
     }
 
     public void processIdleTime(LocalDateTime now) {
