@@ -207,7 +207,7 @@ public interface ReadingSessionControllerDocs {
 
     @Operation(
             summary = "독서 세션 heartbeat",
-            description = "앱이 살아있음을 서버에 알립니다. 1분마다 호출하세요. 일정 시간 heartbeat가 없으면 서버가 세션을 중단(SUSPENDED) 처리합니다. "
+            description = "앱이 살아있음을 서버에 알립니다. 1분마다 호출하세요. 5분 이상 heartbeat가 없으면 서버가 세션을 중단(SUSPENDED) 처리하며, 마지막 heartbeat 후 2시간 안에는 recover로 이어할 수 있습니다. "
                     + "진행 중(IN_PROGRESS)·일시정지(PAUSED) 세션만 받으며, 완료/중단된 세션이면 409를 반환하므로 heartbeat를 멈추세요."
     )
     @ApiResponses(value = {
