@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -92,15 +93,43 @@ class ReadingSessionIdleTimeHeartbeatTest {
     }
 
     @Test
-    @DisplayName("마지막 heartbeat 후 2시간이 지난 세션은 complete-idle-time이 SESSION_EXPIRED로 거절되고 상태가 바뀌지 않는다")
-    void idleTime_expired_rejected() throws Exception {
+    @DisplayName("2시간이 지난 중단 세션도 공백을 채울 수 있고, 타이머 목표 시간까지만 채운다")
+    void idleTime_suspended_cappedByTimerGoal() throws Exception {
+        setTimerMinutes(owner, 60);
+        long sid = start(owner);
+        shiftStartMinutes(sid, 180);
+        heartbeatMinutesAgo(sid, 150);              // 30분 읽고 150분 공백
+        scheduler.expireStaleSessions();
+
+        assertThat(status(owner, patch("/api/reading-sessions/{id}/complete-idle-time", sid))).isEqualTo(200);
+        assertThat(sessionStatus(sid)).isEqualTo("COMPLETED");
+        // 30분 + 공백 30분 = 목표 60분. 구간별 분 단위 내림이 남아 있는 동안(#239 머지 전)은 59분이 될 수 있다
+        assertThat(totalMinutes(sid)).isBetween(59L, 60L);
+    }
+
+    @Test
+    @DisplayName("타이머 목표를 설정하지 않았으면 공백 전체를 채운다")
+    void idleTime_suspended_noTimerGoal_fillsWholeGap() throws Exception {
         long sid = start(owner);
         shiftStartMinutes(sid, 180);
         heartbeatMinutesAgo(sid, 150);
         scheduler.expireStaleSessions();
 
-        assertThat(status(owner, patch("/api/reading-sessions/{id}/complete-idle-time", sid))).isEqualTo(400);
-        assertThat(sessionStatus(sid)).isEqualTo("SUSPENDED");
+        assertThat(status(owner, patch("/api/reading-sessions/{id}/complete-idle-time", sid))).isEqualTo(200);
+        assertThat(totalMinutes(sid)).isEqualTo(180L);
+    }
+
+    @Test
+    @DisplayName("진행 중 세션의 공백도 타이머 목표 시간까지만 채운다")
+    void idleTime_inProgress_cappedByTimerGoal() throws Exception {
+        setTimerMinutes(owner, 18);
+        long sid = start(owner);
+        shiftStartMinutes(sid, 20);
+        heartbeatMinutesAgo(sid, 3);                 // 17분 확인, 공백 3분
+
+        assertThat(status(owner, patch("/api/reading-sessions/{id}/complete-idle-time", sid))).isEqualTo(200);
+        assertThat(totalMinutes(sid)).isEqualTo(18L);
+        assertThat(openIntervalCount(sid)).isZero();
     }
 
     @Test
@@ -170,6 +199,11 @@ class ReadingSessionIdleTimeHeartbeatTest {
     private int status(Long memberId, MockHttpServletRequestBuilder req) throws Exception {
         authenticate(memberId);
         return mockMvc.perform(req).andReturn().getResponse().getStatus();
+    }
+
+    private void setTimerMinutes(Long memberId, long minutes) throws Exception {
+        assertThat(status(memberId, patch("/api/me/reading-sessions/settings/time")
+                .contentType(MediaType.APPLICATION_JSON).content("{\"time\":" + minutes + "}"))).isEqualTo(200);
     }
 
     private void authenticate(Long memberId) {
