@@ -77,7 +77,32 @@ class ReadingSessionRecoverTest {
     }
 
     @Test
-    void recover를_GET으로_호출하면_성공하지_않는다() throws Exception {
+    void 구버전_GET_recover_끝_슬래시_경로는_POST와_같은_응답을_반환한다() throws Exception {
+        long legacySid = start();
+        setHeartbeatMinutesAgo(legacySid, 0);
+        MvcResult legacy = perform(get("/api/reading-sessions/{id}/recover/", legacySid));
+        perform(post("/api/reading-sessions/{id}/complete", legacySid));
+
+        long sid = start();
+        setHeartbeatMinutesAgo(sid, 0);
+        MvcResult current = perform(post("/api/reading-sessions/{id}/recover", sid));
+
+        assertThat(legacy.getResponse().getStatus()).isEqualTo(200);
+        assertThat(body(legacy)).isEqualTo(body(current));
+    }
+
+    @Test
+    void 구버전_GET_recover로_완료된_세션을_재개하면_409를_반환한다() throws Exception {
+        long sid = start();
+        perform(post("/api/reading-sessions/{id}/complete", sid));
+
+        MvcResult r = perform(get("/api/reading-sessions/{id}/recover/", sid));
+
+        assertThat(r.getResponse().getStatus()).isEqualTo(409);
+    }
+
+    @Test
+    void recover를_끝_슬래시_없는_GET으로_호출하면_성공하지_않는다() throws Exception {
         long sid = start();
         setHeartbeatMinutesAgo(sid, 0);
 
@@ -141,6 +166,10 @@ class ReadingSessionRecoverTest {
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(memberId, null, List.of()));
         return mockMvc.perform(req).andReturn();
+    }
+
+    private JsonNode body(MvcResult r) throws Exception {
+        return objectMapper.readTree(r.getResponse().getContentAsString(StandardCharsets.UTF_8));
     }
 
     private String status(long sid) {

@@ -256,6 +256,20 @@ public interface ReadingSessionControllerDocs {
     ApiResponse<ReadingSessionResponse.ResumeResult> recoverSession(Long sessionId, Long memberId);
 
     @Operation(
+            summary = "[Deprecated] 중단된 독서 세션 재개 (GET)",
+            description = "구버전 앱 호환용입니다. `POST /api/reading-sessions/{sessionId}/recover`를 사용하세요. 동작과 응답은 POST 경로와 같습니다.",
+            deprecated = true
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청이 성공했습니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "마지막 활동으로부터 2시간이 경과하여 해당 세션을 재개할 수 없습니다. (SESSION_EXPIRED)"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "독서세션을 찾을 수 없습니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "이미 완료된 세션입니다. (SESSION_NOT_ACTIVE)")
+    })
+    @Deprecated
+    ApiResponse<ReadingSessionResponse.ResumeResult> recoverSessionLegacy(Long sessionId, Long memberId);
+
+    @Operation(
             summary = "중단된 시간 자동 정산 및 세션 완료",
             description = "마지막 하트비트 이후부터 현재까지의 중단된 시간을 독서 시간으로  인정하고 세션을 종료합니다."
     )

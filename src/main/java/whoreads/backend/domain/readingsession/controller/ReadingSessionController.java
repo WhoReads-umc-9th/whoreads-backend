@@ -94,6 +94,13 @@ public class ReadingSessionController implements ReadingSessionControllerDocs {
         return ApiResponse.success(result);
     }
 
+    // 구버전 앱 호환용 (기존 GET /{sessionId}/recover/ 경로). 새 앱 버전이 충분히 배포되면 제거한다.
+    @Deprecated
+    @GetMapping("/{sessionId}/recover/")
+    public ApiResponse<ReadingSessionResponse.ResumeResult> recoverSessionLegacy(@PathVariable Long sessionId, @AuthenticationPrincipal Long memberId) {
+        return recoverSession(sessionId, memberId);
+    }
+
     @PatchMapping("/{sessionId}/complete-idle-time")
     public ApiResponse<Void> resolveIdleTime(@PathVariable Long sessionId, @AuthenticationPrincipal Long memberId) {
 
