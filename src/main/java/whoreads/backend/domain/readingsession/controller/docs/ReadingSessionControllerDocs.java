@@ -18,7 +18,8 @@ public interface ReadingSessionControllerDocs {
 
     @Operation(
             summary = "독서 세션 시작",
-            description = "새로운 독서 세션을 시작합니다. 첫 번째 인터벌이 자동으로 생성됩니다."
+            description = "새로운 독서 세션을 시작합니다. 첫 번째 인터벌이 자동으로 생성됩니다. "
+                    + "일시정지·중단된 채 남은 세션은 마지막으로 읽은 시점까지의 시간으로 완료 처리되며, 진행 중인 세션이 있으면 409를 반환합니다."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(

@@ -89,6 +89,33 @@ class ReadingSessionSuspendedAutoCompleteTest {
         assertThat(row(othersSuspended).get("STATUS")).isEqualTo("SUSPENDED");
     }
 
+    @Test
+    @DisplayName("새 세션을 시작하면 일시정지 세션이 일시정지 시점까지의 시간으로 완료되고 종료 시각은 일시정지한 시각이 된다")
+    void start_completesPausedSession_keepingPausedAtAsFinishedAt() throws Exception {
+        long paused = start();
+        jdbc.update("UPDATE reading_interval SET start_time = DATEADD('MINUTE', -30, start_time) WHERE session_id = ?", paused);
+        assertThat(status(post("/api/reading-sessions/{id}/pause", paused))).isEqualTo(200);
+        // 10분 읽고 20분 전에 일시정지한 상태로 맞춤
+        jdbc.update("UPDATE reading_interval SET end_time = DATEADD('MINUTE', -20, end_time), duration_minutes = duration_minutes - 20 WHERE session_id = ?", paused);
+        Object pausedAt = jdbc.queryForObject("SELECT end_time FROM reading_interval WHERE session_id = ?", Object.class, paused);
+
+        assertThat(status(post("/api/reading-sessions/start"))).isEqualTo(201);
+
+        Map<String, Object> after = row(paused);
+        assertThat(after.get("STATUS")).isEqualTo("COMPLETED");
+        assertThat(((Number) after.get("TOTAL_MINUTES")).longValue()).isEqualTo(10L);
+        assertThat(after.get("FINISHED_AT")).isEqualTo(pausedAt);
+    }
+
+    @Test
+    @DisplayName("진행 중인 세션이 있으면 새 세션 시작은 409로 거절된다")
+    void start_withInProgressSession_conflict() throws Exception {
+        long running = start();
+
+        assertThat(status(post("/api/reading-sessions/start"))).isEqualTo(409);
+        assertThat(row(running).get("STATUS")).isEqualTo("IN_PROGRESS");
+    }
+
     // ---- helpers ----
 
     private long suspendedSession(int startedMinutesAgo, int heartbeatMinutesAgo) throws Exception {

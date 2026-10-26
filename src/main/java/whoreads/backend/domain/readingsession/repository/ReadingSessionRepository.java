@@ -19,7 +19,7 @@ public interface ReadingSessionRepository extends JpaRepository<ReadingSession, 
 
 //    Optional<ReadingSession> findByMemberIdAndStatusIn(Long memberId, List<SessionStatus> statuses);
     @EntityGraph(attributePaths = {"intervals"})
-    List<ReadingSession> findAllByMemberIdAndStatus(Long memberId, SessionStatus status);
+    List<ReadingSession> findAllByMemberIdAndStatusIn(Long memberId, List<SessionStatus> statuses);
 
     @EntityGraph(attributePaths = {"intervals"})
     Optional<ReadingSession> findFirstByMemberIdAndStatusInOrderByCreatedAtDesc(Long memberId, List<SessionStatus> statuses);

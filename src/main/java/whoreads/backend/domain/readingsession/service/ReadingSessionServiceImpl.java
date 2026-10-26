@@ -36,18 +36,18 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-        // 이미 진행 중이거나 일시정지된 세션이 있는지 확인
-        // SUSPENDED 세션은 의도적으로 제외: 자동 중단된 세션이 새 세션 시작을 막지 않도록 함
+        // 이미 진행 중인 세션이 있는지 확인
+        // PAUSED/SUSPENDED 세션은 새 세션 시작을 막지 않고 아래에서 완료 처리한다
         readingSessionRepository.findFirstByMemberIdAndStatusInOrderByCreatedAtDesc(
-                memberId, List.of(SessionStatus.IN_PROGRESS, SessionStatus.PAUSED)
+                memberId, List.of(SessionStatus.IN_PROGRESS)
         ).ifPresent(s -> {
             throw new CustomException(ErrorCode.SESSION_ALREADY_ACTIVE);
         });
 
-        // 남아 있는 SUSPENDED 세션은 마지막 heartbeat까지의 시간으로 완료 처리
+        // 남아 있는 PAUSED/SUSPENDED 세션은 마지막으로 읽은 시점까지의 시간으로 완료 처리
         // (통계에 집계되지 않은 채 남거나, 미완료 세션 조회에 다시 나타나지 않도록)
-        readingSessionRepository.findAllByMemberIdAndStatus(memberId, SessionStatus.SUSPENDED)
-                .forEach(ReadingSession::completeSuspended);
+        readingSessionRepository.findAllByMemberIdAndStatusIn(memberId, List.of(SessionStatus.PAUSED, SessionStatus.SUSPENDED))
+                .forEach(ReadingSession::completeLeftover);
 
         ReadingSession session = ReadingSession.builder()
                 .member(member)
