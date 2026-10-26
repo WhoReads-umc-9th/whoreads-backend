@@ -1,0 +1,125 @@
+package whoreads.backend.domain.readingsession;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+import whoreads.backend.config.TestFirebaseConfig;
+import whoreads.backend.domain.member.entity.Member;
+import whoreads.backend.domain.member.enums.AgeGroup;
+import whoreads.backend.domain.member.enums.Gender;
+import whoreads.backend.domain.member.repository.MemberRepository;
+import whoreads.backend.domain.readingsession.service.ReadingSessionScheduler;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+
+/**
+ * stale 세션 만료 기준(2시간)과 recover 경로 매핑을 실제 HTTP 흐름으로 검증한다 (H2).
+ * 시간 경과는 interval.start_time / last_heartbeat_at 을 과거로 당겨서 흉내낸다.
+ */
+@SpringBootTest
+@Import(TestFirebaseConfig.class)
+class ReadingSessionStaleAndRecoverTest {
+
+    @Autowired WebApplicationContext ctx;
+    @Autowired MemberRepository memberRepository;
+    @Autowired JdbcTemplate jdbc;
+    @Autowired ReadingSessionScheduler scheduler;
+    ObjectMapper objectMapper = new ObjectMapper();
+    MockMvc mockMvc;
+
+    Long memberId;
+
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(ctx).build();
+        String u = UUID.randomUUID().toString().substring(0, 8);
+        memberId = memberRepository.save(Member.builder()
+                .nickname("t" + u).gender(Gender.FEMALE).ageGroup(AgeGroup.TWENTIES)
+                .email(u + "@test.com").loginId("id" + u).password("pw").build()).getId();
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void heartbeat가_25분_끊겨도_스케줄러가_세션을_만료시키지_않는다() throws Exception {
+        long sid = start();
+        shiftStartMinutes(sid, 25);
+        setHeartbeatMinutesAgo(sid, 25);
+
+        scheduler.expireStaleSessions();
+
+        assertThat(status(sid)).isEqualTo("IN_PROGRESS");
+        assertThat(jdbc.queryForObject(
+                "SELECT COUNT(*) FROM reading_interval WHERE session_id = ? AND end_time IS NULL", Integer.class, sid))
+                .isEqualTo(1);
+    }
+
+    @Test
+    void heartbeat가_2시간_넘게_끊기면_스케줄러가_세션을_중단시킨다() throws Exception {
+        long sid = start();
+        shiftStartMinutes(sid, 130);
+        setHeartbeatMinutesAgo(sid, 125);
+
+        scheduler.expireStaleSessions();
+
+        assertThat(status(sid)).isEqualTo("SUSPENDED");
+    }
+
+    @Test
+    void recover는_끝_슬래시_없이_호출해도_정상_응답한다() throws Exception {
+        long sid = start();
+        setHeartbeatMinutesAgo(sid, 0);
+
+        MvcResult r = perform(get("/api/reading-sessions/{id}/recover", sid));
+
+        assertThat(r.getResponse().getStatus()).isEqualTo(200);
+    }
+
+    // ---- helpers ----
+
+    private long start() throws Exception {
+        MvcResult r = perform(post("/api/reading-sessions/start"));
+        JsonNode body = objectMapper.readTree(r.getResponse().getContentAsString(StandardCharsets.UTF_8));
+        return body.path("result").path("session_id").asLong();
+    }
+
+    private MvcResult perform(MockHttpServletRequestBuilder req) throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(memberId, null, List.of()));
+        return mockMvc.perform(req).andReturn();
+    }
+
+    private String status(long sid) {
+        return jdbc.queryForObject("SELECT status FROM reading_session WHERE id = ?", String.class, sid);
+    }
+
+    private void shiftStartMinutes(long sid, int minutes) {
+        jdbc.update("UPDATE reading_interval SET start_time = DATEADD('MINUTE', ?, start_time) WHERE session_id = ?", -minutes, sid);
+    }
+
+    private void setHeartbeatMinutesAgo(long sid, int minutes) {
+        jdbc.update("UPDATE reading_session SET last_heartbeat_at = DATEADD('MINUTE', ?, CURRENT_TIMESTAMP) WHERE id = ?", -minutes, sid);
+    }
+}
