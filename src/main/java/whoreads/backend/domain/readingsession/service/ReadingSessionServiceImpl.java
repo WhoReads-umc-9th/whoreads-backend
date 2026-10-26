@@ -2,13 +2,14 @@ package whoreads.backend.domain.readingsession.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import whoreads.backend.domain.focusmode.entity.FocusTimerSetting;
 import whoreads.backend.domain.focusmode.repository.FocusModeRepository;
 import whoreads.backend.domain.member.entity.Member;
 import whoreads.backend.domain.member.repository.MemberRepository;
-import whoreads.backend.domain.readingsession.dto.ReadingSessionRequest;
+import whoreads.backend.domain.notification.event.NotificationEvent;
 import whoreads.backend.domain.readingsession.dto.ReadingSessionResponse;
 import whoreads.backend.domain.readingsession.entity.ReadingInterval;
 import whoreads.backend.domain.readingsession.entity.ReadingSession;
@@ -30,6 +31,7 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
     private final ReadingSessionRepository readingSessionRepository;
     private final MemberRepository memberRepository;
     private final FocusModeRepository focusModeRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public ReadingSessionResponse.StartResult startSession(Long memberId) {
@@ -96,6 +98,12 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
 
         // 세션 완료 (엔티티 도메인 로직에서 totalMinutes 계산, finishedAt 설정)
         session.complete();
+
+        applicationEventPublisher.publishEvent(
+                new NotificationEvent.TimerCompletedEvent(
+                        memberId,session.getTotalMinutes()
+                )
+        );
     }
 
     @Override
