@@ -68,12 +68,16 @@ class ReadingSessionRecoverTest {
 
     @Test
     void recover는_POST_끝_슬래시_없이_호출하면_정상_응답한다() throws Exception {
+        saveTimerMinutes(30L);
         long sid = start();
         setHeartbeatMinutesAgo(sid, 0);
 
         MvcResult r = perform(post("/api/reading-sessions/{id}/recover", sid));
 
         assertThat(r.getResponse().getStatus()).isEqualTo(200);
+        JsonNode body = body(r);
+        assertThat(body.path("is_success").asBoolean()).isTrue();
+        assertThat(body.path("result").path("remaining_minutes").asLong()).isEqualTo(30L);
     }
 
     @Test
@@ -110,7 +114,7 @@ class ReadingSessionRecoverTest {
 
         MvcResult r = perform(get("/api/reading-sessions/{id}/recover", sid));
 
-        assertThat(r.getResponse().getStatus()).isGreaterThanOrEqualTo(405);
+        assertThat(r.getResponse().getStatus()).isEqualTo(405);
         assertThat(status(sid)).isEqualTo("IN_PROGRESS");
     }
 
@@ -129,8 +133,7 @@ class ReadingSessionRecoverTest {
 
     @Test
     void 스케줄러가_중단시킨_세션을_2시간_안에_recover하면_이어서_진행한다() throws Exception {
-        focusModeRepository.save(FocusTimerSetting.builder()
-                .member(memberRepository.findById(memberId).orElseThrow()).timerMinutes(30L).build());
+        saveTimerMinutes(30L);
         long sid = start();
         shiftStartMinutes(sid, 15);
         setHeartbeatMinutesAgo(sid, 10);
@@ -170,6 +173,11 @@ class ReadingSessionRecoverTest {
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(memberId, null, List.of()));
         return mockMvc.perform(req).andReturn();
+    }
+
+    private void saveTimerMinutes(long minutes) {
+        focusModeRepository.save(FocusTimerSetting.builder()
+                .member(memberRepository.findById(memberId).orElseThrow()).timerMinutes(minutes).build());
     }
 
     private JsonNode body(MvcResult r) throws Exception {
