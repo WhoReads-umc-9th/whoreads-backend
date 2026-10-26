@@ -22,6 +22,7 @@ import whoreads.backend.domain.member.enums.AgeGroup;
 import whoreads.backend.domain.member.enums.Gender;
 import whoreads.backend.domain.member.repository.MemberRepository;
 import whoreads.backend.domain.readingsession.service.ReadingSessionScheduler;
+import whoreads.backend.global.exception.ErrorCode;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -32,7 +33,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 /**
- * stale 세션 만료 기준(2시간)과 recover 경로 매핑을 실제 HTTP 흐름으로 검증한다 (H2).
+ * stale 세션 만료 기준(2시간)과 recover API(POST 매핑, 상태 검증)를 실제 HTTP 흐름으로 검증한다 (H2).
  * 시간 경과는 interval.start_time / last_heartbeat_at 을 과거로 당겨서 흉내낸다.
  */
 @SpringBootTest
@@ -88,13 +89,50 @@ class ReadingSessionStaleAndRecoverTest {
     }
 
     @Test
-    void recover는_끝_슬래시_없이_호출해도_정상_응답한다() throws Exception {
+    void recover는_POST_끝_슬래시_없이_호출하면_정상_응답한다() throws Exception {
+        long sid = start();
+        setHeartbeatMinutesAgo(sid, 0);
+
+        MvcResult r = perform(post("/api/reading-sessions/{id}/recover", sid));
+
+        assertThat(r.getResponse().getStatus()).isEqualTo(200);
+    }
+
+    @Test
+    void recover를_GET으로_호출하면_성공하지_않는다() throws Exception {
         long sid = start();
         setHeartbeatMinutesAgo(sid, 0);
 
         MvcResult r = perform(get("/api/reading-sessions/{id}/recover", sid));
 
-        assertThat(r.getResponse().getStatus()).isEqualTo(200);
+        assertThat(r.getResponse().getStatus()).isGreaterThanOrEqualTo(405);
+        assertThat(status(sid)).isEqualTo("IN_PROGRESS");
+    }
+
+    @Test
+    void 완료된_세션을_recover하면_409를_반환한다() throws Exception {
+        long sid = start();
+        perform(post("/api/reading-sessions/{id}/complete", sid));
+        assertThat(status(sid)).isEqualTo("COMPLETED");
+
+        MvcResult r = perform(post("/api/reading-sessions/{id}/recover", sid));
+
+        assertThat(r.getResponse().getStatus()).isEqualTo(409);
+    }
+
+    @Test
+    void 스케줄러가_중단시킨_세션을_2시간_후_recover하면_SESSION_EXPIRED를_반환한다() throws Exception {
+        long sid = start();
+        shiftStartMinutes(sid, 130);
+        setHeartbeatMinutesAgo(sid, 125);
+        scheduler.expireStaleSessions();
+        assertThat(status(sid)).isEqualTo("SUSPENDED");
+
+        MvcResult r = perform(post("/api/reading-sessions/{id}/recover", sid));
+
+        assertThat(r.getResponse().getStatus()).isEqualTo(400);
+        assertThat(r.getResponse().getContentAsString(StandardCharsets.UTF_8))
+                .contains(ErrorCode.SESSION_EXPIRED.getMessage());
     }
 
     // ---- helpers ----

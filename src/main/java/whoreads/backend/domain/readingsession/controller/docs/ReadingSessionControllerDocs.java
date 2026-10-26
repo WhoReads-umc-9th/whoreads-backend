@@ -238,10 +238,20 @@ public interface ReadingSessionControllerDocs {
     })
     ApiResponse<ReadingSessionResponse.IncompleteResult> incompleteSession(Long memberId);
 
-    @Operation(summary = "중단된 독서 세션 재개", description = "중단된 독서 세션의 남은 타이머 시간을 반환합니다.")
+    @Operation(
+            summary = "중단된 독서 세션 재개",
+            description = """
+                    미완료 독서 세션(IN_PROGRESS, PAUSED, SUSPENDED)을 재개하고 남은 타이머 시간을 반환합니다.
+                    기존 구간을 마지막 하트비트 시점에 닫고, 남은 시간이 있으면 현재 시각부터 새 구간을 시작합니다.
+                    남은 시간이 없으면 세션을 완료 처리합니다.
+                    세션 상태를 변경하므로 POST로 호출해야 합니다. 상태 조회만 필요하면 `GET /api/reading-sessions/incomplete`를 사용하세요.
+                    """
+    )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청이 성공했습니다."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "독서세션을 찾을 수 없습니다.")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "마지막 활동으로부터 2시간이 경과하여 해당 세션을 재개할 수 없습니다. (SESSION_EXPIRED)"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "독서세션을 찾을 수 없습니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "이미 완료된 세션입니다. (SESSION_NOT_ACTIVE)")
     })
     ApiResponse<ReadingSessionResponse.ResumeResult> recoverSession(Long sessionId, Long memberId);
 
