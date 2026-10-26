@@ -116,7 +116,64 @@ class ReadingSessionSuspendedAutoCompleteTest {
         assertThat(row(running).get("STATUS")).isEqualTo("IN_PROGRESS");
     }
 
+    @Test
+    @DisplayName("일시정지한 지 2시간이 지난 세션은 스케줄러가 일시정지한 시점까지의 시간으로 완료한다")
+    void scheduler_completesPausedSessionAfterTwoHours() throws Exception {
+        long sid = pausedSession(200, 180);   // 20분 읽고 180분 전에 일시정지
+        Object pausedAt = jdbc.queryForObject("SELECT end_time FROM reading_interval WHERE session_id = ?", Object.class, sid);
+
+        scheduler.completeAbandonedPausedSessions();
+
+        Map<String, Object> after = row(sid);
+        assertThat(after.get("STATUS")).isEqualTo("COMPLETED");
+        assertThat(((Number) after.get("TOTAL_MINUTES")).longValue()).isEqualTo(20L);
+        assertThat(after.get("FINISHED_AT")).isEqualTo(pausedAt);
+    }
+
+    @Test
+    @DisplayName("일시정지한 지 2시간이 안 된 세션은 그대로 둔다")
+    void scheduler_keepsRecentlyPausedSession() throws Exception {
+        long sid = pausedSession(90, 60);
+
+        scheduler.completeAbandonedPausedSessions();
+
+        assertThat(row(sid).get("STATUS")).isEqualTo("PAUSED");
+    }
+
+    @Test
+    @DisplayName("자동 완료된 세션이나 중단된 세션을 resume하면 409로 거절한다")
+    void resume_endedSession_conflict() throws Exception {
+        long autoCompleted = pausedSession(200, 180);
+        scheduler.completeAbandonedPausedSessions();
+        assertThat(status(post("/api/reading-sessions/{id}/resume", autoCompleted))).isEqualTo(409);
+        assertThat(row(autoCompleted).get("STATUS")).isEqualTo("COMPLETED");
+
+        owner = newMember();
+        long suspended = suspendedSession(180, 150);
+        assertThat(status(post("/api/reading-sessions/{id}/resume", suspended))).isEqualTo(409);
+    }
+
+    @Test
+    @DisplayName("일시정지 세션은 2시간이 안 지났으면 resume으로 이어갈 수 있다")
+    void resume_recentlyPausedSession_ok() throws Exception {
+        long sid = pausedSession(90, 60);
+
+        assertThat(status(post("/api/reading-sessions/{id}/resume", sid))).isEqualTo(200);
+        assertThat(row(sid).get("STATUS")).isEqualTo("IN_PROGRESS");
+    }
+
     // ---- helpers ----
+
+    // startedMinutesAgo분 전에 시작해 pausedMinutesAgo분 전에 일시정지한 세션
+    private long pausedSession(int startedMinutesAgo, int pausedMinutesAgo) throws Exception {
+        long sid = start();
+        jdbc.update("UPDATE reading_interval SET start_time = DATEADD('MINUTE', ?, start_time) WHERE session_id = ?", -startedMinutesAgo, sid);
+        assertThat(status(post("/api/reading-sessions/{id}/pause", sid))).isEqualTo(200);
+        jdbc.update("UPDATE reading_interval SET end_time = DATEADD('MINUTE', ?, end_time), duration_minutes = duration_minutes - ? WHERE session_id = ?",
+                -pausedMinutesAgo, pausedMinutesAgo, sid);
+        return sid;
+    }
+
 
     private long suspendedSession(int startedMinutesAgo, int heartbeatMinutesAgo) throws Exception {
         long sid = start();

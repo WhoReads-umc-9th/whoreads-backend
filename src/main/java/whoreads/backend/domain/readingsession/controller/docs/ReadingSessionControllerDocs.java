@@ -144,6 +144,20 @@ public interface ReadingSessionControllerDocs {
                                     }
                                     """)
                     )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "완료되었거나 중단된 세션 (일시정지 후 2시간이 지나 자동 완료된 세션 포함)",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": false,
+                                      "code": 409,
+                                      "message": "중단된 세션이거나 완료된 세션입니다."
+                                    }
+                                    """)
+                    )
             )
     })
     ResponseEntity<ApiResponse<Void>> resumeSession(

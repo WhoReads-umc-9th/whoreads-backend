@@ -81,6 +81,11 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
     public void resumeSession(Long sessionId, Long memberId) {
         ReadingSession session = findByIdAndValidateOwnership(sessionId, memberId);
 
+        // 완료되었거나(일시정지 2시간 경과 자동 완료 포함) 중단된 세션은 재개할 수 없음
+        if (session.getStatus() == SessionStatus.COMPLETED || session.getStatus() == SessionStatus.SUSPENDED) {
+            throw new CustomException(ErrorCode.SESSION_NOT_ACTIVE);
+        }
+
         // 세션 재개 (엔티티 도메인 로직에서 상태 검증)
         session.resume();
 
