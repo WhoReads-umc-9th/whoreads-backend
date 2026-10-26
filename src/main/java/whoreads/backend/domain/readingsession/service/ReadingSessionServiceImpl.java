@@ -20,6 +20,7 @@ import whoreads.backend.global.exception.ErrorCode;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -101,9 +102,14 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
     @Override
     public void heartbeat(Long sessionId, Long memberId) {
         ReadingSession session = findByIdAndValidateOwnership(sessionId, memberId);
-        session.updateHeartbeat(LocalDateTime.now());
+
+        // 완료/중단된 세션의 heartbeat는 거절해 앱이 heartbeat를 멈추거나 복구 흐름으로 넘어가게 함
+        if (session.getStatus() != SessionStatus.IN_PROGRESS && session.getStatus() != SessionStatus.PAUSED) {
+            throw new CustomException(ErrorCode.SESSION_NOT_ACTIVE);
+        }
 
         LocalDateTime now = LocalDateTime.now();
+        session.updateHeartbeat(now);
 
         log.info("[세션 ID: {}] 하트비트 업데이트 시간: {}", sessionId, now);
     }
@@ -234,10 +240,21 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
     }
 
     public void resolveIdleTime(Long sessionId, Long memberId) {
-        ReadingSession session = readingSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new CustomException(ErrorCode.SESSION_NOT_FOUND));
+        ReadingSession session = findByIdAndValidateOwnership(sessionId, memberId);
 
         LocalDateTime now = LocalDateTime.now();
+
+        // 열린 구간이 있으면(IN_PROGRESS) 공백 시간까지 포함해 지금 닫음
+        // 공백 구간을 따로 추가하면 마지막 하트비트 이후 시간이 중복 집계되므로 추가하지 않는다
+        Optional<ReadingInterval> activeInterval = session.getIntervals().stream()
+                .filter(interval -> interval.getEndTime() == null)
+                .findFirst();
+        if (activeInterval.isPresent()) {
+            activeInterval.get().end(now);
+            session.complete();
+            return;
+        }
+
         LocalDateTime lastHeartbeat = session.getLastHeartbeatAt();
 
         // 마지막 하트비트 시점부터 현재 사이에 공백이 있다면 자동으로 메워줌

@@ -207,7 +207,8 @@ public interface ReadingSessionControllerDocs {
 
     @Operation(
             summary = "독서 세션 heartbeat",
-            description = "앱이 살아있음을 서버에 알립니다. 5분마다 호출하세요. 일정 시간 heartbeat가 없으면 서버가 세션을 자동 완료 처리합니다."
+            description = "앱이 살아있음을 서버에 알립니다. 1분마다 호출하세요. 일정 시간 heartbeat가 없으면 서버가 세션을 중단(SUSPENDED) 처리합니다. "
+                    + "진행 중(IN_PROGRESS)·일시정지(PAUSED) 세션만 받으며, 완료/중단된 세션이면 409를 반환하므로 heartbeat를 멈추세요."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -220,6 +221,20 @@ public interface ReadingSessionControllerDocs {
                                       "is_success": true,
                                       "code": 200,
                                       "message": "세션 heartbeat 정보를 전송했습니다."
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "완료/중단된 세션",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": false,
+                                      "code": 409,
+                                      "message": "진행 중이거나 일시정지된 세션이 아닙니다."
                                     }
                                     """)
                     )
@@ -247,7 +262,13 @@ public interface ReadingSessionControllerDocs {
 
     @Operation(
             summary = "중단된 시간 자동 정산 및 세션 완료",
-            description = "마지막 하트비트 이후부터 현재까지의 중단된 시간을 독서 시간으로  인정하고 세션을 종료합니다."
+            description = "마지막 하트비트 이후부터 현재까지의 중단된 시간을 독서 시간으로  인정하고 세션을 종료합니다. "
+                    + "진행 중인 구간이 있으면 그 구간을 현재 시각까지 독서 시간으로 인정합니다."
     )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청이 성공했습니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "본인의 세션이 아닙니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "독서세션을 찾을 수 없습니다.")
+    })
     public ApiResponse<Void> resolveIdleTime(Long sessionId, Long memberId);
 }
