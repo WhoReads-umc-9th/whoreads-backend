@@ -234,7 +234,7 @@ public interface ReadingSessionControllerDocs {
                                     {
                                       "is_success": false,
                                       "code": 409,
-                                      "message": "진행 중이거나 일시정지된 세션이 아닙니다."
+                                      "message": "중단된 세션이거나 완료된 세션입니다."
                                     }
                                     """)
                     )
