@@ -127,13 +127,13 @@ public class ReadingSession extends BaseEntity {
         interval.setReadingSession(null);
     }
 
-    // 구간별 분 단위 내림 오차가 누적되지 않도록 초 단위로 합산한 뒤 분으로 반올림
+    // 구간별 내림 오차가 누적되지 않도록 Duration 그대로 합산한 뒤 전체 합계만 분으로 반올림
     public long calculateTotalMinutes() {
-        long totalSeconds = this.intervals.stream()
+        Duration total = this.intervals.stream()
                 .filter(interval -> interval.getEndTime() != null)
-                .mapToLong(interval -> Duration.between(interval.getStartTime(), interval.getEndTime()).getSeconds())
-                .sum();
-        return Math.round(totalSeconds / 60.0);
+                .map(interval -> Duration.between(interval.getStartTime(), interval.getEndTime()))
+                .reduce(Duration.ZERO, Duration::plus);
+        return Math.round(total.toMillis() / 60_000.0);
     }
 
     public void processIdleTime(LocalDateTime now) {

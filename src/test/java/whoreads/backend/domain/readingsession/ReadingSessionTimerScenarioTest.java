@@ -26,6 +26,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 /**
@@ -128,8 +129,9 @@ class ReadingSessionTimerScenarioTest {
         long sid = start();
         shiftOpenIntervalSeconds(sid, 599);
         setHeartbeatMinutesAgo(sid, 0);
-        call("H complete", post("/api/reading-sessions/{id}/complete", sid));
+        call("H complete", post("/api/reading-sessions/{id}/complete", sid), 200);
         dump("H (기대 10분)", sid);
+        assertThat(totalMinutes(sid)).isEqualTo(10L);
     }
 
     @Test
@@ -143,8 +145,9 @@ class ReadingSessionTimerScenarioTest {
         call("I pause#2", post("/api/reading-sessions/{id}/pause", sid));
         call("I resume#2", post("/api/reading-sessions/{id}/resume", sid));
         shiftOpenIntervalSeconds(sid, 220);
-        call("I complete", post("/api/reading-sessions/{id}/complete", sid));
+        call("I complete", post("/api/reading-sessions/{id}/complete", sid), 200);
         dump("I (기대 11분)", sid);
+        assertThat(totalMinutes(sid)).isEqualTo(11L);
     }
 
     // ---- helpers ----
@@ -173,6 +176,21 @@ class ReadingSessionTimerScenarioTest {
         String body = r.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
         System.out.printf("[SCENARIO] %-22s -> %d %s%n", label, r.getResponse().getStatus(), body);
         return body.isBlank() ? objectMapper.createObjectNode() : objectMapper.readTree(body);
+    }
+
+    // 기대 상태를 호출마다 지정 (공용 call은 D처럼 실패가 예상되는 호출에도 쓰이므로 상태를 고정하지 않음)
+    private JsonNode call(String label, MockHttpServletRequestBuilder req, int expectedStatus) throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(memberId, null, List.of()));
+        MvcResult r = mockMvc.perform(req).andReturn();
+        String body = r.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        System.out.printf("[SCENARIO] %-22s -> %d %s%n", label, r.getResponse().getStatus(), body);
+        assertThat(r.getResponse().getStatus()).as(label).isEqualTo(expectedStatus);
+        return body.isBlank() ? objectMapper.createObjectNode() : objectMapper.readTree(body);
+    }
+
+    private Long totalMinutes(long sid) {
+        return jdbc.queryForObject("SELECT total_minutes FROM reading_session WHERE id = ?", Long.class, sid);
     }
 
     private void dump(String label, long sid) {
