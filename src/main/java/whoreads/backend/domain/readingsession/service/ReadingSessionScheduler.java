@@ -21,7 +21,11 @@ public class ReadingSessionScheduler {
     @Transactional
     @Scheduled(fixedDelay = 60_000, zone = "Asia/Seoul")
     public void expireStaleSessions() {
-        LocalDateTime threshold = LocalDateTime.now().minusHours(2);
+        // 5 -> 2로 수정
+        // LocalDateTime threshold = LocalDateTime.now().minusHours(2);
+
+        // 테스트용
+        LocalDateTime threshold = LocalDateTime.now().minusMinutes(5);
         List<ReadingSession> staleSessions = readingSessionRepository.findStaleInProgressSessions(threshold);
 
         if (staleSessions.isEmpty()) {

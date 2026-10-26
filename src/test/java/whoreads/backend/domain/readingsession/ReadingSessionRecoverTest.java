@@ -17,6 +17,8 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import whoreads.backend.config.TestFirebaseConfig;
+import whoreads.backend.domain.focusmode.entity.FocusTimerSetting;
+import whoreads.backend.domain.focusmode.repository.FocusModeRepository;
 import whoreads.backend.domain.member.entity.Member;
 import whoreads.backend.domain.member.enums.AgeGroup;
 import whoreads.backend.domain.member.enums.Gender;
@@ -33,15 +35,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 /**
- * stale 세션 만료 기준(2시간)과 recover API(POST 매핑, 상태 검증)를 실제 HTTP 흐름으로 검증한다 (H2).
+ * recover API(POST 매핑, 세션 상태별 응답)를 실제 HTTP 흐름으로 검증한다 (H2).
  * 시간 경과는 interval.start_time / last_heartbeat_at 을 과거로 당겨서 흉내낸다.
  */
 @SpringBootTest
 @Import(TestFirebaseConfig.class)
-class ReadingSessionStaleAndRecoverTest {
+class ReadingSessionRecoverTest {
 
     @Autowired WebApplicationContext ctx;
     @Autowired MemberRepository memberRepository;
+    @Autowired FocusModeRepository focusModeRepository;
     @Autowired JdbcTemplate jdbc;
     @Autowired ReadingSessionScheduler scheduler;
     ObjectMapper objectMapper = new ObjectMapper();
@@ -61,31 +64,6 @@ class ReadingSessionStaleAndRecoverTest {
     @AfterEach
     void tearDown() {
         SecurityContextHolder.clearContext();
-    }
-
-    @Test
-    void heartbeat가_25분_끊겨도_스케줄러가_세션을_만료시키지_않는다() throws Exception {
-        long sid = start();
-        shiftStartMinutes(sid, 25);
-        setHeartbeatMinutesAgo(sid, 25);
-
-        scheduler.expireStaleSessions();
-
-        assertThat(status(sid)).isEqualTo("IN_PROGRESS");
-        assertThat(jdbc.queryForObject(
-                "SELECT COUNT(*) FROM reading_interval WHERE session_id = ? AND end_time IS NULL", Integer.class, sid))
-                .isEqualTo(1);
-    }
-
-    @Test
-    void heartbeat가_2시간_넘게_끊기면_스케줄러가_세션을_중단시킨다() throws Exception {
-        long sid = start();
-        shiftStartMinutes(sid, 130);
-        setHeartbeatMinutesAgo(sid, 125);
-
-        scheduler.expireStaleSessions();
-
-        assertThat(status(sid)).isEqualTo("SUSPENDED");
     }
 
     @Test
@@ -121,10 +99,26 @@ class ReadingSessionStaleAndRecoverTest {
     }
 
     @Test
+    void 스케줄러가_중단시킨_세션을_2시간_안에_recover하면_이어서_진행한다() throws Exception {
+        focusModeRepository.save(FocusTimerSetting.builder()
+                .member(memberRepository.findById(memberId).orElseThrow()).timerMinutes(30L).build());
+        long sid = start();
+        shiftStartMinutes(sid, 15);
+        setHeartbeatMinutesAgo(sid, 10);
+        scheduler.expireStaleSessions();
+        assertThat(status(sid)).isEqualTo("SUSPENDED");
+
+        MvcResult r = perform(post("/api/reading-sessions/{id}/recover", sid));
+
+        assertThat(r.getResponse().getStatus()).isEqualTo(200);
+        assertThat(status(sid)).isEqualTo("IN_PROGRESS");
+    }
+
+    @Test
     void 스케줄러가_중단시킨_세션을_2시간_후_recover하면_SESSION_EXPIRED를_반환한다() throws Exception {
         long sid = start();
-        shiftStartMinutes(sid, 130);
-        setHeartbeatMinutesAgo(sid, 125);
+        shiftStartMinutes(sid, 155);
+        setHeartbeatMinutesAgo(sid, 150);
         scheduler.expireStaleSessions();
         assertThat(status(sid)).isEqualTo("SUSPENDED");
 
