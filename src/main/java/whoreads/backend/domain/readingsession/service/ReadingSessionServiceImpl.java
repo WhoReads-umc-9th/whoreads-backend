@@ -44,6 +44,11 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
             throw new CustomException(ErrorCode.SESSION_ALREADY_ACTIVE);
         });
 
+        // 남아 있는 SUSPENDED 세션은 마지막 heartbeat까지의 시간으로 완료 처리
+        // (통계에 집계되지 않은 채 남거나, 미완료 세션 조회에 다시 나타나지 않도록)
+        readingSessionRepository.findAllByMemberIdAndStatus(memberId, SessionStatus.SUSPENDED)
+                .forEach(ReadingSession::completeSuspended);
+
         ReadingSession session = ReadingSession.builder()
                 .member(member)
                 .build();

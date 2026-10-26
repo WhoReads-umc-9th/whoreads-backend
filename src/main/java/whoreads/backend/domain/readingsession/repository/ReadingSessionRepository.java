@@ -19,6 +19,9 @@ public interface ReadingSessionRepository extends JpaRepository<ReadingSession, 
 
 //    Optional<ReadingSession> findByMemberIdAndStatusIn(Long memberId, List<SessionStatus> statuses);
     @EntityGraph(attributePaths = {"intervals"})
+    List<ReadingSession> findAllByMemberIdAndStatus(Long memberId, SessionStatus status);
+
+    @EntityGraph(attributePaths = {"intervals"})
     Optional<ReadingSession> findFirstByMemberIdAndStatusInOrderByCreatedAtDesc(Long memberId, List<SessionStatus> statuses);
 
     @Query("SELECT COALESCE(SUM(rs.totalMinutes), 0) FROM ReadingSession rs " +

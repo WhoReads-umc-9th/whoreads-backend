@@ -116,6 +116,19 @@ public class ReadingSession extends BaseEntity {
         this.finishedAt = LocalDateTime.now();
     }
 
+    // 중단된 세션을 마지막 heartbeat 시점 기준으로 완료 (새 세션 시작 시)
+    // finishedAt은 suspend()에서 설정한 마지막 heartbeat 시각을 유지해 기록이 실제 읽은 날짜에 집계되도록 한다
+    public void completeSuspended() {
+        if (this.status != SessionStatus.SUSPENDED) {
+            throw new IllegalStateException("중단된 세션만 자동 완료할 수 있습니다. 현재 상태: " + this.status);
+        }
+        this.status = SessionStatus.COMPLETED;
+        this.totalMinutes = calculateTotalMinutes();
+        if (this.finishedAt == null) {
+            this.finishedAt = this.lastHeartbeatAt;
+        }
+    }
+
     public void addInterval(ReadingInterval interval) {
         this.intervals.add(interval);
         interval.setReadingSession(this);
