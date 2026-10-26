@@ -243,6 +243,19 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
         ReadingSession session = findByIdAndValidateOwnership(sessionId, memberId);
 
         LocalDateTime now = LocalDateTime.now();
+        LocalDateTime lastHeartbeat = session.getLastHeartbeatAt();
+
+        // 이어하기(recover)와 같은 기준: 마지막 하트비트 후 2시간이 지난 세션은 공백 시간을 인정하지 않음
+        if (session.getStatus() != SessionStatus.COMPLETED && lastHeartbeat != null
+                && Duration.between(lastHeartbeat, now).toMinutes() >= 120) {
+            throw new CustomException(ErrorCode.SESSION_EXPIRED);
+        }
+
+        // 일시정지 중인 시간은 독서 시간이 아니므로 공백을 채우지 않고 완료
+        if (session.getStatus() == SessionStatus.PAUSED) {
+            session.complete();
+            return;
+        }
 
         // 열린 구간이 있으면(IN_PROGRESS) 공백 시간까지 포함해 지금 닫음
         // 공백 구간을 따로 추가하면 마지막 하트비트 이후 시간이 중복 집계되므로 추가하지 않는다
@@ -254,8 +267,6 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
             session.complete();
             return;
         }
-
-        LocalDateTime lastHeartbeat = session.getLastHeartbeatAt();
 
         // 마지막 하트비트 시점부터 현재 사이에 공백이 있다면 자동으로 메워줌
         if (lastHeartbeat != null && lastHeartbeat.isBefore(now)) {

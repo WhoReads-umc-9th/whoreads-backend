@@ -78,17 +78,44 @@ class ReadingSessionIdleTimeHeartbeatTest {
     }
 
     @Test
-    @DisplayName("중단된 세션에 complete-idle-time을 호출하면 마지막 heartbeat 이후 공백까지 저장된다")
+    @DisplayName("2시간 안에 중단된 세션에 complete-idle-time을 호출하면 마지막 heartbeat 이후 공백까지 저장된다")
     void idleTime_suspended_addsIdleInterval() throws Exception {
         long sid = start(owner);
-        shiftStartMinutes(sid, 180);
-        heartbeatMinutesAgo(sid, 150);
+        shiftStartMinutes(sid, 60);
+        heartbeatMinutesAgo(sid, 10);
         scheduler.expireStaleSessions();
         assertThat(sessionStatus(sid)).isEqualTo("SUSPENDED");
 
         assertThat(status(owner, patch("/api/reading-sessions/{id}/complete-idle-time", sid))).isEqualTo(200);
         assertThat(sessionStatus(sid)).isEqualTo("COMPLETED");
-        assertThat(totalMinutes(sid)).isEqualTo(180L);
+        assertThat(totalMinutes(sid)).isEqualTo(60L);
+    }
+
+    @Test
+    @DisplayName("마지막 heartbeat 후 2시간이 지난 세션은 complete-idle-time이 SESSION_EXPIRED로 거절되고 상태가 바뀌지 않는다")
+    void idleTime_expired_rejected() throws Exception {
+        long sid = start(owner);
+        shiftStartMinutes(sid, 180);
+        heartbeatMinutesAgo(sid, 150);
+        scheduler.expireStaleSessions();
+
+        assertThat(status(owner, patch("/api/reading-sessions/{id}/complete-idle-time", sid))).isEqualTo(400);
+        assertThat(sessionStatus(sid)).isEqualTo("SUSPENDED");
+    }
+
+    @Test
+    @DisplayName("일시정지 세션에 complete-idle-time을 호출하면 일시정지 시간은 더하지 않고 완료한다")
+    void idleTime_paused_doesNotCountPausedTime() throws Exception {
+        long sid = start(owner);
+        shiftStartMinutes(sid, 30);
+        assertThat(status(owner, post("/api/reading-sessions/{id}/pause", sid))).isEqualTo(200);
+        // 10분 읽고 20분째 일시정지 중인 상태로 맞춤 (일시정지하면 앱이 heartbeat를 멈춤)
+        jdbc.update("UPDATE reading_interval SET end_time = DATEADD('MINUTE', -20, end_time), duration_minutes = duration_minutes - 20 WHERE session_id = ?", sid);
+        heartbeatMinutesAgo(sid, 20);
+
+        assertThat(status(owner, patch("/api/reading-sessions/{id}/complete-idle-time", sid))).isEqualTo(200);
+        assertThat(sessionStatus(sid)).isEqualTo("COMPLETED");
+        assertThat(totalMinutes(sid)).isEqualTo(10L);
     }
 
     @Test
