@@ -99,9 +99,19 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
         // 세션 완료 (엔티티 도메인 로직에서 totalMinutes 계산, finishedAt 설정)
         session.complete();
 
+        session.complete();
+
+        LocalDateTime completedAt = session.getFinishedAt();
+
+        String idempotencyKey =
+                "COMPLETED_TIMER:" + completedAt;
+
         applicationEventPublisher.publishEvent(
                 new NotificationEvent.TimerCompletedEvent(
-                        memberId,session.getTotalMinutes()
+                        memberId,
+                        session.getTotalMinutes(),
+                        completedAt,
+                        idempotencyKey
                 )
         );
     }

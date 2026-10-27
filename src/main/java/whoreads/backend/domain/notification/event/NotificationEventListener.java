@@ -14,6 +14,7 @@ import whoreads.backend.domain.notification.dto.MemberTokenDTO;
 import whoreads.backend.domain.notification.enums.NotificationType;
 import whoreads.backend.domain.notification.service.NotificationPushService;
 
+import java.time.Duration;
 import java.util.List;
 
 @Component
@@ -26,25 +27,55 @@ public class NotificationEventListener {
     @Async("WhoReadsAsyncExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleFollowEvent(NotificationEvent.FollowEvent event) {
-        FcmMessageDTO message = FcmMessageDTO.of(NotificationType.FOLLOW, event);
-        List<MemberTokenDTO> memberTokens = memberCelebrityRepository
-                .findMemberTokensByCelebrityId(event.celebId());
-        // 알림 기록할 수 있게 넣어주기
-        pushService.sendMulticast(memberTokens,message);
+
+        FcmMessageDTO message =
+                FcmMessageDTO.of(NotificationType.FOLLOW, event);
+
+        List<MemberTokenDTO> memberTokens =
+                memberCelebrityRepository
+                        .findMemberTokensByCelebrityId(event.celebId());
+
+        pushService.sendMulticast(
+                memberTokens,
+                message,
+                event.idempotencyKey(),
+                Duration.ofDays(3650)
+        );
     }
+
     @Async("WhoReadsAsyncExecutor")
     @EventListener
     public void handleRoutineEvent(NotificationEvent.RoutineEvent event) {
-        FcmMessageDTO message = FcmMessageDTO.of(NotificationType.ROUTINE,event);
-        pushService.sendMulticast(event.memberTokens(),message);
+
+        FcmMessageDTO message =
+                FcmMessageDTO.of(NotificationType.ROUTINE, event);
+
+        pushService.sendMulticast(
+                event.memberTokens(),
+                message,
+                event.idempotencyKey(),
+                Duration.ofDays(8)
+        );
     }
+
     @Async("WhoReadsAsyncExecutor")
     @EventListener
-    public void handleTimerCompletedEvent(NotificationEvent.TimerCompletedEvent event) {
-        FcmMessageDTO message = FcmMessageDTO.of(NotificationType.COMPLETED_TIMER,event);
+    public void handleTimerCompletedEvent(
+            NotificationEvent.TimerCompletedEvent event
+    ) {
+        FcmMessageDTO message =
+                FcmMessageDTO.of(NotificationType.COMPLETED_TIMER, event);
+
         memberRepository.findById(event.memberId()).ifPresent(
-                m -> pushService
-                        .sendMulticast(List.of(new MemberToken(m.getId(),m.getFcmToken())),message)
+                member -> pushService.sendMulticast(
+                        List.of(new MemberToken(
+                                member.getId(),
+                                member.getFcmToken()
+                        )),
+                        message,
+                        event.idempotencyKey(),
+                        Duration.ofDays(30)
+                )
         );
     }
 }
