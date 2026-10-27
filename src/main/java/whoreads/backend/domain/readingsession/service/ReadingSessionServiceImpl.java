@@ -19,7 +19,9 @@ import whoreads.backend.global.exception.ErrorCode;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -273,17 +275,28 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
         }
 
         // 마지막 하트비트 시점부터 현재 사이의 공백을 메워줌
-        if (lastHeartbeat != null && lastHeartbeat.isBefore(now)) {
-            LocalDateTime idleEnd = fillUntil(session, lastHeartbeat, now, goalMinutes);
+        if (lastHeartbeat != null) {
+            // 일시정지 후 재개하고 첫 하트비트 전에 중단되면 하트비트가 일시정지 이전 시각일 수 있으므로,
+            // 마지막으로 닫힌 구간의 종료 시각보다 앞서서 공백을 채우지 않는다
+            LocalDateTime idleStart = session.getIntervals().stream()
+                    .map(ReadingInterval::getEndTime)
+                    .filter(Objects::nonNull)
+                    .max(Comparator.naturalOrder())
+                    .filter(end -> end.isAfter(lastHeartbeat))
+                    .orElse(lastHeartbeat);
 
-            if (idleEnd.isAfter(lastHeartbeat)) {
-                ReadingInterval idleInterval = ReadingInterval.builder()
-                        .startTime(lastHeartbeat)
-                        .readingSession(session)
-                        .build();
+            if (idleStart.isBefore(now)) {
+                LocalDateTime idleEnd = fillUntil(session, idleStart, now, goalMinutes);
 
-                idleInterval.end(idleEnd);
-                session.addInterval(idleInterval);
+                if (idleEnd.isAfter(idleStart)) {
+                    ReadingInterval idleInterval = ReadingInterval.builder()
+                            .startTime(idleStart)
+                            .readingSession(session)
+                            .build();
+
+                    idleInterval.end(idleEnd);
+                    session.addInterval(idleInterval);
+                }
             }
         }
 

@@ -148,6 +148,26 @@ class ReadingSessionIdleTimeHeartbeatTest {
     }
 
     @Test
+    @DisplayName("재개 직후 첫 heartbeat 전에 중단된 세션도 일시정지 시간은 독서 시간으로 채우지 않는다")
+    void idleTime_resumedThenSuspendedBeforeHeartbeat_doesNotCountPausedTime() throws Exception {
+        long sid = start(owner);
+        shiftStartMinutes(sid, 30);
+        assertThat(status(owner, post("/api/reading-sessions/{id}/pause", sid))).isEqualTo(200);
+        // 10분 읽고 20분째 일시정지 중인 상태로 맞춤 (일시정지하면 앱이 heartbeat를 멈춤)
+        jdbc.update("UPDATE reading_interval SET end_time = DATEADD('MINUTE', -20, end_time), duration_minutes = duration_minutes - 20 WHERE session_id = ?", sid);
+        heartbeatMinutesAgo(sid, 20);
+
+        // 재개는 heartbeat를 갱신하지 않으므로 첫 heartbeat 전에 스케줄러가 돌면 방금 재개한 세션이 중단된다
+        assertThat(status(owner, post("/api/reading-sessions/{id}/resume", sid))).isEqualTo(200);
+        scheduler.expireStaleSessions();
+        assertThat(sessionStatus(sid)).isEqualTo("SUSPENDED");
+
+        assertThat(status(owner, patch("/api/reading-sessions/{id}/complete-idle-time", sid))).isEqualTo(200);
+        assertThat(sessionStatus(sid)).isEqualTo("COMPLETED");
+        assertThat(totalMinutes(sid)).isEqualTo(10L);
+    }
+
+    @Test
     @DisplayName("진행 중·일시정지 세션의 heartbeat는 받는다")
     void heartbeat_activeSession_ok() throws Exception {
         long sid = start(owner);
