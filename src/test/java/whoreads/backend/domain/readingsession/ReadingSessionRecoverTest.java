@@ -82,16 +82,21 @@ class ReadingSessionRecoverTest {
 
     @Test
     void 구버전_GET_recover_끝_슬래시_경로는_POST와_같은_응답을_반환한다() throws Exception {
+        saveTimerMinutes(30L);
+
         long legacySid = start();
         setHeartbeatMinutesAgo(legacySid, 0);
         MvcResult legacy = perform(get("/api/reading-sessions/{id}/recover/", legacySid));
+        assertThat(status(legacySid)).isEqualTo("IN_PROGRESS");
         perform(post("/api/reading-sessions/{id}/complete", legacySid));
 
         long sid = start();
         setHeartbeatMinutesAgo(sid, 0);
         MvcResult current = perform(post("/api/reading-sessions/{id}/recover", sid));
+        assertThat(status(sid)).isEqualTo("IN_PROGRESS");
 
         assertThat(legacy.getResponse().getStatus()).isEqualTo(200);
+        assertThat(body(legacy).path("result").path("remaining_minutes").asLong()).isEqualTo(30L);
         assertThat(body(legacy)).isEqualTo(body(current));
     }
 
