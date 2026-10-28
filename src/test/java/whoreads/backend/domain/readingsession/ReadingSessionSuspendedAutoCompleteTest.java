@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,6 +29,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 /**
@@ -104,6 +106,27 @@ class ReadingSessionSuspendedAutoCompleteTest {
         Map<String, Object> after = row(paused);
         assertThat(after.get("STATUS")).isEqualTo("COMPLETED");
         assertThat(((Number) after.get("TOTAL_MINUTES")).longValue()).isEqualTo(10L);
+        assertThat(after.get("FINISHED_AT")).isEqualTo(pausedAt);
+    }
+
+    @Test
+    @DisplayName("중단됐다가 이어 읽고 일시정지한 세션은 옛 중단 시각이 아니라 일시정지한 시각을 종료 시각으로 완료된다")
+    void start_completesRecoveredThenPausedSession_usingLatestPausedAtAsFinishedAt() throws Exception {
+        assertThat(status(patch("/api/me/reading-sessions/settings/time")
+                .contentType(MediaType.APPLICATION_JSON).content("{\"time\":60}"))).isEqualTo(200);
+        long sid = suspendedSession(60, 30);   // 30분 읽고 30분 전에 끊김
+        Object suspendedAt = row(sid).get("FINISHED_AT");
+
+        assertThat(status(get("/api/reading-sessions/{id}/recover/", sid))).isEqualTo(200);
+        assertThat(row(sid).get("STATUS")).isEqualTo("IN_PROGRESS");
+        assertThat(status(post("/api/reading-sessions/{id}/pause", sid))).isEqualTo(200);
+        Object pausedAt = jdbc.queryForObject("SELECT MAX(end_time) FROM reading_interval WHERE session_id = ?", Object.class, sid);
+
+        assertThat(status(post("/api/reading-sessions/start"))).isEqualTo(201);
+
+        Map<String, Object> after = row(sid);
+        assertThat(after.get("STATUS")).isEqualTo("COMPLETED");
+        assertThat(after.get("FINISHED_AT")).isNotEqualTo(suspendedAt);
         assertThat(after.get("FINISHED_AT")).isEqualTo(pausedAt);
     }
 

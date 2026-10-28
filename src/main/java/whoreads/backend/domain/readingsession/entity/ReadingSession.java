@@ -119,14 +119,15 @@ public class ReadingSession extends BaseEntity {
     // 일시정지·중단된 채 남은 세션을 마지막으로 읽은 시점 기준으로 완료 (새 세션 시작 시)
     // finishedAt은 실제로 읽기를 멈춘 시각으로 두어 기록이 실제 읽은 날짜에 집계되도록 한다
     // - SUSPENDED: suspend()에서 설정한 마지막 heartbeat 시각을 유지
-    // - PAUSED: 마지막 구간의 종료 시각(일시정지한 시각)
+    // - PAUSED: 마지막 구간의 종료 시각(일시정지한 시각). 중단됐다가 이어 읽은 세션은 옛 finishedAt이 남아 있으므로 그 값을 쓰지 않는다
     public void completeLeftover() {
         if (this.status != SessionStatus.PAUSED && this.status != SessionStatus.SUSPENDED) {
             throw new IllegalStateException("일시정지·중단된 세션만 자동 완료할 수 있습니다. 현재 상태: " + this.status);
         }
+        boolean keepFinishedAt = this.status == SessionStatus.SUSPENDED && this.finishedAt != null;
         this.status = SessionStatus.COMPLETED;
         this.totalMinutes = calculateTotalMinutes();
-        if (this.finishedAt == null) {
+        if (!keepFinishedAt) {
             this.finishedAt = this.intervals.stream()
                     .map(ReadingInterval::getEndTime)
                     .filter(Objects::nonNull)
