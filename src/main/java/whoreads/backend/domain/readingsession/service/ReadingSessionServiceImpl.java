@@ -2,13 +2,14 @@ package whoreads.backend.domain.readingsession.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import whoreads.backend.domain.focusmode.entity.FocusTimerSetting;
 import whoreads.backend.domain.focusmode.repository.FocusModeRepository;
 import whoreads.backend.domain.member.entity.Member;
 import whoreads.backend.domain.member.repository.MemberRepository;
-import whoreads.backend.domain.readingsession.dto.ReadingSessionRequest;
+import whoreads.backend.domain.notification.event.NotificationEvent;
 import whoreads.backend.domain.readingsession.dto.ReadingSessionResponse;
 import whoreads.backend.domain.readingsession.entity.ReadingInterval;
 import whoreads.backend.domain.readingsession.entity.ReadingSession;
@@ -33,6 +34,10 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
     private final ReadingSessionRepository readingSessionRepository;
     private final MemberRepository memberRepository;
     private final FocusModeRepository focusModeRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
+
+    // 마지막 하트비트 후 이 시간 안이면 중단된 세션을 이어서 진행할 수 있다
+    private static final Duration RECOVERABLE_DURATION = Duration.ofHours(2);
 
     @Override
     public ReadingSessionResponse.StartResult startSession(Long memberId) {
@@ -99,6 +104,12 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
 
         // 세션 완료 (엔티티 도메인 로직에서 totalMinutes 계산, finishedAt 설정)
         session.complete();
+
+        applicationEventPublisher.publishEvent(
+                new NotificationEvent.TimerCompletedEvent(
+                        memberId,session.getTotalMinutes()
+                )
+        );
     }
 
     @Override
@@ -195,16 +206,18 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
         ReadingSession session = findByIdAndValidateOwnership(sessionId, memberId);
         LocalDateTime now = LocalDateTime.now();
 
+        // 완료된 세션은 재개할 수 없음
+        if (session.getStatus() == SessionStatus.COMPLETED) {
+            throw new CustomException(ErrorCode.SESSION_NOT_ACTIVE);
+        }
+
         // 마지막 하트비트 시간 확인
         LocalDateTime lastHeartbeat = session.getLastHeartbeatAt();
 
         // 마지막 하트비트로부터 2시간을 초과했는지 확인
-        long minutesSinceLastHeartbeat = java.time.Duration.between(lastHeartbeat, now).toMinutes();
-        if (minutesSinceLastHeartbeat >= 120) {
-            FocusTimerSetting focusSetting = focusModeRepository.findByMemberId(memberId)
-                    .orElseGet(() -> FocusTimerSetting.builder().build());
-            session.suspend(focusSetting.getTimerMinutes());
-
+        // 예외를 던지면 트랜잭션이 롤백되므로 여기서 세션 상태를 바꾸지 않는다 (stale 세션 정리는 스케줄러가 담당)
+        Duration sinceLastHeartbeat = Duration.between(lastHeartbeat, now);
+        if (sinceLastHeartbeat.compareTo(RECOVERABLE_DURATION) > 0) {
             throw new CustomException(ErrorCode.SESSION_EXPIRED);
         }
 

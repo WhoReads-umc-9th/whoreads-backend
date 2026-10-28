@@ -11,9 +11,14 @@ public interface NotificationEvent {
             Long bookId,
             String bookName,
             String authorName
-    ) implements NotificationEvent {} // 인터페이스 구현!
+    ) implements NotificationEvent {}
 
     record RoutineEvent(
             List<MemberTokenDTO> memberTokens
-    ) implements NotificationEvent {} // 인터페이스 구현!
+    ) implements NotificationEvent {}
+
+    record TimerCompletedEvent(
+            Long memberId,
+            Long completedMinutes
+    ) implements NotificationEvent {}
 }
