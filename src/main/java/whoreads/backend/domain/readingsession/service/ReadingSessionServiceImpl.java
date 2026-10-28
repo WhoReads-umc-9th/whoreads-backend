@@ -33,6 +33,9 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
     private final FocusModeRepository focusModeRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
 
+    // 마지막 하트비트 후 이 시간 안이면 중단된 세션을 이어서 진행할 수 있다
+    private static final Duration RECOVERABLE_DURATION = Duration.ofHours(2);
+
     @Override
     public ReadingSessionResponse.StartResult startSession(Long memberId) {
         Member member = memberRepository.findById(memberId)
@@ -195,16 +198,18 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
         ReadingSession session = findByIdAndValidateOwnership(sessionId, memberId);
         LocalDateTime now = LocalDateTime.now();
 
+        // 완료된 세션은 재개할 수 없음
+        if (session.getStatus() == SessionStatus.COMPLETED) {
+            throw new CustomException(ErrorCode.SESSION_NOT_ACTIVE);
+        }
+
         // 마지막 하트비트 시간 확인
         LocalDateTime lastHeartbeat = session.getLastHeartbeatAt();
 
         // 마지막 하트비트로부터 2시간을 초과했는지 확인
-        long minutesSinceLastHeartbeat = java.time.Duration.between(lastHeartbeat, now).toMinutes();
-        if (minutesSinceLastHeartbeat >= 120) {
-            FocusTimerSetting focusSetting = focusModeRepository.findByMemberId(memberId)
-                    .orElseGet(() -> FocusTimerSetting.builder().build());
-            session.suspend(focusSetting.getTimerMinutes());
-
+        // 예외를 던지면 트랜잭션이 롤백되므로 여기서 세션 상태를 바꾸지 않는다 (stale 세션 정리는 스케줄러가 담당)
+        Duration sinceLastHeartbeat = Duration.between(lastHeartbeat, now);
+        if (sinceLastHeartbeat.compareTo(RECOVERABLE_DURATION) > 0) {
             throw new CustomException(ErrorCode.SESSION_EXPIRED);
         }
 
