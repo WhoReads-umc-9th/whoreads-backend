@@ -20,7 +20,10 @@ import whoreads.backend.global.exception.ErrorCode;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -112,9 +115,14 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
     @Override
     public void heartbeat(Long sessionId, Long memberId) {
         ReadingSession session = findByIdAndValidateOwnership(sessionId, memberId);
-        session.updateHeartbeat(LocalDateTime.now());
+
+        // 완료/중단된 세션의 heartbeat는 거절해 앱이 heartbeat를 멈추거나 복구 흐름으로 넘어가게 함
+        if (session.getStatus() != SessionStatus.IN_PROGRESS && session.getStatus() != SessionStatus.PAUSED) {
+            throw new CustomException(ErrorCode.SESSION_NOT_ACTIVE);
+        }
 
         LocalDateTime now = LocalDateTime.now();
+        session.updateHeartbeat(now);
 
         log.info("[세션 ID: {}] 하트비트 업데이트 시간: {}", sessionId, now);
     }
@@ -247,29 +255,84 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
     }
 
     public void resolveIdleTime(Long sessionId, Long memberId) {
-        ReadingSession session = readingSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new CustomException(ErrorCode.SESSION_NOT_FOUND));
+        ReadingSession session = findByIdAndValidateOwnership(sessionId, memberId);
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime lastHeartbeat = session.getLastHeartbeatAt();
 
-        // 마지막 하트비트 시점부터 현재 사이에 공백이 있다면 자동으로 메워줌
-        if (lastHeartbeat != null && lastHeartbeat.isBefore(now)) {
+        // 일시정지 중인 시간은 독서 시간이 아니므로 공백을 채우지 않고 완료
+        if (session.getStatus() == SessionStatus.PAUSED) {
+            session.complete();
+            return;
+        }
 
-            // 분 단위 차이 계산
-            long idleMinutes = Duration.between(lastHeartbeat, now).toMinutes();
+        // 공백은 타이머 목표 시간까지만 채움 (목표를 설정하지 않았으면 제한 없음)
+        long goalMinutes = focusModeRepository.findByMemberId(memberId)
+                .map(FocusTimerSetting::getTimerMinutes)
+                .orElse(0L);
 
-            if (idleMinutes > 0) {
-                ReadingInterval idleInterval = ReadingInterval.builder()
-                        .startTime(lastHeartbeat)
-                        .readingSession(session)
-                        .build();
+        // 열린 구간이 있으면(IN_PROGRESS) 공백 시간까지 포함해 닫음
+        // 공백 구간을 따로 추가하면 마지막 하트비트 이후 시간이 중복 집계되므로 추가하지 않는다
+        Optional<ReadingInterval> activeInterval = session.getIntervals().stream()
+                .filter(interval -> interval.getEndTime() == null)
+                .findFirst();
+        if (activeInterval.isPresent()) {
+            ReadingInterval interval = activeInterval.get();
+            // 마지막 하트비트까지는 확인된 독서 시간이므로 목표 시간과 관계없이 인정
+            LocalDateTime confirmedEnd = lastHeartbeat == null || lastHeartbeat.isBefore(interval.getStartTime())
+                    ? interval.getStartTime()
+                    : (lastHeartbeat.isAfter(now) ? now : lastHeartbeat);
+            interval.end(fillUntil(session, confirmedEnd, now, goalMinutes));
+            session.complete();
+            return;
+        }
 
-                idleInterval.end(now);
-                session.addInterval(idleInterval);
+        // 마지막 하트비트 시점부터 현재 사이의 공백을 메워줌
+        if (lastHeartbeat != null) {
+            // 일시정지 후 재개하고 첫 하트비트 전에 중단되면 하트비트가 일시정지 이전 시각일 수 있으므로,
+            // 마지막으로 닫힌 구간의 종료 시각보다 앞서서 공백을 채우지 않는다
+            LocalDateTime idleStart = session.getIntervals().stream()
+                    .map(ReadingInterval::getEndTime)
+                    .filter(Objects::nonNull)
+                    .max(Comparator.naturalOrder())
+                    .filter(end -> end.isAfter(lastHeartbeat))
+                    .orElse(lastHeartbeat);
+
+            if (idleStart.isBefore(now)) {
+                LocalDateTime idleEnd = fillUntil(session, idleStart, now, goalMinutes);
+
+                if (idleEnd.isAfter(idleStart)) {
+                    ReadingInterval idleInterval = ReadingInterval.builder()
+                            .startTime(idleStart)
+                            .readingSession(session)
+                            .build();
+
+                    idleInterval.end(idleEnd);
+                    session.addInterval(idleInterval);
+                }
             }
         }
 
         session.complete();
+    }
+
+    // from~now 공백을 채우되, 세션 총 독서 시간이 타이머 목표 시간을 넘지 않는 시각까지만 채움
+    // 열린 구간은 from까지 읽은 것으로 계산한다. 목표가 없으면(0분) now까지 채움
+    private LocalDateTime fillUntil(ReadingSession session, LocalDateTime from, LocalDateTime now, long goalMinutes) {
+        if (goalMinutes <= 0) {
+            return now;
+        }
+
+        Duration read = session.getIntervals().stream()
+                .map(interval -> Duration.between(interval.getStartTime(),
+                        interval.getEndTime() != null ? interval.getEndTime() : from))
+                .reduce(Duration.ZERO, Duration::plus);
+        Duration remaining = Duration.ofMinutes(goalMinutes).minus(read);
+
+        if (remaining.isNegative() || remaining.isZero()) {
+            return from;
+        }
+        LocalDateTime capped = from.plus(remaining);
+        return capped.isBefore(now) ? capped : now;
     }
 }
