@@ -18,7 +18,8 @@ public interface ReadingSessionControllerDocs {
 
     @Operation(
             summary = "독서 세션 시작",
-            description = "새로운 독서 세션을 시작합니다. 첫 번째 인터벌이 자동으로 생성됩니다."
+            description = "새로운 독서 세션을 시작합니다. 첫 번째 인터벌이 자동으로 생성됩니다. "
+                    + "일시정지·중단된 채 남은 세션은 마지막으로 읽은 시점까지의 시간으로 완료 처리되며, 진행 중인 세션이 있으면 409를 반환합니다."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -140,6 +141,20 @@ public interface ReadingSessionControllerDocs {
                                       "is_success": false,
                                       "code": 400,
                                       "message": "일시정지된 세션만 재개할 수 있습니다."
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "완료되었거나 중단된 세션 (일시정지 후 2시간이 지나 자동 완료된 세션 포함)",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": false,
+                                      "code": 409,
+                                      "message": "중단된 세션이거나 완료된 세션입니다."
                                     }
                                     """)
                     )
