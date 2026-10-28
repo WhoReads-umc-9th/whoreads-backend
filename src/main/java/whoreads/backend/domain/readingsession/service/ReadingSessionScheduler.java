@@ -21,10 +21,8 @@ public class ReadingSessionScheduler {
     @Transactional
     @Scheduled(fixedDelay = 60_000, zone = "Asia/Seoul")
     public void expireStaleSessions() {
-        // 5 -> 2로 수정
-        // LocalDateTime threshold = LocalDateTime.now().minusHours(2);
-
-        // 테스트용
+        // heartbeat가 5분 이상 없는 진행 중 세션을 SUSPENDED로 전환
+        // (이어하기는 마지막 heartbeat 후 2시간까지 허용 — ReadingSessionServiceImpl.resumeIncompleteSession)
         LocalDateTime threshold = LocalDateTime.now().minusMinutes(5);
         List<ReadingSession> staleSessions = readingSessionRepository.findStaleInProgressSessions(threshold);
 
@@ -61,7 +59,7 @@ public class ReadingSessionScheduler {
             session.suspend(userGoalTime);
         }
 
-        log.info("[ReadingSessionScheduler] stale 세션 {}건 자동 완료 처리", staleSessions.size());
+        log.info("[ReadingSessionScheduler] stale 세션 {}건 자동 중단(SUSPENDED) 처리", staleSessions.size());
     }
 
     // 일시정지한 지 2시간이 지난 세션은 이어서 읽는 것이 아니므로 일시정지한 시점까지의 시간으로 완료
