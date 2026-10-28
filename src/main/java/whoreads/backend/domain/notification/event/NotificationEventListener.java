@@ -7,7 +7,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 import whoreads.backend.domain.member.repository.MemberCelebrityRepository;
+import whoreads.backend.domain.member.repository.MemberRepository;
 import whoreads.backend.domain.notification.dto.FcmMessageDTO;
+import whoreads.backend.domain.notification.dto.MemberToken;
 import whoreads.backend.domain.notification.dto.MemberTokenDTO;
 import whoreads.backend.domain.notification.enums.NotificationType;
 import whoreads.backend.domain.notification.service.NotificationPushService;
@@ -19,6 +21,7 @@ import java.util.List;
 public class NotificationEventListener {
     private final NotificationPushService pushService;
     private final MemberCelebrityRepository memberCelebrityRepository;
+    private final MemberRepository memberRepository;
 
     @Async("WhoReadsAsyncExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -34,5 +37,14 @@ public class NotificationEventListener {
     public void handleRoutineEvent(NotificationEvent.RoutineEvent event) {
         FcmMessageDTO message = FcmMessageDTO.of(NotificationType.ROUTINE,event);
         pushService.sendMulticast(event.memberTokens(),message);
+    }
+    @Async("WhoReadsAsyncExecutor")
+    @EventListener
+    public void handleTimerCompletedEvent(NotificationEvent.TimerCompletedEvent event) {
+        FcmMessageDTO message = FcmMessageDTO.of(NotificationType.COMPLETED_TIMER,event);
+        memberRepository.findById(event.memberId()).ifPresent(
+                m -> pushService
+                        .sendMulticast(List.of(new MemberToken(m.getId(),m.getFcmToken())),message)
+        );
     }
 }

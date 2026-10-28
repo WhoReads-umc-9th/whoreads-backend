@@ -1,6 +1,7 @@
 package whoreads.backend.domain.notification.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import whoreads.backend.domain.member.entity.Member;
@@ -8,6 +9,7 @@ import whoreads.backend.domain.member.repository.MemberRepository;
 import whoreads.backend.domain.notification.controller.docs.NotificationControllerDocs;
 import whoreads.backend.domain.notification.dto.*;
 import whoreads.backend.domain.notification.enums.NotificationType;
+import whoreads.backend.domain.notification.event.NotificationEvent;
 import whoreads.backend.domain.notification.service.*;
 import whoreads.backend.global.exception.*;
 import whoreads.backend.global.response.ApiResponse;
@@ -20,6 +22,7 @@ public class NotificationController implements NotificationControllerDocs {
     private final NotificationPushService notificationPushService;
     private final MemberRepository memberRepository;
     private final NotificationHistoryService notificationHistoryService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @PostMapping("/test")
     public ApiResponse<Void> sendTestMessage(
@@ -32,6 +35,16 @@ public class NotificationController implements NotificationControllerDocs {
         notificationPushService.sendNotification
                 (fcmToken,FcmMessageDTO.of(NotificationType.ROUTINE,null));
         return ApiResponse.success("알림이 전송되었습니다.");
+    }
+    @PostMapping("/timer/test")
+    public void sendTimerTest(
+            @AuthenticationPrincipal Long memberId
+    ) {
+        applicationEventPublisher.publishEvent(
+                new NotificationEvent.TimerCompletedEvent(
+                        memberId,15L
+                )
+        );
     }
     // 전체 알림 조회
     @GetMapping()
