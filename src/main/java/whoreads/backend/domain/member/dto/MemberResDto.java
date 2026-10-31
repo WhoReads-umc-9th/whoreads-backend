@@ -24,7 +24,13 @@ public class MemberResDto {
             @JsonProperty("deleted_at") LocalDateTime deletedAt,
             Status status,
             @JsonProperty("track_code") TrackCode trackCode,
-            @JsonProperty("fcm_token") String fcmToken
+            @JsonProperty("fcm_token") String fcmToken,
+            @JsonProperty("profile_img_id") int profileImgId
+    ){}
+
+    @Builder
+    public record ProfileImage(
+            @JsonProperty("profile_img_id") int profileImgId
     ){}
 
     @Builder

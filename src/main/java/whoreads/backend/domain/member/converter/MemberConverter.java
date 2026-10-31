@@ -48,6 +48,7 @@ public class MemberConverter {
                 .status(member.getStatus())
                 .trackCode(TrackCode.fromName(member.getDnaType()))
                 .fcmToken(member.getFcmToken())
+                .profileImgId(member.getProfileImgId())
                 .build();
     }
 }
