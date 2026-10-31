@@ -1,23 +1,9 @@
 package whoreads.backend.domain.topic.repository;
 
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import whoreads.backend.domain.book.entity.Book;
-import whoreads.backend.domain.topic.entity.Topic;
 import whoreads.backend.domain.topic.entity.TopicBook;
-import whoreads.backend.domain.topic.entity.TopicTag;
 
-import java.util.List;
-
+// 주제별 도서 조회/권수 집계는 BookRepository(findBooksByTheme, countBooksByTheme)로 창구를 통일했다.
+// 여기 있던 중복 조회 쿼리는 TopicService가 BookService로 위임하면서 쓰는 곳이 없어져 제거.
 public interface TopicBookRepository extends JpaRepository<TopicBook, Long> {
-
-    // 특정 주제에 연결된 책들 조회
-    @Query("SELECT tb FROM TopicBook tb JOIN FETCH tb.book WHERE tb.topic IN :topics")
-    List<TopicBook> findAllByTopicInWithFetchJoin(@Param("topics") List<Topic> topics);
-    
-    // TopicBook과 연관된 Topic을 조인해서 Enum(TopicTag) 이름으로 바로 필터링하고, Book만 가져옴
-    @Query("SELECT tb.book FROM TopicBook tb JOIN tb.topic t WHERE t.name = :theme")
-    List<Book> findBooksByThemeName(@Param("theme") TopicTag theme, Pageable pageable);
 }

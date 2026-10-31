@@ -1,7 +1,12 @@
 package whoreads.backend.auth.controller;
 
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import whoreads.backend.auth.dto.AuthReqDto;
@@ -10,6 +15,8 @@ import whoreads.backend.auth.service.AuthService;
 import whoreads.backend.auth.service.EmailService;
 import whoreads.backend.auth.service.KakaoOAuthClient;
 import whoreads.backend.global.response.ApiResponse;
+import whoreads.backend.global.exception.CustomException;
+import whoreads.backend.global.exception.ErrorCode;
 
 /**
  * 인증 관련 API Controller
@@ -91,7 +98,20 @@ public class AuthController implements AuthControllerDocs {
         return ApiResponse.created("카카오 회원가입에 성공했습니다.", tokenData);
     }
 
-    // 앱 없이 브라우저만으로 카카오 로그인을 테스트하기 위한 인가 코드 콜백 (개발/테스트 용도)
+    @Operation(summary = "카카오 로그인 시작", description = "앱이 생성한 43~128자 URL-safe state로 카카오 인가 화면에 이동합니다. 앱에는 카카오 키가 필요하지 않습니다.")
+    @GetMapping("/kakao/authorize")
+    public ResponseEntity<Void> kakaoAuthorize(@RequestParam MultiValueMap<String, String> params) {
+        if (params.get("state") == null || params.get("state").size() != 1) {
+            throw new CustomException(ErrorCode.INVALID_OAUTH_STATE);
+        }
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(kakaoOAuthClient.authorizationUri(params.getFirst("state")))
+                .cacheControl(CacheControl.noStore())
+                .header("Referrer-Policy", "no-referrer")
+                .build();
+    }
+
+    // 모바일 WebView가 탐색을 차단한 뒤 앱이 인가 코드를 한 번만 교환한다.
     @GetMapping("/kakao/callback")
     public ApiResponse<AuthResDto.KakaoLoginData> kakaoCallback(@RequestParam String code) {
         String accessToken = kakaoOAuthClient.exchangeCodeForAccessToken(code);

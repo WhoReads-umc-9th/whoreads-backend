@@ -76,7 +76,13 @@ erDiagram
         bigint id PK
         varchar_50 name "NOT_NULL"
         text image_url
+        text image_source_url
+        varchar_100 image_author
+        varchar_30 image_license
+        varchar_10 image_license_version
+        boolean is_edited "NOT_NULL"
         varchar short_bio "NOT_NULL"
+        text result_comment
         datetime created_at "NOT_NULL"
         datetime updated_at "NOT_NULL"
     }
@@ -105,17 +111,17 @@ erDiagram
     quote_context {
         bigint id PK
         bigint quote_id FK
-        varchar context_how
-        varchar context_when
-        varchar context_why
-        varchar context_help
+        text context_how
+        text context_when
+        text context_why
+        text context_help
     }
 
     quote_source {
         bigint id PK
         bigint quote_id FK
-        varchar source_url
-        enum source_type
+        text source_url
+        enum source_type "NOT_NULL"
         varchar timestamp
         tinyint is_direct_quote "NOT_NULL"
     }

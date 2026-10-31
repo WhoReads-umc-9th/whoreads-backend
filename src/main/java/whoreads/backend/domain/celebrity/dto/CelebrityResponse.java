@@ -18,11 +18,12 @@ public class CelebrityResponse {
     @JsonProperty("short_bio") private String shortBio;
     @JsonProperty("job_tags") private List<String> jobTags;
 
-    public static CelebrityResponse from(Celebrity celebrity) {
+    /** @param imageUrl S3Service.generateUrl()로 변환을 마친 절대 URL */
+    public static CelebrityResponse from(Celebrity celebrity, String imageUrl) {
         return CelebrityResponse.builder()
                 .id(celebrity.getId())
                 .name(celebrity.getName())
-                .imageUrl(celebrity.getImageUrl())
+                .imageUrl(imageUrl)
                 .shortBio(celebrity.getShortBio())
                 .jobTags(celebrity.getJobTags().stream()
                         .map(CelebrityTag::getDescription)

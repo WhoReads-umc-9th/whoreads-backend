@@ -19,6 +19,7 @@ import whoreads.backend.domain.readingsession.enums.SessionStatus;
 import whoreads.backend.domain.readingsession.repository.ReadingSessionRepository;
 import whoreads.backend.global.exception.CustomException;
 import whoreads.backend.global.exception.ErrorCode;
+import whoreads.backend.infra.s3.S3Service;
 
 import java.time.LocalDate;
 import java.util.Collections;
@@ -36,6 +37,7 @@ public class UserBookServiceImpl implements UserBookService {
     private final MemberRepository memberRepository;
     private final CelebrityBookRepository celebrityBookRepository;
     private final ReadingSessionRepository readingSessionRepository;
+    private final S3Service s3Service;
 
     @Override
     public UserBookResponse.Summary getLibrarySummary(Long memberId) {
@@ -80,7 +82,7 @@ public class UserBookServiceImpl implements UserBookService {
                         Collectors.mapping(
                                 cb -> UserBookResponse.CelebritySummary.builder()
                                         .id(cb.getCelebrity().getId())
-                                        .profileUrl(cb.getCelebrity().getImageUrl())
+                                        .profileUrl(s3Service.generateUrl(cb.getCelebrity().getImageUrl()))
                                         .build(),
                                 Collectors.toList()
                         )
@@ -132,46 +134,67 @@ public class UserBookServiceImpl implements UserBookService {
 
     @Override
     @Transactional
-    public void updateUserBook(Long memberId, Long userBookId, UserBookRequest.UpdateStatus request) {
+    public void updateUserBook(Long memberId, Long userBookId, UserBookRequest.UpdateReadingInfo request) {
         UserBook userBook = findByIdAndValidateOwnership(userBookId, memberId);
 
-        ReadingStatus oldStatus = userBook.getReadingStatus();
-        ReadingStatus newStatus = request.getReadingStatus();
+        // reading_status를 보내지 않으면 현재 상태 유지 (날짜/페이지만 수정하는 경우)
+        ReadingStatus newStatus = request.getReadingStatus() != null
+                ? request.getReadingStatus()
+                : userBook.getReadingStatus();
 
-        // readingPage는 READING으로 전환할 때만 의미가 있으므로, 그 외 상태에서 함께 오더라도 무시한다.
-        boolean applyReadingPage = newStatus == ReadingStatus.READING && request.getReadingPage() != null;
+        validateReadingInfoRequest(request, newStatus, userBook.getBook().getTotalPage());
 
-        // readingPage 유효성 검증 (실제로 반영될 때만)
-        if (applyReadingPage) {
-            if (request.getReadingPage() <= 0) {
+        // 날짜/페이지는 서버에서 자동으로 채우지 않고, 요청에 온 값만 반영한다 (프론트 재량)
+        LocalDate startedAt = request.getStartedAt() != null ? request.getStartedAt() : userBook.getStartedAt();
+        LocalDate completedAt = request.getCompletedAt() != null ? request.getCompletedAt() : userBook.getCompletedAt();
+        boolean clearCompletedAt = false;
+        if (startedAt != null && completedAt != null && startedAt.isAfter(completedAt)) {
+            // 다시 읽기 시작한 경우: 시작일만 보냈고 COMPLETE가 아니면, 이전 완료일을 비우고 새 시작일을 반영한다
+            if (request.getCompletedAt() == null && newStatus != ReadingStatus.COMPLETE) {
+                clearCompletedAt = true;
+            } else {
+                throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "시작일은 완료일보다 늦을 수 없습니다.");
+            }
+        }
+
+        userBook.updateReadingStatus(newStatus);
+        if (request.getStartedAt() != null) {
+            userBook.updateStartedAt(request.getStartedAt());
+        }
+        if (request.getCompletedAt() != null) {
+            userBook.updateCompletedAt(request.getCompletedAt());
+        } else if (clearCompletedAt) {
+            userBook.updateCompletedAt(null);
+        }
+        if (request.getReadingPage() != null) {
+            userBook.updateReadingPage(request.getReadingPage());
+        }
+    }
+
+    private void validateReadingInfoRequest(UserBookRequest.UpdateReadingInfo request, ReadingStatus newStatus, Integer totalPage) {
+        // 시작일/완료일: READING, COMPLETE에서만 입력 가능
+        if (newStatus == ReadingStatus.WISH && (request.getStartedAt() != null || request.getCompletedAt() != null)) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "읽는 중이거나 다 읽은 책만 시작일과 완료일을 입력할 수 있습니다.");
+        }
+        // 읽은 페이지: READING에서만 입력 가능
+        if (newStatus != ReadingStatus.READING && request.getReadingPage() != null) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "읽는 중인 책만 읽은 페이지를 입력할 수 있습니다.");
+        }
+
+        LocalDate today = LocalDate.now();
+        if ((request.getStartedAt() != null && request.getStartedAt().isAfter(today))
+                || (request.getCompletedAt() != null && request.getCompletedAt().isAfter(today))) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "미래 날짜는 입력할 수 없습니다.");
+        }
+
+        Integer readingPage = request.getReadingPage();
+        if (readingPage != null) {
+            if (readingPage <= 0) {
                 throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "읽은 페이지는 1 이상이어야 합니다.");
             }
-            if (userBook.getBook().getTotalPage() != null
-                    && request.getReadingPage() > userBook.getBook().getTotalPage()) {
+            if (totalPage != null && readingPage > totalPage) {
                 throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "읽은 페이지가 전체 페이지 수를 초과할 수 없습니다.");
             }
-        }
-
-        // 상태 변경
-        userBook.updateReadingStatus(newStatus);
-
-        // READING으로 전환 시 startedAt 설정 (기존 값이 없을 때만, 재시작 시 보존)
-        if (newStatus == ReadingStatus.READING && userBook.getStartedAt() == null) {
-            userBook.updateStartedAt(LocalDate.now());
-        }
-
-        // COMPLETE로 전환 시
-        if (newStatus == ReadingStatus.COMPLETE && oldStatus != ReadingStatus.COMPLETE) {
-            // WISH → COMPLETE: startedAt이 없으면 설정
-            if (userBook.getStartedAt() == null) {
-                userBook.updateStartedAt(LocalDate.now());
-            }
-            userBook.updateCompletedAt(LocalDate.now());
-        }
-
-        // readingPage 업데이트 (READING 상태로 전환될 때만)
-        if (applyReadingPage) {
-            userBook.updateReadingPage(request.getReadingPage());
         }
     }
 

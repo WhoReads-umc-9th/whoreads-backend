@@ -1,5 +1,10 @@
 -- WhoReads Database DDL
 -- Generated from JPA Entities (2026-02-08)
+--
+-- ⚠️ 문서 용도 전용 (#206). 실제 스키마의 단일 진실 공급원은
+-- src/main/resources/db/migration/*.sql (Flyway)이다. 이 파일은 ERD.md를
+-- 생성하기 위한 사람이 읽기 좋은 스냅샷일 뿐, 실제 DB에 적용되지 않으며
+-- 수동으로 최신화해야 한다 — 누락되거나 어긋나도 배포에는 영향 없다(#217 참고).
 
 -- =============================================
 -- 1. Member (회원)
@@ -66,8 +71,14 @@ CREATE TABLE `user_book` (
 CREATE TABLE `celebrity` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(50) NOT NULL,
-    `image_url` TEXT NULL,
+    `image_url` TEXT NULL COMMENT 'S3 objectKey (예: celebrity/12/profile_v1.webp). 과도기에는 전체 URL도 허용',
+    `image_source_url` TEXT NULL COMMENT '이미지를 가져온 원본 페이지 URL',
+    `image_author` VARCHAR(100) NULL COMMENT '사진 저작자 표기명',
+    `image_license` VARCHAR(30) NULL COMMENT 'PUBLIC_DOMAIN, CC0, CC_BY, CC_BY_SA, KOGL_TYPE1, UNKNOWN',
+    `image_license_version` VARCHAR(10) NULL COMMENT '라이선스 버전 (예: 2.0, 3.0, 4.0). 버전 개념이 없는 출처는 NULL',
+    `is_edited` BOOLEAN NOT NULL DEFAULT TRUE COMMENT '원본 이미지를 크롭 등으로 변형했는지 여부',
     `short_bio` VARCHAR(255) NOT NULL,
+    `result_comment` TEXT NULL,
     `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     PRIMARY KEY (`id`)
@@ -118,12 +129,13 @@ CREATE TABLE `book_quote` (
 -- =============================================
 CREATE TABLE `quote_context` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
-    `quote_id` BIGINT NULL,
-    `context_how` VARCHAR(255) NULL COMMENT '읽게 된 계기',
-    `context_when` VARCHAR(255) NULL COMMENT '어떤 시기에 읽었는지',
-    `context_why` VARCHAR(255) NULL COMMENT '왜 이 책이었나',
-    `context_help` VARCHAR(255) NULL COMMENT '어떤 도움을 받았나',
+    `quote_id` BIGINT NOT NULL,
+    `context_how` TEXT NULL COMMENT '읽게 된 계기',
+    `context_when` TEXT NULL COMMENT '어떤 시기에 읽었는지',
+    `context_why` TEXT NULL COMMENT '왜 이 책이었나',
+    `context_help` TEXT NULL COMMENT '어떤 도움을 받았나',
     PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_quote_context_quote` (`quote_id`),
     CONSTRAINT `fk_quote_context_quote` FOREIGN KEY (`quote_id`) REFERENCES `quote` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -132,12 +144,13 @@ CREATE TABLE `quote_context` (
 -- =============================================
 CREATE TABLE `quote_source` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
-    `quote_id` BIGINT NULL,
-    `source_url` VARCHAR(255) NULL,
-    `source_type` ENUM('INTERVIEW', 'VIDEO', 'SOCIAL_MEDIA', 'ARTICLE', 'MAGAZINE', 'ETC') NULL,
+    `quote_id` BIGINT NOT NULL,
+    `source_url` TEXT NULL,
+    `source_type` ENUM('INTERVIEW', 'YOUTUBE_VIDEO', 'SNS', 'ARTICLE', 'MAGAZINE') NOT NULL,
     `timestamp` VARCHAR(255) NULL COMMENT '영상일 경우 타임스탬프',
     `is_direct_quote` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '직접 인용 여부',
     PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_quote_source_quote` (`quote_id`),
     CONSTRAINT `fk_quote_source_quote` FOREIGN KEY (`quote_id`) REFERENCES `quote` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

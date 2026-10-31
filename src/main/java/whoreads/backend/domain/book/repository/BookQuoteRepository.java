@@ -26,6 +26,10 @@ public interface BookQuoteRepository extends JpaRepository<BookQuote, Long> {
     @Query("SELECT bq.book FROM BookQuote bq GROUP BY bq.book ORDER BY COUNT(bq) DESC")
     List<Book> findMostRecommendedBooks(Pageable pageable);
 
+    // 3-1. 추천(인용)이 하나라도 달린 책 수 = findMostRecommendedBooks가 페이징으로 끝까지 내려줄 수 있는 전체 권수
+    @Query("SELECT COUNT(DISTINCT bq.book) FROM BookQuote bq")
+    long countDistinctBooks();
+
     // 4. 인용(Quote) ID로 연결된 책(BookQuote) 찾기
     // (주제별 큐레이션 등에서 인용 정보만 가지고 있을 때, 역으로 책 정보를 알아내기 위해 사용)
     Optional<BookQuote> findByQuoteId(Long quoteId);

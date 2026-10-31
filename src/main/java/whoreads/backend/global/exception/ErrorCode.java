@@ -24,6 +24,7 @@ public enum ErrorCode {
     PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "새 비밀번호와 비밀번호 확인이 일치하지 않습니다."),
 
     KAKAO_API_ERROR(HttpStatus.BAD_GATEWAY, "카카오 서버와 통신 중 오류가 발생했습니다."),
+    INVALID_OAUTH_STATE(HttpStatus.BAD_REQUEST, "카카오 로그인 요청이 올바르지 않습니다."),
     KAKAO_EMAIL_REQUIRED(HttpStatus.BAD_REQUEST, "카카오 계정의 이메일 제공에 동의해주세요."),
     ALREADY_REGISTERED_KAKAO(HttpStatus.CONFLICT, "이미 가입된 카카오 계정입니다."),
 
@@ -58,6 +59,7 @@ public enum ErrorCode {
     SESSION_ALREADY_ACTIVE(HttpStatus.CONFLICT, "이미 진행 중인 독서 세션이 있습니다."),
     INCOMPLETE_SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "미완료 독서 세션을 찾을 수 없습니다."),
     SESSION_EXPIRED(HttpStatus.BAD_REQUEST, "마지막 활동으로부터 2시간이 경과하여 해당 세션을 재개할 수 없습니다."),
+    SESSION_NOT_ACTIVE(HttpStatus.CONFLICT, "중단된 세션이거나 완료된 세션입니다."),
 
     // Focus Mode
     FOCUS_MODE_NOT_FOUND(HttpStatus.NOT_FOUND, "집중 모드 설정을 찾을 수 없습니다."),

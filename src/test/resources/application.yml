@@ -22,6 +22,11 @@ spring:
         dialect: org.hibernate.dialect.H2Dialect
     show-sql: false
 
+  # Flyway 비활성화(#206) — V1__baseline.sql은 MySQL 전용 DDL(ENUM, ENGINE=InnoDB 등)이라
+  # H2에서 실행하면 깨진다. 테스트는 기존처럼 Hibernate ddl-auto: create-drop으로 스키마를 만든다.
+  flyway:
+    enabled: false
+
   # Jackson
   jackson:
     property-naming-strategy: SNAKE_CASE
@@ -52,16 +57,14 @@ jwt:
   access-token-validity: 3600000
   refresh-token-validity: 604800000
 
-# AWS (더미)
+# AWS (더미) — S3Properties가 읽는 실제 구조(cloud.aws.region, cloud.aws.s3.bucket)에 맞춤.
+# Presigned URL 서명 자체는 Region만 있으면 되고(실제 자격증명은 context 로드 시점엔 불필요),
+# S3Presigner 빈이 시작할 때 바로 만들어지므로 region이 없으면 contextLoads()가 실패한다.
 cloud:
   aws:
-    credentials:
-      access-key: "test-access-key"
-      secret-key: "test-secret-key"
+    region: ap-northeast-2
     s3:
       bucket: "test-bucket"
-    region:
-      static: ap-northeast-2
 
 # Server
 server:

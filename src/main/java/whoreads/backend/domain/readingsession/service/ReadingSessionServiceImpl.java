@@ -2,13 +2,14 @@ package whoreads.backend.domain.readingsession.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import whoreads.backend.domain.focusmode.entity.FocusTimerSetting;
 import whoreads.backend.domain.focusmode.repository.FocusModeRepository;
 import whoreads.backend.domain.member.entity.Member;
 import whoreads.backend.domain.member.repository.MemberRepository;
-import whoreads.backend.domain.readingsession.dto.ReadingSessionRequest;
+import whoreads.backend.domain.notification.event.NotificationEvent;
 import whoreads.backend.domain.readingsession.dto.ReadingSessionResponse;
 import whoreads.backend.domain.readingsession.entity.ReadingInterval;
 import whoreads.backend.domain.readingsession.entity.ReadingSession;
@@ -19,7 +20,10 @@ import whoreads.backend.global.exception.ErrorCode;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -30,19 +34,28 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
     private final ReadingSessionRepository readingSessionRepository;
     private final MemberRepository memberRepository;
     private final FocusModeRepository focusModeRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
+
+    // 마지막 하트비트 후 이 시간 안이면 중단된 세션을 이어서 진행할 수 있다
+    private static final Duration RECOVERABLE_DURATION = Duration.ofHours(2);
 
     @Override
     public ReadingSessionResponse.StartResult startSession(Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-        // 이미 진행 중이거나 일시정지된 세션이 있는지 확인
-        // SUSPENDED 세션은 의도적으로 제외: 자동 중단된 세션이 새 세션 시작을 막지 않도록 함
+        // 이미 진행 중인 세션이 있는지 확인
+        // PAUSED/SUSPENDED 세션은 새 세션 시작을 막지 않고 아래에서 완료 처리한다
         readingSessionRepository.findFirstByMemberIdAndStatusInOrderByCreatedAtDesc(
-                memberId, List.of(SessionStatus.IN_PROGRESS, SessionStatus.PAUSED)
+                memberId, List.of(SessionStatus.IN_PROGRESS)
         ).ifPresent(s -> {
             throw new CustomException(ErrorCode.SESSION_ALREADY_ACTIVE);
         });
+
+        // 남아 있는 PAUSED/SUSPENDED 세션은 마지막으로 읽은 시점까지의 시간으로 완료 처리
+        // (통계에 집계되지 않은 채 남거나, 미완료 세션 조회에 다시 나타나지 않도록)
+        readingSessionRepository.findAllByMemberIdAndStatusIn(memberId, List.of(SessionStatus.PAUSED, SessionStatus.SUSPENDED))
+                .forEach(ReadingSession::completeLeftover);
 
         ReadingSession session = ReadingSession.builder()
                 .member(member)
@@ -76,6 +89,11 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
     public void resumeSession(Long sessionId, Long memberId) {
         ReadingSession session = findByIdAndValidateOwnership(sessionId, memberId);
 
+        // 완료되었거나(일시정지 2시간 경과 자동 완료 포함) 중단된 세션은 재개할 수 없음
+        if (session.getStatus() == SessionStatus.COMPLETED || session.getStatus() == SessionStatus.SUSPENDED) {
+            throw new CustomException(ErrorCode.SESSION_NOT_ACTIVE);
+        }
+
         // 세션 재개 (엔티티 도메인 로직에서 상태 검증)
         session.resume();
 
@@ -96,14 +114,25 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
 
         // 세션 완료 (엔티티 도메인 로직에서 totalMinutes 계산, finishedAt 설정)
         session.complete();
+
+        applicationEventPublisher.publishEvent(
+                new NotificationEvent.TimerCompletedEvent(
+                        memberId,session.getTotalMinutes()
+                )
+        );
     }
 
     @Override
     public void heartbeat(Long sessionId, Long memberId) {
         ReadingSession session = findByIdAndValidateOwnership(sessionId, memberId);
-        session.updateHeartbeat(LocalDateTime.now());
+
+        // 완료/중단된 세션의 heartbeat는 거절해 앱이 heartbeat를 멈추거나 복구 흐름으로 넘어가게 함
+        if (session.getStatus() != SessionStatus.IN_PROGRESS && session.getStatus() != SessionStatus.PAUSED) {
+            throw new CustomException(ErrorCode.SESSION_NOT_ACTIVE);
+        }
 
         LocalDateTime now = LocalDateTime.now();
+        session.updateHeartbeat(now);
 
         log.info("[세션 ID: {}] 하트비트 업데이트 시간: {}", sessionId, now);
     }
@@ -187,16 +216,18 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
         ReadingSession session = findByIdAndValidateOwnership(sessionId, memberId);
         LocalDateTime now = LocalDateTime.now();
 
+        // 완료된 세션은 재개할 수 없음
+        if (session.getStatus() == SessionStatus.COMPLETED) {
+            throw new CustomException(ErrorCode.SESSION_NOT_ACTIVE);
+        }
+
         // 마지막 하트비트 시간 확인
         LocalDateTime lastHeartbeat = session.getLastHeartbeatAt();
 
         // 마지막 하트비트로부터 2시간을 초과했는지 확인
-        long minutesSinceLastHeartbeat = java.time.Duration.between(lastHeartbeat, now).toMinutes();
-        if (minutesSinceLastHeartbeat >= 120) {
-            FocusTimerSetting focusSetting = focusModeRepository.findByMemberId(memberId)
-                    .orElseGet(() -> FocusTimerSetting.builder().build());
-            session.suspend(focusSetting.getTimerMinutes());
-
+        // 예외를 던지면 트랜잭션이 롤백되므로 여기서 세션 상태를 바꾸지 않는다 (stale 세션 정리는 스케줄러가 담당)
+        Duration sinceLastHeartbeat = Duration.between(lastHeartbeat, now);
+        if (sinceLastHeartbeat.compareTo(RECOVERABLE_DURATION) > 0) {
             throw new CustomException(ErrorCode.SESSION_EXPIRED);
         }
 
@@ -234,29 +265,84 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
     }
 
     public void resolveIdleTime(Long sessionId, Long memberId) {
-        ReadingSession session = readingSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new CustomException(ErrorCode.SESSION_NOT_FOUND));
+        ReadingSession session = findByIdAndValidateOwnership(sessionId, memberId);
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime lastHeartbeat = session.getLastHeartbeatAt();
 
-        // 마지막 하트비트 시점부터 현재 사이에 공백이 있다면 자동으로 메워줌
-        if (lastHeartbeat != null && lastHeartbeat.isBefore(now)) {
+        // 일시정지 중인 시간은 독서 시간이 아니므로 공백을 채우지 않고 완료
+        if (session.getStatus() == SessionStatus.PAUSED) {
+            session.complete();
+            return;
+        }
 
-            // 분 단위 차이 계산
-            long idleMinutes = Duration.between(lastHeartbeat, now).toMinutes();
+        // 공백은 타이머 목표 시간까지만 채움 (목표를 설정하지 않았으면 제한 없음)
+        long goalMinutes = focusModeRepository.findByMemberId(memberId)
+                .map(FocusTimerSetting::getTimerMinutes)
+                .orElse(0L);
 
-            if (idleMinutes > 0) {
-                ReadingInterval idleInterval = ReadingInterval.builder()
-                        .startTime(lastHeartbeat)
-                        .readingSession(session)
-                        .build();
+        // 열린 구간이 있으면(IN_PROGRESS) 공백 시간까지 포함해 닫음
+        // 공백 구간을 따로 추가하면 마지막 하트비트 이후 시간이 중복 집계되므로 추가하지 않는다
+        Optional<ReadingInterval> activeInterval = session.getIntervals().stream()
+                .filter(interval -> interval.getEndTime() == null)
+                .findFirst();
+        if (activeInterval.isPresent()) {
+            ReadingInterval interval = activeInterval.get();
+            // 마지막 하트비트까지는 확인된 독서 시간이므로 목표 시간과 관계없이 인정
+            LocalDateTime confirmedEnd = lastHeartbeat == null || lastHeartbeat.isBefore(interval.getStartTime())
+                    ? interval.getStartTime()
+                    : (lastHeartbeat.isAfter(now) ? now : lastHeartbeat);
+            interval.end(fillUntil(session, confirmedEnd, now, goalMinutes));
+            session.complete();
+            return;
+        }
 
-                idleInterval.end(now);
-                session.addInterval(idleInterval);
+        // 마지막 하트비트 시점부터 현재 사이의 공백을 메워줌
+        if (lastHeartbeat != null) {
+            // 일시정지 후 재개하고 첫 하트비트 전에 중단되면 하트비트가 일시정지 이전 시각일 수 있으므로,
+            // 마지막으로 닫힌 구간의 종료 시각보다 앞서서 공백을 채우지 않는다
+            LocalDateTime idleStart = session.getIntervals().stream()
+                    .map(ReadingInterval::getEndTime)
+                    .filter(Objects::nonNull)
+                    .max(Comparator.naturalOrder())
+                    .filter(end -> end.isAfter(lastHeartbeat))
+                    .orElse(lastHeartbeat);
+
+            if (idleStart.isBefore(now)) {
+                LocalDateTime idleEnd = fillUntil(session, idleStart, now, goalMinutes);
+
+                if (idleEnd.isAfter(idleStart)) {
+                    ReadingInterval idleInterval = ReadingInterval.builder()
+                            .startTime(idleStart)
+                            .readingSession(session)
+                            .build();
+
+                    idleInterval.end(idleEnd);
+                    session.addInterval(idleInterval);
+                }
             }
         }
 
         session.complete();
+    }
+
+    // from~now 공백을 채우되, 세션 총 독서 시간이 타이머 목표 시간을 넘지 않는 시각까지만 채움
+    // 열린 구간은 from까지 읽은 것으로 계산한다. 목표가 없으면(0분) now까지 채움
+    private LocalDateTime fillUntil(ReadingSession session, LocalDateTime from, LocalDateTime now, long goalMinutes) {
+        if (goalMinutes <= 0) {
+            return now;
+        }
+
+        Duration read = session.getIntervals().stream()
+                .map(interval -> Duration.between(interval.getStartTime(),
+                        interval.getEndTime() != null ? interval.getEndTime() : from))
+                .reduce(Duration.ZERO, Duration::plus);
+        Duration remaining = Duration.ofMinutes(goalMinutes).minus(read);
+
+        if (remaining.isNegative() || remaining.isZero()) {
+            return from;
+        }
+        LocalDateTime capped = from.plus(remaining);
+        return capped.isBefore(now) ? capped : now;
     }
 }
