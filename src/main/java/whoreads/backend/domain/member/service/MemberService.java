@@ -110,6 +110,15 @@ public class MemberService {
         member.updateAgeGroup(ageGroup);
     }
 
+    @Transactional
+    public MemberResDto.ProfileImage updateProfileImage(Long memberId, int profileImgId) {
+        Member member = findMemberById(memberId);
+        member.updateProfileImgId(profileImgId);
+        return MemberResDto.ProfileImage.builder()
+                .profileImgId(member.getProfileImgId())
+                .build();
+    }
+
     private Member findMemberById(Long memberId) {
         return memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
