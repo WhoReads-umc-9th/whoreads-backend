@@ -42,9 +42,10 @@ public class NotificationController implements NotificationControllerDocs {
     public void sendTimerTest(
             @AuthenticationPrincipal Long memberId
     ) {
+        LocalDateTime completedAt = LocalDateTime.now();
         applicationEventPublisher.publishEvent(
                 new NotificationEvent.TimerCompletedEvent(
-                        memberId,15L, LocalDateTime.now(),String.valueOf(15L)
+                        memberId,15L, completedAt, "COMPLETED_TIMER:" + completedAt
                 )
         );
     }

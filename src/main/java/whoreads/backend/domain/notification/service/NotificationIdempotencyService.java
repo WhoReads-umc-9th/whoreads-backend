@@ -3,6 +3,9 @@ package whoreads.backend.domain.notification.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -35,10 +38,14 @@ public class NotificationIdempotencyService {
     private void updateStatus(String key, String status) {
         String redisKey = PREFIX + key;
 
-        // TTL을 초기화하지 않고 기존 만료 시간 유지
-        redisTemplate.opsForValue().setIfPresent(
-                redisKey,
-                status
+        // 기존 키의 TTL을 유지하면서 상태만 갱신 (SET XX KEEPTTL)
+        redisTemplate.execute((RedisCallback<Boolean>) connection ->
+                connection.stringCommands().set(
+                        redisKey.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                        status.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                        Expiration.keepTtl(),
+                        RedisStringCommands.SetOption.ifPresent()
+                )
         );
     }
 }
