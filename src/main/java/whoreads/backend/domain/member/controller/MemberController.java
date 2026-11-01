@@ -126,4 +126,13 @@ public class MemberController implements MemberControllerDocs {
         memberService.updateAgeGroup(memberId, request.ageGroup());
         return ApiResponse.success("연령대가 성공적으로 수정되었습니다.");
     }
+
+    @PatchMapping("/me/profile-image")
+    @Override
+    public ApiResponse<MemberResDto.ProfileImage> updateProfileImage(
+            @AuthenticationPrincipal Long memberId,
+            @RequestBody @Valid MemberRequest.UpdateProfileImageRequest request) {
+        return ApiResponse.success("프로필 이미지가 성공적으로 수정되었습니다.",
+                memberService.updateProfileImage(memberId, request.profileImgId()));
+    }
 }

@@ -1,6 +1,8 @@
 package whoreads.backend.domain.member.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -29,5 +31,13 @@ public class MemberRequest {
             @NotNull(message = "연령대는 필수 입력 항목입니다.")
             @JsonProperty("age_group")
             AgeGroup ageGroup
+    ){}
+
+    public record UpdateProfileImageRequest(
+            @NotNull(message = "프로필 이미지 번호는 필수 입력 항목입니다.")
+            @Min(value = 0, message = "프로필 이미지 번호는 0~5 사이여야 합니다.")
+            @Max(value = 5, message = "프로필 이미지 번호는 0~5 사이여야 합니다.")
+            @JsonProperty("profile_img_id")
+            Integer profileImgId
     ){}
 }

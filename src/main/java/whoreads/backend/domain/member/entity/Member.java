@@ -40,6 +40,10 @@ public class Member extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
+    // 선택한 프로필 이미지 번호 (0~5)
+    @Column(nullable = false)
+    private int profileImgId;
+
     @Column(nullable = false, unique = true)
     private String loginId;
 
@@ -102,6 +106,10 @@ public class Member extends BaseEntity {
 
     public void updateAgeGroup(AgeGroup ageGroup) {
         this.ageGroup = ageGroup;
+    }
+
+    public void updateProfileImgId(int profileImgId) {
+        this.profileImgId = profileImgId;
     }
 
     // 회원 탈퇴 (Soft Delete)

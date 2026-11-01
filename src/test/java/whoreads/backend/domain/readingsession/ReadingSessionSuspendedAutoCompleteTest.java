@@ -1,0 +1,237 @@
+package whoreads.backend.domain.readingsession;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+import whoreads.backend.config.TestFirebaseConfig;
+import whoreads.backend.domain.member.entity.Member;
+import whoreads.backend.domain.member.enums.AgeGroup;
+import whoreads.backend.domain.member.enums.Gender;
+import whoreads.backend.domain.member.repository.MemberRepository;
+import whoreads.backend.domain.readingsession.service.ReadingSessionScheduler;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+
+/**
+ * 이슈 #243: 새 세션 시작 시 남아 있던 SUSPENDED 세션 자동 완료 회귀 테스트 (H2).
+ * 중단(SUSPENDED) 상태는 heartbeat를 150분 전으로 두고 스케줄러를 돌려 만든다 (stale 기준 5분/2시간 모두 해당).
+ */
+@SpringBootTest
+@Import(TestFirebaseConfig.class)
+class ReadingSessionSuspendedAutoCompleteTest {
+
+    @Autowired WebApplicationContext ctx;
+    @Autowired MemberRepository memberRepository;
+    @Autowired JdbcTemplate jdbc;
+    @Autowired ReadingSessionScheduler scheduler;
+    ObjectMapper objectMapper = new ObjectMapper();
+    MockMvc mockMvc;
+
+    Long owner;
+
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(ctx).build();
+        owner = newMember();
+    }
+
+    @Test
+    @DisplayName("새 세션을 시작하면 SUSPENDED 세션이 마지막 heartbeat 기준으로 완료되고 종료 시각이 유지된다")
+    void start_completesSuspendedSession_keepingLastHeartbeatAsFinishedAt() throws Exception {
+        long suspended = suspendedSession(180, 150);   // 30분 읽고 150분 전부터 끊김
+        Map<String, Object> before = row(suspended);
+
+        long next = start();
+
+        Map<String, Object> after = row(suspended);
+        assertThat(after.get("STATUS")).isEqualTo("COMPLETED");
+        assertThat(((Number) after.get("TOTAL_MINUTES")).longValue()).isEqualTo(30L);
+        assertThat(after.get("FINISHED_AT")).isEqualTo(before.get("LAST_HEARTBEAT_AT"));
+        assertThat(row(next).get("STATUS")).isEqualTo("IN_PROGRESS");
+    }
+
+    @Test
+    @DisplayName("새 세션을 완료한 뒤 미완료 세션 조회에 예전 SUSPENDED 세션이 다시 나오지 않는다")
+    void incomplete_doesNotReturnOldSuspendedSession() throws Exception {
+        suspendedSession(180, 150);
+        long next = start();
+        assertThat(status(post("/api/reading-sessions/{id}/complete", next))).isEqualTo(200);
+
+        assertThat(status(get("/api/reading-sessions/incomplete"))).isEqualTo(404);
+    }
+
+    @Test
+    @DisplayName("다른 회원의 SUSPENDED 세션은 건드리지 않는다")
+    void start_doesNotTouchOtherMembersSuspendedSession() throws Exception {
+        long othersSuspended = suspendedSession(180, 150);
+        owner = newMember();
+
+        start();
+
+        assertThat(row(othersSuspended).get("STATUS")).isEqualTo("SUSPENDED");
+    }
+
+    @Test
+    @DisplayName("새 세션을 시작하면 일시정지 세션이 일시정지 시점까지의 시간으로 완료되고 종료 시각은 일시정지한 시각이 된다")
+    void start_completesPausedSession_keepingPausedAtAsFinishedAt() throws Exception {
+        long paused = start();
+        jdbc.update("UPDATE reading_interval SET start_time = DATEADD('MINUTE', -30, start_time) WHERE session_id = ?", paused);
+        assertThat(status(post("/api/reading-sessions/{id}/pause", paused))).isEqualTo(200);
+        // 10분 읽고 20분 전에 일시정지한 상태로 맞춤
+        jdbc.update("UPDATE reading_interval SET end_time = DATEADD('MINUTE', -20, end_time), duration_minutes = duration_minutes - 20 WHERE session_id = ?", paused);
+        Object pausedAt = jdbc.queryForObject("SELECT end_time FROM reading_interval WHERE session_id = ?", Object.class, paused);
+
+        assertThat(status(post("/api/reading-sessions/start"))).isEqualTo(201);
+
+        Map<String, Object> after = row(paused);
+        assertThat(after.get("STATUS")).isEqualTo("COMPLETED");
+        assertThat(((Number) after.get("TOTAL_MINUTES")).longValue()).isEqualTo(10L);
+        assertThat(after.get("FINISHED_AT")).isEqualTo(pausedAt);
+    }
+
+    @Test
+    @DisplayName("중단됐다가 이어 읽고 일시정지한 세션은 옛 중단 시각이 아니라 일시정지한 시각을 종료 시각으로 완료된다")
+    void start_completesRecoveredThenPausedSession_usingLatestPausedAtAsFinishedAt() throws Exception {
+        assertThat(status(patch("/api/me/reading-sessions/settings/time")
+                .contentType(MediaType.APPLICATION_JSON).content("{\"time\":60}"))).isEqualTo(200);
+        long sid = suspendedSession(60, 30);   // 30분 읽고 30분 전에 끊김
+        Object suspendedAt = row(sid).get("FINISHED_AT");
+
+        assertThat(status(get("/api/reading-sessions/{id}/recover/", sid))).isEqualTo(200);
+        assertThat(row(sid).get("STATUS")).isEqualTo("IN_PROGRESS");
+        assertThat(status(post("/api/reading-sessions/{id}/pause", sid))).isEqualTo(200);
+        Object pausedAt = jdbc.queryForObject("SELECT MAX(end_time) FROM reading_interval WHERE session_id = ?", Object.class, sid);
+
+        assertThat(status(post("/api/reading-sessions/start"))).isEqualTo(201);
+
+        Map<String, Object> after = row(sid);
+        assertThat(after.get("STATUS")).isEqualTo("COMPLETED");
+        assertThat(after.get("FINISHED_AT")).isNotEqualTo(suspendedAt);
+        assertThat(after.get("FINISHED_AT")).isEqualTo(pausedAt);
+    }
+
+    @Test
+    @DisplayName("진행 중인 세션이 있으면 새 세션 시작은 409로 거절된다")
+    void start_withInProgressSession_conflict() throws Exception {
+        long running = start();
+
+        assertThat(status(post("/api/reading-sessions/start"))).isEqualTo(409);
+        assertThat(row(running).get("STATUS")).isEqualTo("IN_PROGRESS");
+    }
+
+    @Test
+    @DisplayName("일시정지한 지 2시간이 지난 세션은 스케줄러가 일시정지한 시점까지의 시간으로 완료한다")
+    void scheduler_completesPausedSessionAfterTwoHours() throws Exception {
+        long sid = pausedSession(200, 180);   // 20분 읽고 180분 전에 일시정지
+        Object pausedAt = jdbc.queryForObject("SELECT end_time FROM reading_interval WHERE session_id = ?", Object.class, sid);
+
+        scheduler.completeAbandonedPausedSessions();
+
+        Map<String, Object> after = row(sid);
+        assertThat(after.get("STATUS")).isEqualTo("COMPLETED");
+        assertThat(((Number) after.get("TOTAL_MINUTES")).longValue()).isEqualTo(20L);
+        assertThat(after.get("FINISHED_AT")).isEqualTo(pausedAt);
+    }
+
+    @Test
+    @DisplayName("일시정지한 지 2시간이 안 된 세션은 그대로 둔다")
+    void scheduler_keepsRecentlyPausedSession() throws Exception {
+        long sid = pausedSession(90, 60);
+
+        scheduler.completeAbandonedPausedSessions();
+
+        assertThat(row(sid).get("STATUS")).isEqualTo("PAUSED");
+    }
+
+    @Test
+    @DisplayName("자동 완료된 세션이나 중단된 세션을 resume하면 409로 거절한다")
+    void resume_endedSession_conflict() throws Exception {
+        long autoCompleted = pausedSession(200, 180);
+        scheduler.completeAbandonedPausedSessions();
+        assertThat(status(post("/api/reading-sessions/{id}/resume", autoCompleted))).isEqualTo(409);
+        assertThat(row(autoCompleted).get("STATUS")).isEqualTo("COMPLETED");
+
+        owner = newMember();
+        long suspended = suspendedSession(180, 150);
+        assertThat(status(post("/api/reading-sessions/{id}/resume", suspended))).isEqualTo(409);
+    }
+
+    @Test
+    @DisplayName("일시정지 세션은 2시간이 안 지났으면 resume으로 이어갈 수 있다")
+    void resume_recentlyPausedSession_ok() throws Exception {
+        long sid = pausedSession(90, 60);
+
+        assertThat(status(post("/api/reading-sessions/{id}/resume", sid))).isEqualTo(200);
+        assertThat(row(sid).get("STATUS")).isEqualTo("IN_PROGRESS");
+    }
+
+    // ---- helpers ----
+
+    // startedMinutesAgo분 전에 시작해 pausedMinutesAgo분 전에 일시정지한 세션
+    private long pausedSession(int startedMinutesAgo, int pausedMinutesAgo) throws Exception {
+        long sid = start();
+        jdbc.update("UPDATE reading_interval SET start_time = DATEADD('MINUTE', ?, start_time) WHERE session_id = ?", -startedMinutesAgo, sid);
+        assertThat(status(post("/api/reading-sessions/{id}/pause", sid))).isEqualTo(200);
+        jdbc.update("UPDATE reading_interval SET end_time = DATEADD('MINUTE', ?, end_time), duration_minutes = duration_minutes - ? WHERE session_id = ?",
+                -pausedMinutesAgo, pausedMinutesAgo, sid);
+        return sid;
+    }
+
+
+    private long suspendedSession(int startedMinutesAgo, int heartbeatMinutesAgo) throws Exception {
+        long sid = start();
+        jdbc.update("UPDATE reading_interval SET start_time = DATEADD('MINUTE', ?, start_time) WHERE session_id = ?", -startedMinutesAgo, sid);
+        jdbc.update("UPDATE reading_session SET last_heartbeat_at = DATEADD('MINUTE', ?, CURRENT_TIMESTAMP) WHERE id = ?", -heartbeatMinutesAgo, sid);
+        scheduler.expireStaleSessions();
+        assertThat(row(sid).get("STATUS")).isEqualTo("SUSPENDED");
+        return sid;
+    }
+
+    private Long newMember() {
+        String u = UUID.randomUUID().toString().substring(0, 8);
+        return memberRepository.save(Member.builder()
+                .nickname("t" + u).gender(Gender.FEMALE).ageGroup(AgeGroup.TWENTIES)
+                .email(u + "@test.com").loginId("id" + u).password("pw").build()).getId();
+    }
+
+    private long start() throws Exception {
+        authenticate();
+        String body = mockMvc.perform(post("/api/reading-sessions/start")).andReturn()
+                .getResponse().getContentAsString(StandardCharsets.UTF_8);
+        return objectMapper.readTree(body).path("result").path("session_id").asLong();
+    }
+
+    private int status(MockHttpServletRequestBuilder req) throws Exception {
+        authenticate();
+        return mockMvc.perform(req).andReturn().getResponse().getStatus();
+    }
+
+    private void authenticate() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(owner, null, List.of()));
+    }
+
+    private Map<String, Object> row(long sid) {
+        return jdbc.queryForMap("SELECT status, total_minutes, finished_at, last_heartbeat_at FROM reading_session WHERE id = ?", sid);
+    }
+}

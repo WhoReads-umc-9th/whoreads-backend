@@ -301,4 +301,52 @@ public interface MemberControllerDocs {
             )
             @RequestBody @Valid MemberRequest.UpdateAgeRequest request
     );
+
+    @Operation(
+            summary = "프로필 이미지 변경 API",
+            description = "사용자가 선택한 프로필 이미지 번호(0~5)를 저장하고, 저장된 번호를 반환합니다."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "프로필 이미지 변경 성공",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": true,
+                                      "code": 200,
+                                      "message": "프로필 이미지가 성공적으로 수정되었습니다.",
+                                      "result": {
+                                        "profile_img_id": 3
+                                      }
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "잘못된 입력값",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "is_success": false,
+                                      "code": 400,
+                                      "message": "프로필 이미지 번호는 0~5 사이여야 합니다."
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 필요"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "회원 없음")
+    })
+    ApiResponse<MemberResDto.ProfileImage> updateProfileImage(
+            @AuthenticationPrincipal Long memberId,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "변경할 프로필 이미지 번호 (0~5)",
+                    required = true
+            )
+            @RequestBody @Valid MemberRequest.UpdateProfileImageRequest request
+    );
 }

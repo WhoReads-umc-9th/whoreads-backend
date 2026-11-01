@@ -19,6 +19,9 @@ public interface ReadingSessionRepository extends JpaRepository<ReadingSession, 
 
 //    Optional<ReadingSession> findByMemberIdAndStatusIn(Long memberId, List<SessionStatus> statuses);
     @EntityGraph(attributePaths = {"intervals"})
+    List<ReadingSession> findAllByMemberIdAndStatusIn(Long memberId, List<SessionStatus> statuses);
+
+    @EntityGraph(attributePaths = {"intervals"})
     Optional<ReadingSession> findFirstByMemberIdAndStatusInOrderByCreatedAtDesc(Long memberId, List<SessionStatus> statuses);
 
     @Query("SELECT COALESCE(SUM(rs.totalMinutes), 0) FROM ReadingSession rs " +
@@ -37,6 +40,11 @@ public interface ReadingSessionRepository extends JpaRepository<ReadingSession, 
             @Param("memberId") Long memberId,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
+
+    // 일시정지한 시각(마지막 구간의 종료 시각)이 threshold보다 오래된 일시정지 세션
+    @Query("SELECT rs FROM ReadingSession rs JOIN FETCH rs.intervals " +
+            "WHERE rs.status = 'PAUSED' AND (SELECT MAX(i.endTime) FROM ReadingInterval i WHERE i.readingSession = rs) < :threshold")
+    List<ReadingSession> findPausedSessionsPausedBefore(@Param("threshold") LocalDateTime threshold);
 
     @Query("SELECT rs FROM ReadingSession rs JOIN FETCH rs.intervals " +
             "WHERE rs.status = 'IN_PROGRESS' AND rs.lastHeartbeatAt < :threshold")

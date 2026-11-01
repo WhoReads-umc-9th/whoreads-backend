@@ -9,6 +9,7 @@ import whoreads.backend.domain.member.entity.Member;
 import whoreads.backend.domain.readingsession.enums.SessionStatus;
 import whoreads.backend.global.entity.BaseEntity;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -116,6 +117,26 @@ public class ReadingSession extends BaseEntity {
         this.finishedAt = LocalDateTime.now();
     }
 
+    // 일시정지·중단된 채 남은 세션을 마지막으로 읽은 시점 기준으로 완료 (새 세션 시작 시)
+    // finishedAt은 실제로 읽기를 멈춘 시각으로 두어 기록이 실제 읽은 날짜에 집계되도록 한다
+    // - SUSPENDED: suspend()에서 설정한 마지막 heartbeat 시각을 유지
+    // - PAUSED: 마지막 구간의 종료 시각(일시정지한 시각). 중단됐다가 이어 읽은 세션은 옛 finishedAt이 남아 있으므로 그 값을 쓰지 않는다
+    public void completeLeftover() {
+        if (this.status != SessionStatus.PAUSED && this.status != SessionStatus.SUSPENDED) {
+            throw new IllegalStateException("일시정지·중단된 세션만 자동 완료할 수 있습니다. 현재 상태: " + this.status);
+        }
+        boolean keepFinishedAt = this.status == SessionStatus.SUSPENDED && this.finishedAt != null;
+        this.status = SessionStatus.COMPLETED;
+        this.totalMinutes = calculateTotalMinutes();
+        if (!keepFinishedAt) {
+            this.finishedAt = this.intervals.stream()
+                    .map(ReadingInterval::getEndTime)
+                    .filter(Objects::nonNull)
+                    .max(LocalDateTime::compareTo)
+                    .orElse(this.lastHeartbeatAt);
+        }
+    }
+
     public void addInterval(ReadingInterval interval) {
         this.intervals.add(interval);
         interval.setReadingSession(this);
@@ -126,11 +147,13 @@ public class ReadingSession extends BaseEntity {
         interval.setReadingSession(null);
     }
 
+    // 구간별 내림 오차가 누적되지 않도록 Duration 그대로 합산한 뒤 전체 합계만 분으로 반올림
     public long calculateTotalMinutes() {
-        return this.intervals.stream()
-                .filter(interval -> interval.getDurationMinutes() != null)
-                .mapToLong(ReadingInterval::getDurationMinutes)
-                .sum();
+        Duration total = this.intervals.stream()
+                .filter(interval -> interval.getEndTime() != null)
+                .map(interval -> Duration.between(interval.getStartTime(), interval.getEndTime()))
+                .reduce(Duration.ZERO, Duration::plus);
+        return Math.round(total.toMillis() / 60_000.0);
     }
 
     public void processIdleTime(LocalDateTime now) {
