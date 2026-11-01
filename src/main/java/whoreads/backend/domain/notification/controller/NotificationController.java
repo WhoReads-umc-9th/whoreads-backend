@@ -14,6 +14,8 @@ import whoreads.backend.domain.notification.service.*;
 import whoreads.backend.global.exception.*;
 import whoreads.backend.global.response.ApiResponse;
 
+import java.time.LocalDateTime;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/notifications/me")
@@ -40,9 +42,10 @@ public class NotificationController implements NotificationControllerDocs {
     public void sendTimerTest(
             @AuthenticationPrincipal Long memberId
     ) {
+        LocalDateTime completedAt = LocalDateTime.now();
         applicationEventPublisher.publishEvent(
                 new NotificationEvent.TimerCompletedEvent(
-                        memberId,15L
+                        memberId,15L, completedAt, "COMPLETED_TIMER:" + completedAt
                 )
         );
     }

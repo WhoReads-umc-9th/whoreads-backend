@@ -12,6 +12,7 @@ import whoreads.backend.domain.notification.dto.MemberTokenDTO;
 import whoreads.backend.global.exception.CustomException;
 import whoreads.backend.global.exception.ErrorCode;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +27,7 @@ public class NotificationPushServiceImpl implements NotificationPushService {
     private final MemberRepository memberRepository;
     private static final int FCM_BATCH_SIZE = 500;
     private final NotificationHistoryService notificationHistoryService;
+    private final NotificationIdempotencyService notificationIdempotencyService;
 
     @Async("WhoReadsAsyncExecutor")
     @Transactional
@@ -74,86 +76,180 @@ public class NotificationPushServiceImpl implements NotificationPushService {
                 .putData("type",dto.getType())
                 .build();
     }
-    
-    // 팔로우나 루틴 알림처럼 대량 발송
-    public void sendMulticast(List<MemberTokenDTO> memberTokens, FcmMessageDTO dto) {
-        if (memberTokens == null || memberTokens.isEmpty()) return;
+    @Override
+    public void sendMulticast(
+            List<MemberTokenDTO> memberTokens,
+            FcmMessageDTO dto,
+            String idempotencyKey,
+            Duration ttl
+    ) {
+        if (memberTokens == null || memberTokens.isEmpty()) {
+            return;
+        }
 
-        // 한번에 FCM_BATCH_SIZE 만큼만 발송
         for (int i = 0; i < memberTokens.size(); i += FCM_BATCH_SIZE) {
-            List<MemberTokenDTO> subList = memberTokens.subList(i, Math.min(i + FCM_BATCH_SIZE, memberTokens.size()));
 
-            // 1. 발송할 대상들의 히스토리를 DB에 먼저 생성
-            List<Long> historyIds = new ArrayList<>();
-            List<MemberTokenDTO> validTargets = new ArrayList<>();
+            List<MemberTokenDTO> subList = memberTokens.subList(
+                    i,
+                    Math.min(i + FCM_BATCH_SIZE, memberTokens.size())
+            );
 
-            for (MemberTokenDTO tokenDTO : subList) {
+            List<Message> messages = new ArrayList<>();
+            List<String> acquiredKeys = new ArrayList<>();
+
+            for (MemberTokenDTO target : subList) {
+
+                Long memberId = target.getMemberId();
+                String key = buildKey(memberId, idempotencyKey);
+
+                if (target.getFcmToken() == null
+                        || target.getFcmToken().isBlank()) {
+                    log.warn("[FCM] 토큰 없음. memberId={}", memberId);
+                    continue;
+                }
+
                 try {
-                    // DB에 먼저 저장 후 생성된 고유 ID(PK)를 반환받음
-                    Long historyId = notificationHistoryService.saveHistory(tokenDTO.getMemberId(), dto);
-                    historyIds.add(historyId);
-                    validTargets.add(tokenDTO); // 저장이 성공한 타겟만 발송 리스트에 포함
+                    boolean acquired = notificationIdempotencyService.acquire(key, ttl);
+
+                    if (!acquired) {
+                        log.info("[FCM] 중복 알림 차단. key={}", key);
+                        continue;
+                    }
                 } catch (Exception e) {
-                    log.warn("[History] memberId={} 히스토리 저장 실패로 인해 발송 대상에서 제외", tokenDTO.getMemberId(), e);
+                    // Redis 장애 시 중복 발송을 피하기 위해 발송하지 않음
+                    log.error("[FCM] 멱등키 선점 실패. key={}", key, e);
+                    continue;
+                }
+
+                try {
+                    Long historyId =
+                            notificationHistoryService.saveHistory(memberId, dto);
+
+                    Map<String, String> data = new HashMap<>();
+                    data.put("id", String.valueOf(historyId));
+                    data.put("title", dto.getTitle());
+                    data.put("body", dto.getBody());
+                    data.put("type", dto.getType());
+
+                    if (dto.getCelebrityId() != null
+                            && dto.getBookId() != null) {
+                        data.put(
+                                "celebrity_id",
+                                dto.getCelebrityId().toString()
+                        );
+                        data.put("book_id", dto.getBookId().toString());
+                    }
+
+                    Message message = Message.builder()
+                            .setToken(target.getFcmToken())
+                            .setNotification(
+                                    Notification.builder()
+                                            .setTitle(dto.getTitle())
+                                            .setBody(dto.getBody())
+                                            .build()
+                            )
+                            .setAndroidConfig(
+                                    AndroidConfig.builder()
+                                            .setPriority(
+                                                    AndroidConfig.Priority.HIGH
+                                            )
+                                            .setNotification(
+                                                    AndroidNotification.builder()
+                                                            .setChannelId(
+                                                                    "high_importance_channel"
+                                                            )
+                                                            .setIcon("app_logo")
+                                                            .setClickAction(
+                                                                    "FLUTTER_NOTIFICATION_CLICK"
+                                                            )
+                                                            .build()
+                                            )
+                                            .build()
+                            )
+                            .putAllData(data)
+                            .build();
+
+                    messages.add(message);
+                    acquiredKeys.add(key);
+
+                } catch (Exception e) {
+                    log.error(
+                            "[FCM] 히스토리 저장 또는 메시지 생성 실패. key={}",
+                            key,
+                            e
+                    );
+                    markFailedSafely(key, e.getMessage());
                 }
             }
 
-            if (validTargets.isEmpty()) continue;
-
-            // 2. 모든 유저에게 공통으로 들어갈 데이터 Map 구성
-            Map<String, String> commonData = new HashMap<>();
-            commonData.put("title", dto.getTitle());
-            commonData.put("body", dto.getBody());
-            commonData.put("type", dto.getType());
-
-            if (dto.getCelebrityId() != null && dto.getBookId() != null) {
-                commonData.put("celebrity_id", String.valueOf(dto.getCelebrityId()));
-                commonData.put("book_id", String.valueOf(dto.getBookId()));
-            }
-
-            // 공통 알림(Notification) 객체 정의
-            Notification notification = Notification.builder()
-                .setTitle(dto.getTitle())
-                .setBody(dto.getBody())
-                .build();
-
-            // 공통 안드로이드 설정 정의
-            AndroidConfig androidConfig = AndroidConfig.builder()
-                .setPriority(AndroidConfig.Priority.HIGH)
-                .setNotification(AndroidNotification.builder()
-                    .setChannelId("high_importance_channel")
-                    .setIcon("app_logo")
-                    .setClickAction("FLUTTER_NOTIFICATION_CLICK")
-                    .build())
-                .build();
-
-            // 3. 개별 데이터(History ID)와 토큰을 매핑하여 단일 Message 리스트 생성
-            List<Message> messages = new ArrayList<>();
-            for (int j = 0; j < validTargets.size(); j++) {
-                MemberTokenDTO target = validTargets.get(j);
-                Long historyId = historyIds.get(j);
-
-                // 유저별 개별 데이터 Map 복사 후 고유 History ID 주입
-                Map<String, String> userData = new HashMap<>(commonData);
-                userData.put("id", String.valueOf(historyId));
-
-                Message singleMessage = Message.builder()
-                    .setToken(target.getFcmToken())
-                    .setNotification(notification)
-                    .setAndroidConfig(androidConfig)
-                    .putAllData(userData)
-                    .build();
-
-                messages.add(singleMessage);
+            if (messages.isEmpty()) {
+                continue;
             }
 
             try {
                 BatchResponse response = firebaseMessaging.sendEach(messages);
-                log.info("[FCM] 배치 발송 완료. 성공: {}건, 실패: {}건", response.getSuccessCount(), response.getFailureCount());
 
-            } catch (FirebaseMessagingException e) {
-                log.error("[FCM Error] 원인: {}, 메시지: {}", e.getMessagingErrorCode(), e.getMessage());
+                for (int j = 0; j < response.getResponses().size(); j++) {
+
+                    SendResponse result = response.getResponses().get(j);
+                    String key = acquiredKeys.get(j);
+
+                    if (result.isSuccessful()) {
+                        markSentSafely(key);
+                    } else {
+                        FirebaseMessagingException error =
+                                result.getException();
+
+                        markFailedSafely(
+                                key,
+                                error == null
+                                        ? "Unknown FCM error"
+                                        : error.getMessage()
+                        );
+                    }
+                }
+
+                log.info(
+                        "[FCM] 배치 완료. 성공={}, 실패={}",
+                        response.getSuccessCount(),
+                        response.getFailureCount()
+                );
+
+            } catch (Exception e) {
+                log.error("[FCM] 배치 호출 실패", e);
+
+                for (String key : acquiredKeys) {
+                    markFailedSafely(key, e.getMessage());
+                }
             }
+        }
+    }
+
+    private String buildKey(Long memberId, String eventKey) {
+        String[] parts = eventKey.split(":", 2);
+
+        if (parts.length != 2) {
+            throw new IllegalArgumentException(
+                    "Invalid notification idempotency key"
+            );
+        }
+
+        return parts[0] + ":" + memberId + ":" + parts[1];
+    }
+
+    private void markSentSafely(String key) {
+        try {
+            notificationIdempotencyService.markSent(key);
+        } catch (Exception e) {
+            log.error("[FCM] Redis SENT 기록 실패. key={}", key, e);
+        }
+    }
+
+    private void markFailedSafely(String key, String reason) {
+        try {
+            notificationIdempotencyService.markFailed(key, reason);
+        } catch (Exception e) {
+            log.error("[FCM] Redis FAILED 기록 실패. key={}", key, e);
         }
     }
 }
