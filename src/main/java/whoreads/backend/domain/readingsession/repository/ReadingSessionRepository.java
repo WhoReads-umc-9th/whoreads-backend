@@ -41,12 +41,14 @@ public interface ReadingSessionRepository extends JpaRepository<ReadingSession, 
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
 
-    // 일시정지한 시각(마지막 구간의 종료 시각)이 threshold보다 오래된 일시정지 세션
+    // 마지막 heartbeat로부터 세션별 suspend_after_minutes가 지난 진행 중 세션
     @Query("SELECT rs FROM ReadingSession rs JOIN FETCH rs.intervals " +
-            "WHERE rs.status = 'PAUSED' AND (SELECT MAX(i.endTime) FROM ReadingInterval i WHERE i.readingSession = rs) < :threshold")
-    List<ReadingSession> findPausedSessionsPausedBefore(@Param("threshold") LocalDateTime threshold);
+            "WHERE rs.status = 'IN_PROGRESS' AND rs.lastHeartbeatAt + rs.suspendAfterMinutes minute < :now")
+    List<ReadingSession> findStaleInProgressSessions(@Param("now") LocalDateTime now);
 
+    // 일시정지한 시각(마지막 구간의 종료 시각)으로부터 세션별 complete_after_minutes가 지난 일시정지 세션
     @Query("SELECT rs FROM ReadingSession rs JOIN FETCH rs.intervals " +
-            "WHERE rs.status = 'IN_PROGRESS' AND rs.lastHeartbeatAt < :threshold")
-    List<ReadingSession> findStaleInProgressSessions(@Param("threshold") LocalDateTime threshold);
+            "WHERE rs.status = 'PAUSED' " +
+            "AND (SELECT MAX(i.endTime) FROM ReadingInterval i WHERE i.readingSession = rs) + rs.completeAfterMinutes minute < :now")
+    List<ReadingSession> findPausedSessionsPausedBefore(@Param("now") LocalDateTime now);
 }

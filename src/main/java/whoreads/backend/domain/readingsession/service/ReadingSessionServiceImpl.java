@@ -10,6 +10,7 @@ import whoreads.backend.domain.focusmode.repository.FocusModeRepository;
 import whoreads.backend.domain.member.entity.Member;
 import whoreads.backend.domain.member.repository.MemberRepository;
 import whoreads.backend.domain.notification.event.NotificationEvent;
+import whoreads.backend.domain.readingsession.dto.ReadingSessionRequest;
 import whoreads.backend.domain.readingsession.dto.ReadingSessionResponse;
 import whoreads.backend.domain.readingsession.entity.ReadingInterval;
 import whoreads.backend.domain.readingsession.entity.ReadingSession;
@@ -36,11 +37,8 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
     private final FocusModeRepository focusModeRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
 
-    // 마지막 하트비트 후 이 시간 안이면 중단된 세션을 이어서 진행할 수 있다
-    private static final Duration RECOVERABLE_DURATION = Duration.ofHours(2);
-
     @Override
-    public ReadingSessionResponse.StartResult startSession(Long memberId) {
+    public ReadingSessionResponse.StartResult startSession(Long memberId, ReadingSessionRequest.Start request) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
@@ -57,8 +55,14 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
         readingSessionRepository.findAllByMemberIdAndStatusIn(memberId, List.of(SessionStatus.PAUSED, SessionStatus.SUSPENDED))
                 .forEach(ReadingSession::completeLeftover);
 
+        // body를 생략하면 주기는 모두 기본값이 적용된다
+        ReadingSessionRequest.Start timerConfig = request != null ? request : new ReadingSessionRequest.Start();
+
         ReadingSession session = ReadingSession.builder()
                 .member(member)
+                .heartbeatIntervalMinutes(timerConfig.getHeartbeatIntervalMinutes())
+                .suspendAfterMinutes(timerConfig.getSuspendAfterMinutes())
+                .completeAfterMinutes(timerConfig.getCompleteAfterMinutes())
                 .build();
 
         ReadingInterval interval = ReadingInterval.builder()
@@ -89,7 +93,7 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
     public void resumeSession(Long sessionId, Long memberId) {
         ReadingSession session = findByIdAndValidateOwnership(sessionId, memberId);
 
-        // 완료되었거나(일시정지 2시간 경과 자동 완료 포함) 중단된 세션은 재개할 수 없음
+        // 완료되었거나(일시정지 후 complete_after_minutes 경과 자동 완료 포함) 중단된 세션은 재개할 수 없음
         if (session.getStatus() == SessionStatus.COMPLETED || session.getStatus() == SessionStatus.SUSPENDED) {
             throw new CustomException(ErrorCode.SESSION_NOT_ACTIVE);
         }
@@ -232,10 +236,10 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
         // 마지막 하트비트 시간 확인
         LocalDateTime lastHeartbeat = session.getLastHeartbeatAt();
 
-        // 마지막 하트비트로부터 2시간을 초과했는지 확인
+        // 마지막 하트비트로부터 세션의 complete_after_minutes(기본 120분)를 초과했는지 확인
         // 예외를 던지면 트랜잭션이 롤백되므로 여기서 세션 상태를 바꾸지 않는다 (stale 세션 정리는 스케줄러가 담당)
         Duration sinceLastHeartbeat = Duration.between(lastHeartbeat, now);
-        if (sinceLastHeartbeat.compareTo(RECOVERABLE_DURATION) > 0) {
+        if (sinceLastHeartbeat.compareTo(Duration.ofMinutes(session.getCompleteAfterMinutes())) > 0) {
             throw new CustomException(ErrorCode.SESSION_EXPIRED);
         }
 

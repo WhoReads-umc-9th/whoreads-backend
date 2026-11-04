@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
+import whoreads.backend.domain.readingsession.dto.ReadingSessionRequest;
 import whoreads.backend.domain.readingsession.dto.ReadingSessionResponse;
 import whoreads.backend.global.response.ApiResponse;
 
@@ -19,7 +20,25 @@ public interface ReadingSessionControllerDocs {
     @Operation(
             summary = "독서 세션 시작",
             description = "새로운 독서 세션을 시작합니다. 첫 번째 인터벌이 자동으로 생성됩니다. "
-                    + "일시정지·중단된 채 남은 세션은 마지막으로 읽은 시점까지의 시간으로 완료 처리되며, 진행 중인 세션이 있으면 409를 반환합니다."
+                    + "일시정지·중단된 채 남은 세션은 마지막으로 읽은 시점까지의 시간으로 완료 처리되며, 진행 중인 세션이 있으면 409를 반환합니다.\n\n"
+                    + "요청 body로 세션의 타이머 주기(분 단위)를 지정할 수 있습니다. 세 값 모두 선택이며, 보내지 않거나 body를 생략하면 기본값이 적용됩니다.\n"
+                    + "- heartbeat_interval_minutes (기본 1): 프론트가 heartbeat를 보내는 주기\n"
+                    + "- suspend_after_minutes (기본 5): 마지막 heartbeat 이후 이 시간이 지나면 진행 중인 세션을 중단(SUSPENDED) 처리. heartbeat_interval_minutes 이상이어야 합니다.\n"
+                    + "- complete_after_minutes (기본 120): 일시정지 후 이 시간이 지나면 세션을 자동 완료 처리하고, 중단된 세션은 이 시간이 지나면 이어 읽을 수 없습니다.\n"
+                    + "각 값은 1~1440 범위이며 heartbeat_interval_minutes ≤ suspend_after_minutes ≤ complete_after_minutes 순서를 지켜야 합니다(보내지 않은 값은 기본값 기준으로 비교). 어기면 400을 반환합니다.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = false,
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "heartbeat_interval_minutes": 5,
+                                      "suspend_after_minutes": 10,
+                                      "complete_after_minutes": 120
+                                    }
+                                    """)
+                    )
+            )
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -41,7 +60,8 @@ public interface ReadingSessionControllerDocs {
             )
     })
     ResponseEntity<ApiResponse<ReadingSessionResponse.StartResult>> startSession(
-            @AuthenticationPrincipal Long memberId
+            @AuthenticationPrincipal Long memberId,
+            ReadingSessionRequest.Start request
     );
 
     @Operation(
@@ -147,7 +167,7 @@ public interface ReadingSessionControllerDocs {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "409",
-                    description = "완료되었거나 중단된 세션 (일시정지 후 2시간이 지나 자동 완료된 세션 포함)",
+                    description = "완료되었거나 중단된 세션 (일시정지 후 complete_after_minutes가 지나 자동 완료된 세션 포함)",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             examples = @ExampleObject(value = """
@@ -222,7 +242,9 @@ public interface ReadingSessionControllerDocs {
 
     @Operation(
             summary = "독서 세션 heartbeat",
-            description = "앱이 살아있음을 서버에 알립니다. 1분마다 호출하세요. 진행 중(IN_PROGRESS) 세션이 5분 이상 heartbeat가 없으면 서버가 세션을 중단(SUSPENDED) 처리하며, 마지막 heartbeat 후 2시간 안에는 recover로 이어할 수 있습니다. "
+            description = "앱이 살아있음을 서버에 알립니다. 세션 시작 시 전달한 heartbeat_interval_minutes(기본 1분)마다 호출하세요. "
+                    + "진행 중(IN_PROGRESS) 세션이 suspend_after_minutes(기본 5분) 이상 heartbeat가 없으면 서버가 세션을 중단(SUSPENDED) 처리하며, "
+                    + "마지막 heartbeat 후 complete_after_minutes(기본 120분) 안에는 recover로 이어할 수 있습니다. "
                     + "진행 중(IN_PROGRESS)·일시정지(PAUSED) 세션만 받으며, 완료/중단된 세션이면 409를 반환하므로 heartbeat를 멈추세요."
     )
     @ApiResponses(value = {
@@ -279,7 +301,7 @@ public interface ReadingSessionControllerDocs {
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청이 성공했습니다."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "마지막 활동으로부터 2시간이 경과하여 해당 세션을 재개할 수 없습니다. (SESSION_EXPIRED)"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "마지막 활동으로부터 허용 시간(complete_after_minutes, 기본 120분)이 경과하여 해당 세션을 재개할 수 없습니다. (SESSION_EXPIRED)"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "독서세션을 찾을 수 없습니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "완료된 세션입니다. (SESSION_NOT_ACTIVE)")
     })
@@ -292,7 +314,7 @@ public interface ReadingSessionControllerDocs {
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청이 성공했습니다."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "마지막 활동으로부터 2시간이 경과하여 해당 세션을 재개할 수 없습니다. (SESSION_EXPIRED)"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "마지막 활동으로부터 허용 시간(complete_after_minutes, 기본 120분)이 경과하여 해당 세션을 재개할 수 없습니다. (SESSION_EXPIRED)"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "독서세션을 찾을 수 없습니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "완료된 세션입니다. (SESSION_NOT_ACTIVE)")
     })
