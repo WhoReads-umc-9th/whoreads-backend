@@ -2,6 +2,8 @@ package whoreads.backend.domain.readingsession.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -14,9 +16,21 @@ public class ReadingSessionRequest {
     @Getter
     @NoArgsConstructor
     public static class Start {
-        @JsonProperty("member_id")
-        @NotNull(message = "member_id는 필수입니다.")
-        private Long memberId;
+        // 세 값 모두 선택값이며, 보내지 않으면 ReadingSession의 기본값이 적용된다 (body 자체를 생략해도 된다)
+        @JsonProperty("heartbeat_interval_minutes")
+        @Min(value = 1, message = "heartbeat_interval_minutes는 1분 이상이어야 합니다.")
+        @Max(value = 1440, message = "heartbeat_interval_minutes는 1440분(24시간) 이하여야 합니다.")
+        private Long heartbeatIntervalMinutes;
+
+        @JsonProperty("suspend_after_minutes")
+        @Min(value = 1, message = "suspend_after_minutes는 1분 이상이어야 합니다.")
+        @Max(value = 1440, message = "suspend_after_minutes는 1440분(24시간) 이하여야 합니다.")
+        private Long suspendAfterMinutes;
+
+        @JsonProperty("complete_after_minutes")
+        @Min(value = 1, message = "complete_after_minutes는 1분 이상이어야 합니다.")
+        @Max(value = 1440, message = "complete_after_minutes는 1440분(24시간) 이하여야 합니다.")
+        private Long completeAfterMinutes;
     }
 
     @Getter

@@ -4,5 +4,5 @@ public enum SessionStatus {
     IN_PROGRESS,
     PAUSED,   // 사용자가 의도적으로 일시정지한 상태
     COMPLETED,
-    SUSPENDED   // heartbeat 5분 이상 없으면 자동 전환되는 상태 (마지막 heartbeat 후 2시간까지 이어하기 가능)
+    SUSPENDED   // heartbeat가 suspend_after_minutes(기본 5분) 이상 없으면 자동 전환되는 상태 (마지막 heartbeat 후 complete_after_minutes(기본 2시간)까지 이어하기 가능)
 }

@@ -6,6 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import whoreads.backend.domain.readingsession.entity.ReadingSession;
+import whoreads.backend.domain.readingsession.enums.SessionStatus;
 import whoreads.backend.domain.readingsession.repository.ReadingSessionRepository;
 
 import java.time.LocalDateTime;
@@ -21,10 +22,13 @@ public class ReadingSessionScheduler {
     @Transactional
     @Scheduled(fixedDelay = 60_000, zone = "Asia/Seoul")
     public void expireStaleSessions() {
-        // heartbeat가 5분 이상 없는 진행 중 세션을 SUSPENDED로 전환
-        // (이어하기는 마지막 heartbeat 후 2시간까지 허용 — ReadingSessionServiceImpl.resumeIncompleteSession)
-        LocalDateTime threshold = LocalDateTime.now().minusMinutes(5);
-        List<ReadingSession> staleSessions = readingSessionRepository.findStaleInProgressSessions(threshold);
+        // heartbeat가 suspend_after_minutes(기본 5분) 이상 없는 진행 중 세션을 SUSPENDED로 전환
+        // (이어하기는 마지막 heartbeat 후 complete_after_minutes(기본 2시간)까지 허용 — ReadingSessionServiceImpl.resumeIncompleteSession)
+        // 두 값은 세션 시작 시 프론트에서 받은 세션별 값이다
+        LocalDateTime now = LocalDateTime.now();
+        List<ReadingSession> staleSessions = readingSessionRepository.findAllByStatus(SessionStatus.IN_PROGRESS).stream()
+                .filter(session -> session.isHeartbeatExpired(now))
+                .toList();
 
         if (staleSessions.isEmpty()) {
             return;
@@ -62,13 +66,16 @@ public class ReadingSessionScheduler {
         log.info("[ReadingSessionScheduler] stale 세션 {}건 자동 중단(SUSPENDED) 처리", staleSessions.size());
     }
 
-    // 일시정지한 지 2시간이 지난 세션은 이어서 읽는 것이 아니므로 일시정지한 시점까지의 시간으로 완료
+    // 일시정지한 지 complete_after_minutes(세션 시작 시 프론트에서 받은 세션별 값)가 지난 세션은
+    // 이어서 읽는 것이 아니므로 일시정지한 시점까지의 시간으로 완료
     // (완료된 세션만 통계·기록에 집계되므로, 방치된 일시정지 세션이 기록에서 빠지지 않도록)
     @Transactional
     @Scheduled(fixedDelay = 60_000, zone = "Asia/Seoul")
     public void completeAbandonedPausedSessions() {
-        LocalDateTime threshold = LocalDateTime.now().minusHours(2);
-        List<ReadingSession> pausedSessions = readingSessionRepository.findPausedSessionsPausedBefore(threshold);
+        LocalDateTime now = LocalDateTime.now();
+        List<ReadingSession> pausedSessions = readingSessionRepository.findAllByStatus(SessionStatus.PAUSED).stream()
+                .filter(session -> session.isPausedBeyondCompleteWindow(now))
+                .toList();
 
         if (pausedSessions.isEmpty()) {
             return;
@@ -76,6 +83,6 @@ public class ReadingSessionScheduler {
 
         pausedSessions.forEach(ReadingSession::completeLeftover);
 
-        log.info("[ReadingSessionScheduler] 일시정지 2시간 경과 세션 {}건 자동 완료 처리", pausedSessions.size());
+        log.info("[ReadingSessionScheduler] 일시정지 후 완료 기준 시간이 경과한 세션 {}건 자동 완료 처리", pausedSessions.size());
     }
 }
