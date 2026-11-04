@@ -79,20 +79,10 @@ public class ReadingSession extends BaseEntity {
         if (this.suspendAfterMinutes < this.heartbeatIntervalMinutes) {
             throw new IllegalStateException("suspend_after_minutes는 heartbeat_interval_minutes보다 작을 수 없습니다.");
         }
-    }
-
-    // 중단 전환 기준: 마지막 heartbeat 이후 suspendAfterMinutes가 지났는지
-    public boolean isHeartbeatExpired(LocalDateTime now) {
-        return this.lastHeartbeatAt != null
-                && this.lastHeartbeatAt.plusMinutes(this.suspendAfterMinutes).isBefore(now);
-    }
-
-    // 완료 전환 기준: 일시정지한 시각(마지막 구간의 종료 시각) 이후 completeAfterMinutes가 지났는지
-    public boolean isPausedBeyondCompleteWindow(LocalDateTime now) {
-        LocalDateTime pausedAt = latestIntervalEndTime();
-        return this.status == SessionStatus.PAUSED
-                && pausedAt != null
-                && pausedAt.plusMinutes(this.completeAfterMinutes).isBefore(now);
+        // 중단되기도 전에 이어하기 기한이 끝나면, 세션은 IN_PROGRESS로 남아 새 세션 시작을 막는데 recover는 만료로 거절된다
+        if (this.completeAfterMinutes < this.suspendAfterMinutes) {
+            throw new IllegalStateException("complete_after_minutes는 suspend_after_minutes보다 작을 수 없습니다.");
+        }
     }
 
     public void pause() {

@@ -6,7 +6,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import whoreads.backend.domain.readingsession.entity.ReadingSession;
-import whoreads.backend.domain.readingsession.enums.SessionStatus;
 import whoreads.backend.domain.readingsession.repository.ReadingSessionRepository;
 
 import java.time.LocalDateTime;
@@ -25,10 +24,7 @@ public class ReadingSessionScheduler {
         // heartbeat가 suspend_after_minutes(기본 5분) 이상 없는 진행 중 세션을 SUSPENDED로 전환
         // (이어하기는 마지막 heartbeat 후 complete_after_minutes(기본 2시간)까지 허용 — ReadingSessionServiceImpl.resumeIncompleteSession)
         // 두 값은 세션 시작 시 프론트에서 받은 세션별 값이다
-        LocalDateTime now = LocalDateTime.now();
-        List<ReadingSession> staleSessions = readingSessionRepository.findAllByStatus(SessionStatus.IN_PROGRESS).stream()
-                .filter(session -> session.isHeartbeatExpired(now))
-                .toList();
+        List<ReadingSession> staleSessions = readingSessionRepository.findStaleInProgressSessions(LocalDateTime.now());
 
         if (staleSessions.isEmpty()) {
             return;
@@ -72,10 +68,7 @@ public class ReadingSessionScheduler {
     @Transactional
     @Scheduled(fixedDelay = 60_000, zone = "Asia/Seoul")
     public void completeAbandonedPausedSessions() {
-        LocalDateTime now = LocalDateTime.now();
-        List<ReadingSession> pausedSessions = readingSessionRepository.findAllByStatus(SessionStatus.PAUSED).stream()
-                .filter(session -> session.isPausedBeyondCompleteWindow(now))
-                .toList();
+        List<ReadingSession> pausedSessions = readingSessionRepository.findPausedSessionsPausedBefore(LocalDateTime.now());
 
         if (pausedSessions.isEmpty()) {
             return;

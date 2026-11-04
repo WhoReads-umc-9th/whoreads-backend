@@ -25,7 +25,7 @@ public interface ReadingSessionControllerDocs {
                     + "- heartbeat_interval_minutes (기본 1): 프론트가 heartbeat를 보내는 주기\n"
                     + "- suspend_after_minutes (기본 5): 마지막 heartbeat 이후 이 시간이 지나면 진행 중인 세션을 중단(SUSPENDED) 처리. heartbeat_interval_minutes 이상이어야 합니다.\n"
                     + "- complete_after_minutes (기본 120): 일시정지 후 이 시간이 지나면 세션을 자동 완료 처리하고, 중단된 세션은 이 시간이 지나면 이어 읽을 수 없습니다.\n"
-                    + "각 값은 1~1440 범위입니다.",
+                    + "각 값은 1~1440 범위이며 heartbeat_interval_minutes ≤ suspend_after_minutes ≤ complete_after_minutes 순서를 지켜야 합니다(보내지 않은 값은 기본값 기준으로 비교). 어기면 400을 반환합니다.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     required = false,
                     content = @Content(

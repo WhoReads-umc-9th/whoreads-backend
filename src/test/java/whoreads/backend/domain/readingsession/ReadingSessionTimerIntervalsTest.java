@@ -80,7 +80,7 @@ class ReadingSessionTimerIntervalsTest {
     }
 
     @Test
-    @DisplayName("범위를 벗어났거나 중단 전환 주기가 heartbeat 주기보다 짧으면 400")
+    @DisplayName("범위를 벗어났거나 heartbeat ≤ 중단 ≤ 완료 순서를 어기면 400")
     void start_invalidIntervals_badRequest() throws Exception {
         assertThat(startStatus("{\"heartbeat_interval_minutes\":0}")).isEqualTo(400);
         assertThat(startStatus("{\"suspend_after_minutes\":1441}")).isEqualTo(400);
@@ -88,6 +88,25 @@ class ReadingSessionTimerIntervalsTest {
         assertThat(startStatus("{\"heartbeat_interval_minutes\":10,\"suspend_after_minutes\":5}")).isEqualTo(400);
         // 기본 중단 전환 주기(5분)보다 긴 heartbeat 주기만 보내도 같은 이유로 거절된다
         assertThat(startStatus("{\"heartbeat_interval_minutes\":10}")).isEqualTo(400);
+        // 완료 전환 주기가 중단 전환 주기보다 짧으면 중단되기 전에 이어하기만 만료되어 상태가 어긋난다
+        assertThat(startStatus("{\"suspend_after_minutes\":30,\"complete_after_minutes\":10}")).isEqualTo(400);
+        // 기본 중단 전환 주기(5분)보다 짧은 완료 전환 주기만 보내도 같은 이유로 거절된다
+        assertThat(startStatus("{\"complete_after_minutes\":3}")).isEqualTo(400);
+    }
+
+    @Test
+    @DisplayName("상한 1440분과 같은 값(heartbeat = 중단 = 완료)은 허용되고 세션에 저장된다")
+    void start_boundaryValues_accepted() throws Exception {
+        Map<String, Object> max = intervals(start("{\"heartbeat_interval_minutes\":1440,\"suspend_after_minutes\":1440,\"complete_after_minutes\":1440}"));
+        assertThat(((Number) max.get("HEARTBEAT_INTERVAL_MINUTES")).longValue()).isEqualTo(1440L);
+        assertThat(((Number) max.get("SUSPEND_AFTER_MINUTES")).longValue()).isEqualTo(1440L);
+        assertThat(((Number) max.get("COMPLETE_AFTER_MINUTES")).longValue()).isEqualTo(1440L);
+
+        owner = newMember();
+        Map<String, Object> min = intervals(start("{\"heartbeat_interval_minutes\":1,\"suspend_after_minutes\":1,\"complete_after_minutes\":1}"));
+        assertThat(((Number) min.get("HEARTBEAT_INTERVAL_MINUTES")).longValue()).isEqualTo(1L);
+        assertThat(((Number) min.get("SUSPEND_AFTER_MINUTES")).longValue()).isEqualTo(1L);
+        assertThat(((Number) min.get("COMPLETE_AFTER_MINUTES")).longValue()).isEqualTo(1L);
     }
 
     @Test
