@@ -28,6 +28,7 @@ public class NotificationPushServiceImpl implements NotificationPushService {
     private static final int FCM_BATCH_SIZE = 500;
     private final NotificationHistoryService notificationHistoryService;
     private final NotificationIdempotencyService notificationIdempotencyService;
+    private final NotificationTokenService notificationTokenService;
 
     @Async("WhoReadsAsyncExecutor")
     @Transactional
@@ -96,6 +97,7 @@ public class NotificationPushServiceImpl implements NotificationPushService {
 
             List<Message> messages = new ArrayList<>();
             List<String> acquiredKeys = new ArrayList<>();
+            List<String> acquiredTokens = new ArrayList<>();
 
             for (MemberTokenDTO target : subList) {
 
@@ -116,8 +118,9 @@ public class NotificationPushServiceImpl implements NotificationPushService {
                         continue;
                     }
                 } catch (Exception e) {
-                    // Redis 장애 시 중복 발송을 피하기 위해 발송하지 않음
-                    log.error("[FCM] 멱등키 선점 실패. key={}", key, e);
+                    // Redis 장애 시 중복 푸시를 피하기 위해 푸시는 보내지 않지만, 인앱 이력은 남긴다.
+                    log.error("[FCM] 멱등키 선점 실패. 푸시 생략, 이력만 저장. key={}", key, e);
+                    saveHistorySafely(memberId, dto);
                     continue;
                 }
 
@@ -171,6 +174,7 @@ public class NotificationPushServiceImpl implements NotificationPushService {
 
                     messages.add(message);
                     acquiredKeys.add(key);
+                    acquiredTokens.add(target.getFcmToken());
 
                 } catch (Exception e) {
                     log.error(
@@ -195,10 +199,16 @@ public class NotificationPushServiceImpl implements NotificationPushService {
                     String key = acquiredKeys.get(j);
 
                     if (result.isSuccessful()) {
-                        markSentSafely(key);
+                        markSentSafely(key, ttl);
                     } else {
                         FirebaseMessagingException error =
                                 result.getException();
+
+                        // 만료·삭제된 토큰은 단건 발송과 같이 즉시 해제 (그대로 두면 30일 정리 전까지 계속 실패)
+                        if (error != null
+                                && error.getMessagingErrorCode() == MessagingErrorCode.UNREGISTERED) {
+                            clearInvalidTokenSafely(acquiredTokens.get(j));
+                        }
 
                         markFailedSafely(
                                 key,
@@ -216,11 +226,9 @@ public class NotificationPushServiceImpl implements NotificationPushService {
                 );
 
             } catch (Exception e) {
-                log.error("[FCM] 배치 호출 실패", e);
-
-                for (String key : acquiredKeys) {
-                    markFailedSafely(key, e.getMessage());
-                }
+                // 요청이 FCM에 도달했는지 알 수 없으므로 FAILED(재시도 가능)로 바꾸지 않는다.
+                // PROCESSING 임대가 만료된 뒤에만 재선점할 수 있어, 이미 발송됐을 때의 중복을 줄인다.
+                log.error("[FCM] 배치 호출 실패. 발송 여부 불확실, 임대 만료까지 재선점 차단. keys={}", acquiredKeys, e);
             }
         }
     }
@@ -237,9 +245,25 @@ public class NotificationPushServiceImpl implements NotificationPushService {
         return parts[0] + ":" + memberId + ":" + parts[1];
     }
 
-    private void markSentSafely(String key) {
+    private void clearInvalidTokenSafely(String fcmToken) {
         try {
-            notificationIdempotencyService.markSent(key);
+            notificationTokenService.clearInvalidToken(fcmToken);
+        } catch (Exception e) {
+            log.error("[FCM] 유효하지 않은 토큰 해제 실패", e);
+        }
+    }
+
+    private void saveHistorySafely(Long memberId, FcmMessageDTO dto) {
+        try {
+            notificationHistoryService.saveHistory(memberId, dto);
+        } catch (Exception e) {
+            log.error("[FCM] 인앱 이력 저장 실패. memberId={}", memberId, e);
+        }
+    }
+
+    private void markSentSafely(String key, Duration ttl) {
+        try {
+            notificationIdempotencyService.markSent(key, ttl);
         } catch (Exception e) {
             log.error("[FCM] Redis SENT 기록 실패. key={}", key, e);
         }
