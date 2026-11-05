@@ -85,13 +85,19 @@ public class QuoteService {
             quoteContextRepository.save(context);
         }
 
+        String idempotencyKey =
+                "FOLLOW:" + celebrity.getId() + ":" + book.getId();
+
         applicationEventPublisher.publishEvent(
                 new NotificationEvent.FollowEvent(
-                        celebrity.getId(), celebrity.getName(),
-                        book.getId(), book.getTitle(), book.getAuthorName()
+                        celebrity.getId(),
+                        celebrity.getName(),
+                        book.getId(),
+                        book.getTitle(),
+                        book.getAuthorName(),
+                        idempotencyKey
                 )
         );
-
         return quote.getId();
     }
 

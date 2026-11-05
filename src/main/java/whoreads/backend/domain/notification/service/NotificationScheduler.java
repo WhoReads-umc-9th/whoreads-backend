@@ -11,12 +11,11 @@ import whoreads.backend.domain.notification.dto.MemberTokenDTO;
 import whoreads.backend.domain.notification.event.NotificationEvent;
 import whoreads.backend.domain.notification.repository.NotificationHistoryRepository;
 import whoreads.backend.domain.notification.repository.NotificationSettingRepository;
-import whoreads.backend.global.exception.CustomException;
-import whoreads.backend.global.exception.ErrorCode;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -29,26 +28,35 @@ public class NotificationScheduler {
     private final NotificationHistoryRepository notificationHistoryRepository;
     private final MemberRepository memberRepository;
 
-    @Scheduled(cron = "0 * * * * *",zone = "Asia/Seoul")
+    @Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")
     public void checkRoutineNotifications() {
-        String currentDay = LocalDate.now().getDayOfWeek().name();
-        String currentTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
 
-        // 현재 알림 관련 텍스트는 따로 처리가 필요없고 토큰만 가져오면 됨
-        List<MemberTokenDTO> tokens = notificationSettingRepository.findMemberIdAndTokenByDayAndTime(currentDay,currentTime);
-        log.info("[디버깅] 현재 요일: {}, 현재 시간: {}", currentDay, currentTime);
-        log.info("[디버깅] 검색된 루틴 개수: {}", tokens.size());
+        ZoneId zone = ZoneId.of("Asia/Seoul");
+        LocalDateTime now = LocalDateTime.now(zone);
 
-        if (tokens.isEmpty())
+        LocalDate date = now.toLocalDate();
+        String day = now.getDayOfWeek().name();
+
+        String time = now.toLocalTime()
+                .format(DateTimeFormatter.ofPattern("HH:mm"));
+
+        List<MemberTokenDTO> tokens =
+                notificationSettingRepository
+                        .findMemberIdAndTokenByDayAndTime(day, time);
+
+        if (tokens.isEmpty()) {
             return;
-        try {
-            // 루틴 이벤트 발행
-            applicationEventPublisher.publishEvent
-                    (new NotificationEvent.RoutineEvent(tokens));
-        } catch (Exception e) {
-            log.error("알림 발송 실패 : {}건", tokens.size());
-            throw new CustomException(ErrorCode.FCM_SEND_FAILED);
         }
+
+        String idempotencyKey =
+                "ROUTINE:" + date + ":" + day + ":" + time;
+
+        applicationEventPublisher.publishEvent(
+                new NotificationEvent.RoutineEvent(
+                        tokens,
+                        idempotencyKey
+                )
+        );
     }
     @Transactional
     @Scheduled(cron = "0 0 0 * * *",zone = "Asia/Seoul") // 매일 자정 실행

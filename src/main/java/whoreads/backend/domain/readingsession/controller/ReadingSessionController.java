@@ -1,11 +1,13 @@
 package whoreads.backend.domain.readingsession.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import whoreads.backend.domain.readingsession.controller.docs.ReadingSessionControllerDocs;
+import whoreads.backend.domain.readingsession.dto.ReadingSessionRequest;
 import whoreads.backend.domain.readingsession.dto.ReadingSessionResponse;
 import whoreads.backend.domain.readingsession.service.ReadingSessionService;
 import whoreads.backend.global.exception.CustomException;
@@ -22,10 +24,11 @@ public class ReadingSessionController implements ReadingSessionControllerDocs {
     @Override
     @PostMapping("/start")
     public ResponseEntity<ApiResponse<ReadingSessionResponse.StartResult>> startSession(
-            @AuthenticationPrincipal Long memberId
+            @AuthenticationPrincipal Long memberId,
+            @Valid @RequestBody(required = false) ReadingSessionRequest.Start request
     ) {
         validateAuthentication(memberId);
-        ReadingSessionResponse.StartResult result = readingSessionService.startSession(memberId);
+        ReadingSessionResponse.StartResult result = readingSessionService.startSession(memberId, request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.created("독서 세션을 시작했습니다.", result).withServerTime());
     }
@@ -87,11 +90,18 @@ public class ReadingSessionController implements ReadingSessionControllerDocs {
         return ApiResponse.success(result);
     }
 
-    @GetMapping("{sessionId}/recover/")
+    @PostMapping("/{sessionId}/recover")
     public ApiResponse<ReadingSessionResponse.ResumeResult> recoverSession(@PathVariable Long sessionId, @AuthenticationPrincipal Long memberId) {
         ReadingSessionResponse.ResumeResult result = readingSessionService.resumeIncompleteSession(sessionId, memberId);
 
         return ApiResponse.success(result);
+    }
+
+    // 구버전 앱 호환용 (기존 GET /{sessionId}/recover/ 경로). 새 앱 버전이 충분히 배포되면 제거한다.
+    @Deprecated
+    @GetMapping("/{sessionId}/recover/")
+    public ApiResponse<ReadingSessionResponse.ResumeResult> recoverSessionLegacy(@PathVariable Long sessionId, @AuthenticationPrincipal Long memberId) {
+        return recoverSession(sessionId, memberId);
     }
 
     @PatchMapping("/{sessionId}/complete-idle-time")

@@ -9,8 +9,8 @@ import whoreads.backend.domain.notification.event.NotificationEvent;
 public enum NotificationType {
     // DB에는 "FOLLOW", "ROUTINE"으로 저장됨
     FOLLOW(NotificationMessageType.NEW_FOLLOW_BOOK),
-    ROUTINE(NotificationMessageType.BOOK_ROUTINE);
-
+    ROUTINE(NotificationMessageType.BOOK_ROUTINE),
+    COMPLETED_TIMER(NotificationMessageType.TIMER_COMPLETED);
     // 메시지 생성 로직을 담은 클래스와 연결
     private final NotificationMessageType messageType;
 

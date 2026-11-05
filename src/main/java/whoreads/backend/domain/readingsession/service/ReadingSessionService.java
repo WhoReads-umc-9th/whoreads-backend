@@ -5,7 +5,7 @@ import whoreads.backend.domain.readingsession.dto.ReadingSessionResponse;
 
 public interface ReadingSessionService {
 
-    ReadingSessionResponse.StartResult startSession(Long memberId);
+    ReadingSessionResponse.StartResult startSession(Long memberId, ReadingSessionRequest.Start request);
 
     void pauseSession(Long sessionId, Long memberId);
 
