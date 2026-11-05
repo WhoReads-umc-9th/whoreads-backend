@@ -117,7 +117,7 @@ class ReadingSessionSuspendedAutoCompleteTest {
         long sid = suspendedSession(60, 30);   // 30분 읽고 30분 전에 끊김
         Object suspendedAt = row(sid).get("FINISHED_AT");
 
-        assertThat(status(get("/api/reading-sessions/{id}/recover/", sid))).isEqualTo(200);
+        assertThat(status(post("/api/reading-sessions/{id}/recover", sid))).isEqualTo(200);
         assertThat(row(sid).get("STATUS")).isEqualTo("IN_PROGRESS");
         assertThat(status(post("/api/reading-sessions/{id}/pause", sid))).isEqualTo(200);
         Object pausedAt = jdbc.queryForObject("SELECT MAX(end_time) FROM reading_interval WHERE session_id = ?", Object.class, sid);

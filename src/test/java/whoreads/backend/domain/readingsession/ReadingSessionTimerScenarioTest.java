@@ -94,10 +94,9 @@ class ReadingSessionTimerScenarioTest {
     }
 
     @Test
-    void E_recover_경로_슬래시() throws Exception {
+    void E_recover_경로() throws Exception {
         long sid = start();
-        call("E recover (no slash)", get("/api/reading-sessions/{id}/recover", sid));
-        call("E recover/ (slash)", get("/api/reading-sessions/{id}/recover/", sid));
+        call("E recover", post("/api/reading-sessions/{id}/recover", sid));
     }
 
     @Test
