@@ -53,7 +53,10 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
         // 남아 있는 PAUSED/SUSPENDED 세션은 마지막으로 읽은 시점까지의 시간으로 완료 처리
         // (통계에 집계되지 않은 채 남거나, 미완료 세션 조회에 다시 나타나지 않도록)
         readingSessionRepository.findAllByMemberIdAndStatusIn(memberId, List.of(SessionStatus.PAUSED, SessionStatus.SUSPENDED))
-                .forEach(ReadingSession::completeLeftover);
+                .forEach(leftover -> {
+                    leftover.completeLeftover();
+                    discardIfNoReadTime(leftover);
+                });
 
         // body를 생략하면 주기는 모두 기본값이 적용된다
         ReadingSessionRequest.Start timerConfig = request != null ? request : new ReadingSessionRequest.Start();
@@ -119,6 +122,11 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
         // 세션 완료 (엔티티 도메인 로직에서 totalMinutes 계산, finishedAt 설정)
         session.complete();
 
+        // 0분 세션은 저장하지 않으므로 완료 알림도 보내지 않는다
+        if (discardIfNoReadTime(session)) {
+            return;
+        }
+
         LocalDateTime completedAt = session.getFinishedAt();
 
         String idempotencyKey =
@@ -158,6 +166,15 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
         }
 
         return session;
+    }
+
+    // 완료된 세션의 독서 시간이 0분이면 기록·통계에 남지 않도록 삭제
+    private boolean discardIfNoReadTime(ReadingSession session) {
+        if (!session.hasNoReadTime()) {
+            return false;
+        }
+        readingSessionRepository.delete(session);
+        return true;
     }
 
     private void endActiveInterval(ReadingSession session) {
@@ -268,8 +285,10 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
 
             // 하트비트 현재 시간으로 수정
             session.updateHeartbeat(now);
-        } else
+        } else {
             session.complete();
+            discardIfNoReadTime(session);
+        }
 
         return ReadingSessionResponse.ResumeResult.builder()
                 .remainingMinutes(remainingMinutes)
@@ -279,6 +298,11 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
     public void resolveIdleTime(Long sessionId, Long memberId) {
         ReadingSession session = findByIdAndValidateOwnership(sessionId, memberId);
 
+        completeWithIdleTime(session, memberId);
+        discardIfNoReadTime(session);
+    }
+
+    private void completeWithIdleTime(ReadingSession session, Long memberId) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime lastHeartbeat = session.getLastHeartbeatAt();
 
