@@ -210,6 +210,11 @@ public class ReadingSession extends BaseEntity {
         return Math.round(total.toMillis() / 60_000.0);
     }
 
+    // 반올림한 총 독서 시간이 0분인 세션 (30초 미만). 기록·통계에 남기지 않는다
+    public boolean hasNoReadTime() {
+        return this.totalMinutes == null || this.totalMinutes == 0L;
+    }
+
     public void processIdleTime(LocalDateTime now) {
         Objects.requireNonNull(now, "now must not be null");
         this.lastHeartbeatAt = now;

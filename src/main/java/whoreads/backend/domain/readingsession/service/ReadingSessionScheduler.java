@@ -74,7 +74,13 @@ public class ReadingSessionScheduler {
             return;
         }
 
-        pausedSessions.forEach(ReadingSession::completeLeftover);
+        pausedSessions.forEach(session -> {
+            session.completeLeftover();
+            // 0분 세션은 기록·통계에 남기지 않는다
+            if (session.hasNoReadTime()) {
+                readingSessionRepository.delete(session);
+            }
+        });
 
         log.info("[ReadingSessionScheduler] 일시정지 후 완료 기준 시간이 경과한 세션 {}건 자동 완료 처리", pausedSessions.size());
     }
