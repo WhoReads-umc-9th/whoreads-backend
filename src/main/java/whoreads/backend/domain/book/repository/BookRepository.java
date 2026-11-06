@@ -22,7 +22,10 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     Page<Book> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
     // TopicBook과 조인해서 해당 테마(TopicTag)를 가진 책들만 가져오기
-    @Query("SELECT tb.book FROM TopicBook tb WHERE tb.topic.name = :theme")
+    // 서재에 담긴 횟수(상태 구분 없이 UserBook 1건당 1)가 많은 순, 같으면 제목순
+    @Query("SELECT tb.book FROM TopicBook tb WHERE tb.topic.name = :theme " +
+            "ORDER BY (SELECT COUNT(ub) FROM UserBook ub WHERE ub.book = tb.book) DESC, " +
+            "tb.book.title ASC, tb.book.id ASC")
     List<Book> findBooksByTheme(@Param("theme") TopicTag theme, Pageable pageable);
 
     // 주제별 전체 도서 권수 (메인 배너의 "총 N권" 표시용). findBooksByTheme과 같은 조건으로 센다
