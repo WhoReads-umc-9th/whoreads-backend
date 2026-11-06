@@ -101,6 +101,12 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
             throw new CustomException(ErrorCode.SESSION_NOT_ACTIVE);
         }
 
+        // 일시정지 후 complete_after_minutes가 지났으면 스케줄러가 완료하기 전이라도 재개할 수 없음
+        // 예외로 롤백되므로 세션 상태는 바꾸지 않고, 완료 처리는 스케줄러에 맡긴다
+        if (session.isPauseExpired(LocalDateTime.now())) {
+            throw new CustomException(ErrorCode.SESSION_EXPIRED);
+        }
+
         // 세션 재개 (엔티티 도메인 로직에서 상태 검증)
         session.resume();
 
@@ -250,13 +256,13 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
             throw new CustomException(ErrorCode.SESSION_NOT_ACTIVE);
         }
 
-        // 마지막 하트비트 시간 확인
-        LocalDateTime lastHeartbeat = session.getLastHeartbeatAt();
+        // 일시정지 세션은 일시정지한 시각, 그 외에는 마지막 하트비트 시각을 기준으로 확인 (스케줄러의 자동 완료 기준과 같다)
+        LocalDateTime lastActivity = session.lastActivityAt();
 
-        // 마지막 하트비트로부터 세션의 complete_after_minutes(기본 120분)를 초과했는지 확인
+        // 기준 시각으로부터 세션의 complete_after_minutes(기본 120분)를 초과했는지 확인
         // 예외를 던지면 트랜잭션이 롤백되므로 여기서 세션 상태를 바꾸지 않는다 (stale 세션 정리는 스케줄러가 담당)
-        Duration sinceLastHeartbeat = Duration.between(lastHeartbeat, now);
-        if (sinceLastHeartbeat.compareTo(Duration.ofMinutes(session.getCompleteAfterMinutes())) > 0) {
+        Duration sinceLastActivity = Duration.between(lastActivity, now);
+        if (sinceLastActivity.compareTo(Duration.ofMinutes(session.getCompleteAfterMinutes())) > 0) {
             throw new CustomException(ErrorCode.SESSION_EXPIRED);
         }
 
@@ -307,8 +313,9 @@ public class ReadingSessionServiceImpl implements ReadingSessionService {
         LocalDateTime lastHeartbeat = session.getLastHeartbeatAt();
 
         // 일시정지 중인 시간은 독서 시간이 아니므로 공백을 채우지 않고 완료
+        // 종료 시각은 요청 시각이 아니라 일시정지한 시각으로 두어 실제로 읽은 날짜에 집계되게 한다
         if (session.getStatus() == SessionStatus.PAUSED) {
-            session.complete();
+            session.completeLeftover();
             return;
         }
 

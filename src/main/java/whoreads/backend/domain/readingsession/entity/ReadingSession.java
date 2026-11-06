@@ -163,6 +163,26 @@ public class ReadingSession extends BaseEntity {
         }
     }
 
+    // 일시정지한 지 complete_after_minutes가 지났는지 (스케줄러의 자동 완료 기준과 같다)
+    public boolean isPauseExpired(LocalDateTime now) {
+        if (this.status != SessionStatus.PAUSED) {
+            return false;
+        }
+        LocalDateTime pausedAt = latestIntervalEndTime();
+        return pausedAt != null && pausedAt.plusMinutes(this.completeAfterMinutes).isBefore(now);
+    }
+
+    // 자동 완료·재개 만료 판단의 기준 시각. 일시정지 세션은 일시정지한 시각, 그 외에는 마지막 하트비트 시각
+    public LocalDateTime lastActivityAt() {
+        if (this.status == SessionStatus.PAUSED) {
+            LocalDateTime pausedAt = latestIntervalEndTime();
+            if (pausedAt != null) {
+                return pausedAt;
+            }
+        }
+        return this.lastHeartbeatAt;
+    }
+
     private LocalDateTime latestIntervalEndTime() {
         return this.intervals.stream()
                 .map(ReadingInterval::getEndTime)

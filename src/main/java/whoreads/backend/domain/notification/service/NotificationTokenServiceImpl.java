@@ -35,6 +35,12 @@ public class NotificationTokenServiceImpl implements NotificationTokenService {
                 .orElseThrow(()->new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         member.updateFcmToken(null);
     }
+    // FCM이 더는 유효하지 않다고 알려준 토큰을 모든 회원에서 제거
+    @Override
+    @Transactional
+    public void clearInvalidToken(String token){
+        memberRepository.clearToken(token);
+    }
     @Transactional(readOnly = true)
     @Override
     public String getToken(Long userId){
