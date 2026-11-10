@@ -73,7 +73,8 @@ class ReadingSessionTimerScenarioTest {
         scheduler.expireStaleSessions();          // 5분 기준 스케줄러 1회 실행
         dump("B (스케줄러 후)", sid);
         call("B complete", post("/api/reading-sessions/{id}/complete", sid));
-        dump("B", sid);
+        // heartbeat가 없어 확정 독서 시간이 0분이므로 세션이 저장되지 않는다
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM reading_session WHERE id = ?", Integer.class, sid)).isZero();
     }
 
     @Test

@@ -105,6 +105,7 @@ class ReadingSessionRecoverTest {
     @Test
     void 완료된_세션을_recover하면_409를_반환한다() throws Exception {
         long sid = start();
+        shiftStartMinutes(sid, 10);
         perform(post("/api/reading-sessions/{id}/complete", sid));
         assertThat(status(sid)).isEqualTo("COMPLETED");
 

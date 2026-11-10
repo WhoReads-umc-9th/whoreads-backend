@@ -166,6 +166,10 @@ public interface ReadingSessionControllerDocs {
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "일시정지한 지 complete_after_minutes(기본 120분)가 지나 재개할 수 없는 세션 (SESSION_EXPIRED). 이후 스케줄러가 완료 처리한다."
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "409",
                     description = "완료되었거나 중단된 세션 (일시정지 후 complete_after_minutes가 지나 자동 완료된 세션 포함)",
                     content = @Content(
@@ -310,8 +314,9 @@ public interface ReadingSessionControllerDocs {
     @Operation(
             summary = "중단된 시간 자동 정산 및 세션 완료",
             description = "마지막 하트비트 이후부터 현재까지의 중단된 시간을 독서 시간으로  인정하고 세션을 종료합니다. "
-                    + "진행 중인 구간이 있으면 그 구간을 현재 시각까지 독서 시간으로 인정합니다. "
-                    + "공백은 타이머 목표 시간까지만 채우며(목표 미설정 시 제한 없음), 일시정지 세션은 일시정지 시간을 더하지 않고 완료합니다."
+                    + "진행 중인 구간은 마지막 하트비트 시각까지 타이머 목표 시간과 관계없이 인정합니다. "
+                    + "그 이후 공백은 현재 시각까지 인정하되, 세션 총 독서 시간이 타이머 목표 시간에 도달하는 시각까지만 인정합니다(목표 미설정 시 제한 없음). "
+                    + "일시정지 세션은 공백을 더하지 않고 일시정지한 시각까지의 시간으로 완료합니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청이 성공했습니다."),

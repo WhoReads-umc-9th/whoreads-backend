@@ -185,6 +185,44 @@ class ReadingSessionSuspendedAutoCompleteTest {
         assertThat(row(sid).get("STATUS")).isEqualTo("IN_PROGRESS");
     }
 
+    @Test
+    @DisplayName("일시정지한 지 2시간이 지났으면 스케줄러가 돌기 전이라도 resume은 400(SESSION_EXPIRED)으로 거절하고 세션은 그대로 둔다")
+    void resume_expiredPausedSession_beforeScheduler_rejected() throws Exception {
+        long sid = pausedSession(200, 180);
+
+        assertThat(status(post("/api/reading-sessions/{id}/resume", sid))).isEqualTo(400);
+
+        assertThat(row(sid).get("STATUS")).isEqualTo("PAUSED");
+        scheduler.completeAbandonedPausedSessions();
+        assertThat(row(sid).get("STATUS")).isEqualTo("COMPLETED");
+    }
+
+    @Test
+    @DisplayName("일시정지 세션에 complete-idle-time을 호출하면 종료 시각은 요청 시각이 아니라 일시정지한 시각이다")
+    void idleTime_pausedSession_finishedAtIsPausedAt() throws Exception {
+        long sid = pausedSession(90, 60);
+        Object pausedAt = jdbc.queryForObject("SELECT end_time FROM reading_interval WHERE session_id = ?", Object.class, sid);
+
+        assertThat(status(patch("/api/reading-sessions/{id}/complete-idle-time", sid))).isEqualTo(200);
+
+        Map<String, Object> after = row(sid);
+        assertThat(after.get("STATUS")).isEqualTo("COMPLETED");
+        assertThat(after.get("FINISHED_AT")).isEqualTo(pausedAt);
+    }
+
+    @Test
+    @DisplayName("일시정지 세션의 recover 만료는 마지막 하트비트가 아니라 일시정지한 시각 기준이다")
+    void recover_pausedSession_expiryUsesPausedAt() throws Exception {
+        long recent = pausedSession(200, 60);   // 60분 전에 일시정지 (2시간 안)
+        jdbc.update("UPDATE reading_session SET last_heartbeat_at = DATEADD('MINUTE', -150, CURRENT_TIMESTAMP) WHERE id = ?", recent);
+        assertThat(status(post("/api/reading-sessions/{id}/recover", recent))).isEqualTo(200);
+
+        owner = newMember();
+        long expired = pausedSession(300, 180);   // 180분 전에 일시정지 (2시간 초과)
+        assertThat(status(post("/api/reading-sessions/{id}/recover", expired))).isEqualTo(400);
+        assertThat(row(expired).get("STATUS")).isEqualTo("PAUSED");
+    }
+
     // ---- helpers ----
 
     // startedMinutesAgo분 전에 시작해 pausedMinutesAgo분 전에 일시정지한 세션

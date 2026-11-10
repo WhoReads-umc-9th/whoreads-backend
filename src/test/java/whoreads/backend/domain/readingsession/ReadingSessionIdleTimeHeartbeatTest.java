@@ -181,6 +181,7 @@ class ReadingSessionIdleTimeHeartbeatTest {
     @DisplayName("완료된 세션의 heartbeat는 409로 거절한다")
     void heartbeat_completedSession_conflict() throws Exception {
         long sid = start(owner);
+        jdbc.update("UPDATE reading_interval SET start_time = DATEADD('MINUTE', -10, start_time) WHERE session_id = ?", sid);
         assertThat(status(owner, post("/api/reading-sessions/{id}/complete", sid))).isEqualTo(200);
 
         assertThat(status(owner, patch("/api/reading-sessions/{id}/heartbeat", sid))).isEqualTo(409);
