@@ -143,12 +143,12 @@ class ReadingSessionTimerIntervalsTest {
     void recover_respectsSessionCompleteAfter() throws Exception {
         long expired = start("{\"complete_after_minutes\":30}");
         setHeartbeatMinutesAgo(expired, 40);
-        assertThat(status(get("/api/reading-sessions/{id}/recover/", expired))).isEqualTo(400);
+        assertThat(status(post("/api/reading-sessions/{id}/recover", expired))).isEqualTo(400);
 
         owner = newMember();
         long recoverable = start("{\"complete_after_minutes\":60}");
         setHeartbeatMinutesAgo(recoverable, 40);
-        assertThat(status(get("/api/reading-sessions/{id}/recover/", recoverable))).isEqualTo(200);
+        assertThat(status(post("/api/reading-sessions/{id}/recover", recoverable))).isEqualTo(200);
     }
 
     // ---- helpers ----

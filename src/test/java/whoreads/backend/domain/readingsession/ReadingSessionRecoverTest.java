@@ -81,36 +81,15 @@ class ReadingSessionRecoverTest {
     }
 
     @Test
-    void 구버전_GET_recover_끝_슬래시_경로는_POST와_같은_응답을_반환한다() throws Exception {
-        saveTimerMinutes(30L);
-
-        long legacySid = start();
-        setHeartbeatMinutesAgo(legacySid, 0);
-        MvcResult legacy = perform(get("/api/reading-sessions/{id}/recover/", legacySid));
-        assertThat(status(legacySid)).isEqualTo("IN_PROGRESS");
-        perform(post("/api/reading-sessions/{id}/complete", legacySid));
-
+    void recover를_끝_슬래시_GET으로_호출하면_404를_반환한다() throws Exception {
         long sid = start();
         setHeartbeatMinutesAgo(sid, 0);
-        MvcResult current = perform(post("/api/reading-sessions/{id}/recover", sid));
-        assertThat(status(sid)).isEqualTo("IN_PROGRESS");
-
-        assertThat(legacy.getResponse().getStatus()).isEqualTo(200);
-        assertThat(body(legacy).path("result").path("remaining_minutes").asLong()).isEqualTo(30L);
-        assertThat(body(legacy)).isEqualTo(body(current));
-    }
-
-    @Test
-    void 구버전_GET_recover로_완료된_세션을_재개하면_409를_반환한다() throws Exception {
-        long sid = start();
-        shiftStartMinutes(sid, 10);
-        perform(post("/api/reading-sessions/{id}/complete", sid));
 
         MvcResult r = perform(get("/api/reading-sessions/{id}/recover/", sid));
 
-        assertThat(r.getResponse().getStatus()).isEqualTo(409);
-        assertThat(r.getResponse().getContentAsString(StandardCharsets.UTF_8))
-                .contains("중단된 세션이거나 완료된 세션입니다.");
+        assertThat(r.getResponse().getStatus()).isEqualTo(404);
+        assertThat(body(r).path("is_success").asBoolean()).isFalse();
+        assertThat(status(sid)).isEqualTo("IN_PROGRESS");
     }
 
     @Test
