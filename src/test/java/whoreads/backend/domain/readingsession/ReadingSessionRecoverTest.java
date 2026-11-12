@@ -81,13 +81,14 @@ class ReadingSessionRecoverTest {
     }
 
     @Test
-    void recover를_끝_슬래시_GET으로_호출하면_성공하지_않는다() throws Exception {
+    void recover를_끝_슬래시_GET으로_호출하면_404를_반환한다() throws Exception {
         long sid = start();
         setHeartbeatMinutesAgo(sid, 0);
 
         MvcResult r = perform(get("/api/reading-sessions/{id}/recover/", sid));
 
-        assertThat(r.getResponse().getStatus()).isGreaterThanOrEqualTo(400);
+        assertThat(r.getResponse().getStatus()).isEqualTo(404);
+        assertThat(body(r).path("is_success").asBoolean()).isFalse();
         assertThat(status(sid)).isEqualTo("IN_PROGRESS");
     }
 
